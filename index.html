@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aleks — Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="is-loading">
+  <div class="loader" id="loader">
+    <div class="loader__inner">
+      <svg class="loader__spiral" viewBox="0 0 200 320" fill="none" stroke="currentColor" stroke-width="1">
+        <rect x="1" y="1" width="198" height="318" />
+        <line x1="1" y1="199" x2="199" y2="199" />
+        <line x1="79" y1="199" x2="79" y2="319" />
+        <line x1="1" y1="241" x2="79" y2="241" />
+        <line x1="43" y1="199" x2="43" y2="241" />
+        <path class="loader__path" pathLength="100" d="M1 1 A198 198 0 0 1 199 199 A120 120 0 0 1 79 319 A78 78 0 0 1 1 241 A42 42 0 0 1 43 199" />
+      </svg>
+      <div class="loader__label"><span>loading</span><span class="loader__pct" id="loader-pct">0%</span></div>
+      <p class="loader__quote">
+        <span class="loader__line">Talk is cheap.</span>
+        <span class="loader__line">Show me the code.</span>
+        <span class="loader__author">Linus Torvalds</span>
+      </p>
+    </div>
+  </div>
+
+  <canvas id="scene" class="scene"></canvas>
+
+  <header class="nav" id="nav">
+    <a class="nav__logo" href="#">ALEKS</a>
+    <button class="nav__menu" type="button" aria-label="Menu"><span></span><span></span></button>
+  </header>
+
+  <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-hint__mouse"><span></span></div>
+    <span class="scroll-hint__text">[ scroll down ]</span>
+  </div>
+
+  <div class="grain" aria-hidden="true"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
