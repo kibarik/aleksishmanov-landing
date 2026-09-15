@@ -1,7 +1,8 @@
 :root { --black: #0a0a0a; --font: 'Manrope', system-ui, sans-serif; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--black); color: #fff; font-family: var(--font); }
-body.is-sticky, body.is-light { background: #f9f9f9; }
+body.is-sticky, body.is-loading { overflow: hidden; height: 100vh; }
+body.is-light { background: #f9f9f9; }
 body { -webkit-font-smoothing: antialiased; }
 
 .hero { position: fixed; inset: 0; height: 100vh; z-index: 0; }
