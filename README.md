@@ -21,3 +21,11 @@ await window.__compare()   // { ref, ours, diff, score } — меньше score 
 
 Метрики и веса — `src/compare.js`, история прогонов — `tests/log.md`, скриншоты — `tests/shots/`.
 Прогон через Playwright: navigate → wait → `__app.setLightOn(1)` → `__compare()` → screenshot.
+
+## Скролл-переход (по bersus.io)
+
+Разбор оригинала: `tests/bersus-scroll-analysis.md` (шаги, модель скролла, камера, глитч, свет).
+Реализация: `src/stickyScroll.js` (виртуальный скролл: commit/snap/паузы/prelude/release),
+`src/glitchShader.js` (порт глитч-пасса), таймлайн в `src/scene.js` (`applyTimeline`).
+Шаги: init → black-man (prelude 2 с) → into-white (глитч, свап на 36%) → full (статуя, теглайн) → release.
+Кадры прогонов: `tests/shots/scroll/`, кадры оригинала: `tests/ref-scroll/`.
