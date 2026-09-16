@@ -21,6 +21,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GrainShader } from './grainShader.js';
 import { GlitchShader } from './glitchShader.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -36,9 +38,9 @@ const WHITE = new THREE.Color(3, 3, 3); // >1: после ACES tone mapping да
 // Параметры bersus (desktop)
 const SWAP_POINT = 0.36;          // color swap внутри black-man → into-white
 const GLITCH_START = 0.01, GLITCH_END = 0.9;
-const KEY_LIGHT_MAX = 1.7;        // у них 1.11 в своих единицах; подобрано под нашу экспозицию
-const ENV_FADE = { start: 0.25, duration: 0.3, to: 1.25 };
-const SHADOW_FLOOR = { before: 0.13, after: 0.1 };
+const KEY_LIGHT_MAX = 2.8;        // у них 1.11 в своих единицах; подобрано под нашу экспозицию
+const ENV_FADE = { start: 0.25, duration: 0.3, to: 0.55 }; // у bersus 1.25, но их статуя с запечённой тенью; нам нужен контраст от key
+const SHADOW_FLOOR = { before: 0.2, after: 0.32 }; // у bersus .13→.1, но их тень с текстурой пола читается сильнее
 const TAGLINE_AT = 0.75;
 // Mobile (bersus, UNIT 260, black-man 260 → full 1053): свап на абсолютном 370, заголовок с 560
 const MOBILE = {
@@ -106,9 +108,14 @@ export async function createScene(canvas, { onProgress } = {}) {
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  material.roughness = mix(material.roughness, 0.62, headMask);');
   };
   // Белая фаза: мраморная статуя. Без света читается чёрным силуэтом (как у bersus после свапа).
+  const marbleAlbedo = marbleTexture(1024);
+  marbleAlbedo.repeat.set(3, 3);
+  const marbleNormal = noiseNormalTexture(512, 3.0);
+  marbleNormal.repeat.set(10, 10);
   const statueMat = new THREE.MeshPhysicalMaterial({
-    color: 0x9a9791, roughness: 0.72, roughnessMap: grain, metalness: 0,
-    normalMap: grainNormal, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.55,
+    color: 0xa39f99, map: marbleAlbedo, roughness: 0.74, roughnessMap: grain, metalness: 0,
+    normalMap: marbleNormal, normalScale: new THREE.Vector2(1.0, 1.0), envMapIntensity: 0.5,
+    sheen: 0.25, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.9,
   });
   const meshes = [];
   root.traverse((o) => {
@@ -135,17 +142,23 @@ export async function createScene(canvas, { onProgress } = {}) {
   const white = new THREE.Group();
   white.visible = false;
   scene.add(white);
-  const marble = new THREE.MeshPhysicalMaterial({ color: 0x96938d, roughness: 0.76, normalMap: grainNormal, normalScale: new THREE.Vector2(0.3, 0.3), envMapIntensity: 1 });
+  const marble = new THREE.MeshPhysicalMaterial({ color: 0xa5a29c, map: marbleAlbedo, roughness: 0.8, normalMap: marbleNormal, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.6 });
   const PED_H = 0.62;
   const ped = new THREE.Group();
   ped.position.y = -PED_H;
-  ped.add(mesh(new THREE.CylinderGeometry(0.44, 0.44, PED_H - 0.14, 48), marble, [0, PED_H / 2, 0]));
-  ped.add(mesh(new THREE.CylinderGeometry(0.56, 0.5, 0.07, 48), marble, [0, PED_H - 0.035, 0]));
-  ped.add(mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.08, 48), marble, [0, 0.04, 0]));
-  const fluteGeo = new THREE.CylinderGeometry(0.035, 0.035, PED_H - 0.16, 10);
-  for (let i = 0; i < 26; i++) {
-    const a = (i / 26) * Math.PI * 2;
-    ped.add(mesh(fluteGeo, marble, [Math.cos(a) * 0.44, PED_H / 2, Math.sin(a) * 0.44]));
+  // профиль колонны (радиус, высота) снизу вверх: плинт → валик → ствол → валик → абака
+  const profile = [
+    [0.0, 0.0], [0.62, 0.0], [0.62, 0.05], [0.58, 0.06], [0.56, 0.1], [0.5, 0.115], [0.47, 0.14],
+    [0.44, 0.16], [0.44, 0.48], [0.47, 0.5], [0.5, 0.525], [0.55, 0.545], [0.57, 0.575], [0.57, 0.6], [0.55, 0.62], [0.0, 0.62],
+  ].map(([r, y]) => new THREE.Vector2(r, y));
+  const column = new THREE.Mesh(new THREE.LatheGeometry(profile, 96), marble);
+  ped.add(column);
+  // каннелюры: полукруглые желобки, вырезанные «в обратную» — узкие цилиндры чуть утоплены в ствол
+  const fluteGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.3, 12);
+  const fluteMat = marble.clone(); fluteMat.color.setHex(0x8f8c86);
+  for (let i = 0; i < 28; i++) {
+    const a = (i / 28) * Math.PI * 2;
+    ped.add(mesh(fluteGeo, fluteMat, [Math.cos(a) * 0.445, 0.32, Math.sin(a) * 0.445]));
   }
   ped.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   white.add(ped);
@@ -156,10 +169,42 @@ export async function createScene(canvas, { onProgress } = {}) {
   white.add(floor);
   // 3D-текст позади фигуры: плоскость с canvas-текстурой, фигура перекрывает буквы
   const titleTex = makeTitleTexture('ALEKS');
+  document.fonts?.load('900 400px Montserrat').then(() => { drawTitle(titleTex.image, 'ALEKS'); titleTex.needsUpdate = true; }).catch(() => {});
   const title = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0x0a0a0a }));
   title.position.set(0, 1.12, -0.9);
   title.castShadow = true;
   white.add(title);
+  // Пропсы вокруг пьедестала — вместо шахмат bersus: глянцевые чёрные глифы кода
+  const glyphMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 1.4 });
+  const props = [];
+  new FontLoader().load('/fonts/helvetiker_bold.typeface.json', (font) => {
+    const add = (ch, size, pos, rot) => {
+      const g = new TextGeometry(ch, { font, size, depth: size * 0.42, curveSegments: 10, bevelEnabled: true, bevelThickness: size * 0.03, bevelSize: size * 0.025, bevelSegments: 3 });
+      g.center();
+      const m = new THREE.Mesh(g, glyphMat);
+      m.position.set(...pos); m.rotation.set(...rot);
+      m.castShadow = true; m.receiveShadow = true;
+      m.userData.base = { pos: [...pos], size };
+      white.add(m); props.push(m);
+      return m;
+    };
+    // лежит слева, стоит справа, брошен под углом за спиной справа
+    add('{', 0.42, [-1.55, -PED_H + 0.22, 0.1], [0, 0.35, -0.12]);
+    add('}', 0.42, [1.45, -PED_H + 0.22, 0.25], [0, -0.3, 0.1]);
+    add('/', 0.5, [2.05, -PED_H + 0.07, -0.7], [Math.PI / 2, 0, 0.6]);
+    add(';', 0.34, [-1.05, -PED_H + 0.18, 0.75], [0, 0.5, 0]);
+    add('<', 0.36, [-2.2, -PED_H + 0.19, -0.6], [0, 0.8, 0]);
+    layoutProps();
+  });
+  function layoutProps() {
+    // на мобильном кадр узкий: пропсы ближе к пьедесталу и мельче
+    const k = preset === 'mobile' ? 0.5 : 1;
+    for (const m of props) {
+      const b = m.userData.base;
+      m.position.set(b.pos[0] * k, b.pos[1] - (1 - k) * b.size * 0.25, b.pos[2] * k);
+      m.scale.setScalar(preset === 'mobile' ? 0.75 : 1);
+    }
+  }
 
   // ---------- lights ----------
   const target = new THREE.Vector3(0, 1.35, 0);
@@ -191,17 +236,17 @@ export async function createScene(canvas, { onProgress } = {}) {
   let lightOn = 0;
   // Белая фаза: key light bersus (−1, 3, 1) с тенью на пол
   const key = new THREE.DirectionalLight(0xffffff, 0);
-  key.position.set(-2.4, 4.0, 2.4);
-  key.target.position.set(0, 0.8, 0);
+  key.position.set(-3.2, 3.6, 2.8);
+  key.target.position.set(0, 0.7, 0);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = key.shadow.camera.bottom = -3;
-  key.shadow.camera.right = key.shadow.camera.top = 3;
-  key.shadow.camera.near = 0.5; key.shadow.camera.far = 12;
-  key.shadow.bias = -0.0007; key.shadow.normalBias = 0.03;
-  key.shadow.radius = 4;
+  key.shadow.camera.left = key.shadow.camera.bottom = -3.2;
+  key.shadow.camera.right = key.shadow.camera.top = 3.2;
+  key.shadow.camera.near = 0.5; key.shadow.camera.far = 14;
+  key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+  key.shadow.radius = 2.5;
   scene.add(key, key.target);
-  const keyFill = new THREE.HemisphereLight(0xffffff, 0xd9d6d0, 0);
+  const keyFill = new THREE.HemisphereLight(0xffffff, 0xb9b5ae, 0);
   scene.add(keyFill);
 
   // ---------- camera keyframes (координаты bersus × 0.85, наша тёмная поза оставлена как есть) ----------
@@ -285,13 +330,17 @@ export async function createScene(canvas, { onProgress } = {}) {
     document.body.classList.toggle('is-light', on);
     grainPass.uniforms.amount.value = on ? 0.025 : 0.07;
     // AO на белом фоне даёт грязь по краям — ослабляем
-    gtao.enabled = !on; // на белом AO даёт грязный ореол вокруг фигуры
+    // на белом: AO с малым радиусом подчёркивает складки, большой радиус даёт ореол на буквах
+    gtao.updateGtaoMaterial(on
+      ? { radius: 0.08, distanceExponent: 1.0, thickness: 0.7, scale: 1.8, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false }
+      : { radius: 0.22, distanceExponent: 1.5, thickness: 1.0, scale: 1.4, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false });
+    gtao.blendIntensity = on ? 0.9 : 1.0;
   }
 
   let preset = 'desktop';
   function layoutTitle() {
     // desktop: буквы за торсом; mobile: над головой, узкая ширина под портрет
-    if (preset === 'mobile') { title.position.set(0, 2.12, -0.6); title.scale.setScalar(0.58); } // текст занимает ~59% ширины плоскости
+    if (preset === 'mobile') { title.position.set(0, 2.1, -0.6); title.scale.setScalar(0.47); } // текст занимает ~70% ширины плоскости (Montserrat 900)
     else { title.position.set(0, 1.12, -0.9); title.scale.setScalar(1); }
     titleBase.y = title.position.y; titleBase.scale = title.scale.x;
   }
@@ -321,8 +370,8 @@ export async function createScene(canvas, { onProgress } = {}) {
     // key light сразу после свапа, env по всему сегменту
     const keyOn = tl.swapped ? 1 : 0;
     key.intensity = KEY_LIGHT_MAX * keyOn;
-    keyFill.intensity = 0.3 * keyOn; // на мобильном статуя сразу светлая (у bersus текстуры с запечённым светом)
-    scene.environmentIntensity = tl.swapped ? lerp(0.5, ENV_FADE.to, t) : 0.1;
+    keyFill.intensity = 0.12 * keyOn;
+    scene.environmentIntensity = tl.swapped ? lerp(0.3, ENV_FADE.to, t) : 0.1;
     floor.material.opacity = keyOn ? SHADOW_FLOOR.after : SHADOW_FLOOR.before;
 
     // заголовок: выезжает снизу и уменьшается 1.2 → 1 (smoothstep от 37.8% до 100%)
@@ -376,7 +425,7 @@ export async function createScene(canvas, { onProgress } = {}) {
     // --- свет белой фазы: key 0→max по всему сегменту, env на 25%…55%
     const keyFade = t23;
     key.intensity = KEY_LIGHT_MAX * keyFade;
-    keyFill.intensity = 0.12 * keyFade;
+    keyFill.intensity = 0.07 * keyFade;
     const envT = seg(t23, ENV_FADE.start, ENV_FADE.start + ENV_FADE.duration);
     scene.environmentIntensity = tl.swapped ? ENV_FADE.to * envT : 0.1;
     floor.material.opacity = lerp(SHADOW_FLOOR.before, SHADOW_FLOOR.after, keyFade);
@@ -448,7 +497,7 @@ export async function createScene(canvas, { onProgress } = {}) {
 
   return {
     start() { running = true; frame(); },
-    attachScroll(s, p = 'desktop') { sticky = s; preset = p; layoutTitle(); },
+    attachScroll(s, p = 'desktop') { sticky = s; preset = p; layoutTitle(); layoutProps(); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },
@@ -464,15 +513,56 @@ function mesh(geo, mat, pos) { const m = new THREE.Mesh(geo, mat); m.position.se
 function makeTitleTexture(text) {
   const c = document.createElement('canvas');
   c.width = 2048; c.height = 512;
+  drawTitle(c, text);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+function drawTitle(c, text) {
   const ctx = c.getContext('2d');
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.fillStyle = '#000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '900 400px Manrope, "Helvetica Neue", Arial, sans-serif';
-  ctx.letterSpacing = '-12px';
-  ctx.fillText(text, c.width / 2, c.height / 2 + 20);
+  ctx.font = '900 430px Montserrat, "Helvetica Neue", Arial, sans-serif';
+  ctx.letterSpacing = '-18px';
+  ctx.fillText(text, c.width / 2, c.height / 2 + 24);
+}
+
+/** Мрамор: светлая база, тонкие тёмные прожилки, лёгкие пятна. */
+function marbleTexture(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#d9d6d0';
+  ctx.fillRect(0, 0, size, size);
+  let seed = 777;
+  const rnd = () => { seed = (seed * 48271) % 2147483647; return (seed - 1) / 2147483646; };
+  // пятна
+  for (let i = 0; i < 260; i++) {
+    const r = 20 + rnd() * 120;
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    const k = 0.05 + rnd() * 0.08;
+    g.addColorStop(0, `rgba(80,76,70,${k})`); g.addColorStop(1, 'rgba(80,76,70,0)');
+    ctx.save(); ctx.translate(rnd() * size, rnd() * size); ctx.fillStyle = g; ctx.fillRect(-r, -r, r * 2, r * 2); ctx.restore();
+  }
+  // прожилки
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 26; i++) {
+    let x = rnd() * size, y = rnd() * size, a = rnd() * Math.PI * 2;
+    ctx.strokeStyle = `rgba(70,66,60,${0.12 + rnd() * 0.18})`;
+    ctx.lineWidth = 1 + rnd() * 2.5;
+    ctx.beginPath(); ctx.moveTo(x, y);
+    for (let k = 0; k < 40; k++) { a += (rnd() - 0.5) * 0.9; x += Math.cos(a) * 14; y += Math.sin(a) * 14; ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+  // мелкое зерно
+  const img = ctx.getImageData(0, 0, size, size);
+  for (let i = 0; i < img.data.length; i += 4) { const n = (rnd() - 0.5) * 14; img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n; }
+  ctx.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
   return tex;
