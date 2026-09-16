@@ -14,20 +14,20 @@
  *   s.start();  s.progress;  s.onProgress(fn);  s.destroy()
  */
 
-export const UNIT = 200;
+export const MOBILE_BREAKPOINT = 1024;
+export const UNITS = { desktop: 200, mobile: 260 };
+export const UNIT = UNITS.desktop;
 
-const CFG = {
-  wheelSensitivity: 0.4,
-  wheelClamp: 100,
-  touchPixelScale: 3.2,
-  keyboardStep: 60,
-  lerpTarget: 0.035,
-  lerpCurrent: 0.04,
-  maxSpeed: 12,
-  preludeDelayMs: 500,
-  preludeDurationMs: 2000,
-  snapEps: 0.05,
+export function getDevicePreset() {
+  return window.innerWidth <= MOBILE_BREAKPOINT ? 'mobile' : 'desktop';
+}
+
+// STICKY_CONFIG.desktop / .mobile из bersus
+const PRESETS = {
+  desktop: { wheelSensitivity: 0.4, wheelClamp: 100, touchPixelScale: 3.2, lerpTarget: 0.035, lerpCurrent: 0.04, maxSpeed: 12 },
+  mobile: { wheelSensitivity: 1.4, wheelClamp: 140, touchPixelScale: 5.1, lerpTarget: 0.065, lerpCurrent: 0.07, maxSpeed: 7 },
 };
+const COMMON = { keyboardStep: 60, preludeDelayMs: 500, preludeDurationMs: 2000, snapEps: 0.05 };
 
 const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
@@ -40,7 +40,8 @@ export function buildSteps(defs) {
   });
 }
 
-export function createStickyScroll({ steps, segments, pauses = [], onRelease } = {}) {
+export function createStickyScroll({ steps, segments, pauses = [], onRelease, preset = 'desktop' } = {}) {
+  const CFG = { ...COMMON, ...(PRESETS[preset] || PRESETS.desktop) };
   const maxProgress = steps[steps.length - 1].progress;
   const stepById = (id) => steps.find((s) => s.id === id);
   const prog = (id) => stepById(id)?.progress ?? 0;

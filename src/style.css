@@ -71,4 +71,7 @@ body.is-light .nav { color: #111; }
 @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,2%)} 40%{transform:translate(2%,-4%)} 60%{transform:translate(-4%,-1%)} 80%{transform:translate(3%,3%)} 100%{transform:translate(0,0)} }
 
 @media (max-width: 720px) { .nav { padding: 20px; } .scroll-hint { right: 20px; bottom: 24px; } }
+body[data-preset="mobile"] .tagline { top: 10.5vh; font-size: 13px; }
+body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 6.5vh; align-items: center; }
+body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
 @media (prefers-reduced-motion: reduce) { .grain, .scroll-hint__mouse span { animation: none; } }

@@ -102,3 +102,30 @@ Cursor-параллакс (`PC_CURSOR`), idle breath, шахматы интер�
 | releaseToNative                 | после `full` отпускаем body scroll, контент ниже        |
 
 Масштаб: их персонаж ≈ 2.2 ед. (target головы 2.13), наш 1.85 → координаты камеры × 0.85.
+
+## 5. Мобильный таймлайн (width ≤ 1024, `MOBILE_BREAKPOINT`)
+
+Кадры: `tests/ref-scroll/mobile/m*.png`. Камера: `camera_mobile.glb`.
+
+| step      | длина       | прогресс | кадры camera_mobile.glb |
+|-----------|-------------|----------|-------------------------|
+| init      | —           | 0        | 0                       |
+| black-man | 1.0·UNIT    | 260      | 0–50 (prelude)          |
+| full      | 3.05·UNIT   | 1053     | 51–100 на первых 49.5% сегмента, 101–135.3 на остатке |
+
+`UNIT = 260`. Шага into-white нет: один сегмент black-man → full, `commit 0.3`, пауза 500 мс только на full.
+Ввод: wheelSensitivity 1.4, wheelClamp 140, touchPixelScale 5.1, lerpTarget .065, lerpCurrent .07, maxSpeed 7.
+
+Отличия от desktop:
+- **Глитча нет** (`GlitchScrollDriver`: mobile → bypass).
+- **Color swap** на абсолютном прогрессе 370 (`MOBILE_COLOR_SWAP_PROGRESS`) = 13.9% сегмента.
+- **Камера облетает фигуру по дуге**, не пролетает сквозь: cam_1_root
+  init (0, 2.05, −3.49) → black-man (0, 1.92, −2.08) → f65 (2.87, 1.68, −0.97) → f70 (3.86, 1.61, 0.96) →
+  f75 (4.07, 1.62, 3.36) → f80 (3.58, 1.67, 5.74) → f90 (1.33, 1.81, 9.16) → f100 (0, 1.88, 10.28), дальше почти статично.
+  Target статичен (0.03, 2.10, 0). Фокусное 24 → 50 мм (fov 53° → 27°) по всему сегменту.
+- **Key light** включается сразу после свапа (`getKeyLightFade`: mobile → isPastColorSwapThreshold ? 1 : 0),
+  тени сразу в «after»-значениях. **Env** 0 → 1.25 по всему сегменту (`start 0, duration 1`).
+- **Заголовок**: скрыт до свапа, потом выезжает снизу: yOffset −0.8 → 0, scale 1.2 → 1,
+  smoothstep от прогресса 560 (`MOBILE_BERSUS_Y_ANIM_START`, 37.8% сегмента) до full. В финале стоит НАД головой.
+- **Теглайн** с 88% сегмента (`DDM_MOBILE.appear`, duration .1). Scroll hint скрывается на 88%.
+- Курсор-параллакс и chess float выключены (амплитуды 0), body anim с 92%.

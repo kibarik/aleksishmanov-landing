@@ -40,6 +40,16 @@ const KEY_LIGHT_MAX = 1.7;        // у них 1.11 в своих единица
 const ENV_FADE = { start: 0.25, duration: 0.3, to: 1.25 };
 const SHADOW_FLOOR = { before: 0.13, after: 0.1 };
 const TAGLINE_AT = 0.75;
+// Mobile (bersus, UNIT 260, black-man 260 → full 1053): свап на абсолютном 370, заголовок с 560
+const MOBILE = {
+  swapLocal: (370 - 260) / (1053 - 260),      // 0.139
+  titleFrom: (560 - 260) / (1053 - 260),      // 0.378
+  orbitEnd: 0.494949,                          // кадры 51–100 занимают первые 49.5% сегмента
+  taglineAt: 0.88,
+  hintHideAt: 0.88,
+  mmFrom: 24, mmTo: 46,
+  titleYOffset: -0.8, titleScaleFrom: 1.2,
+};
 const mmToFov = (mm) => THREE.MathUtils.radToDeg(2 * Math.atan(24 / (2 * mm))); // sensor 24 мм
 
 export async function createScene(canvas, { onProgress } = {}) {
@@ -206,6 +216,18 @@ export async function createScene(canvas, { onProgress } = {}) {
     intoWhite: { pos: [0, 0.9, 10.5],   tgt: [0, 1.1, 0],     mm: 55 },
     full:      { pos: [0, 2.14, 8.74],  tgt: [0, 0.95, 0],    mm: 60 },
   };
+  // Mobile: camera_mobile.glb × 0.85 — камера облетает фигуру по дуге, target статичен
+  const KFM = {
+    init:     { pos: [0, 1.74, -2.97], tgt: [0.03, 1.55, 0] },
+    blackMan: { pos: [0, 1.63, -1.77], tgt: [0.03, 1.55, 0] },
+    full:     { pos: [0, 1.6, 8.74],   tgt: [0.03, 0.9, 0] },
+  };
+  const orbit = new THREE.CatmullRomCurve3([
+    [0, 1.63, -1.77], [1.2, 1.53, -1.62], [2.44, 1.43, -0.82], [3.28, 1.37, 0.82],
+    [3.46, 1.38, 2.86], [3.04, 1.42, 4.88], [1.13, 1.54, 7.79], [0, 1.6, 8.74],
+  ].map((p) => new THREE.Vector3(...p)), false, 'centripetal');
+  const titleBase = { y: title.position.y, z: title.position.z };
+
   function darkFov(aspect) {
     // кадр тёмной фазы: от макушки до пояса; в портрете — чтобы плечи влезли по ширине
     const dist = 4.2;
@@ -266,8 +288,58 @@ export async function createScene(canvas, { onProgress } = {}) {
     gtao.enabled = !on; // на белом AO даёт грязный ореол вокруг фигуры
   }
 
+  let preset = 'desktop';
+  function layoutTitle() {
+    // desktop: буквы за торсом; mobile: над головой, узкая ширина под портрет
+    if (preset === 'mobile') { title.position.set(0, 2.12, -0.6); title.scale.setScalar(0.58); } // текст занимает ~59% ширины плоскости
+    else { title.position.set(0, 1.12, -0.9); title.scale.setScalar(1); }
+    titleBase.y = title.position.y; titleBase.scale = title.scale.x;
+  }
+
+  /** Mobile: один сегмент black-man → full, без глитча, орбита камеры, key light сразу после свапа. */
+  function applyTimelineMobile(sticky) {
+    const t01 = sticky.local('init', 'black-man');
+    const t = sticky.local('black-man', 'full');
+    tl.t01 = t01; tl.t12 = t; tl.t23 = t;
+    const a = camera.aspect;
+    if (t <= 0) {
+      const e = easeInOutCubic(t01);
+      cam.pos.fromArray(KFM.init.pos).lerp(new THREE.Vector3().fromArray(KFM.blackMan.pos), e);
+      cam.tgt.fromArray(KFM.init.tgt).lerp(new THREE.Vector3().fromArray(KFM.blackMan.tgt), e);
+    } else {
+      const u = clamp01(t / MOBILE.orbitEnd);
+      orbit.getPointAt(easeInOutCubic(u), cam.pos);
+      cam.tgt.fromArray(KFM.blackMan.tgt).lerp(new THREE.Vector3().fromArray(KFM.full.tgt), easeInOutCubic(u));
+    }
+    cam.fov = lerp(mmToFov(MOBILE.mmFrom), mmToFov(MOBILE.mmTo), t); // 24 → 50 мм
+    void a;
+
+    glitchPass.uniforms.uBypass.value = 1;
+    tl.glitch = 0;
+    setSwapped(t >= MOBILE.swapLocal);
+
+    // key light сразу после свапа, env по всему сегменту
+    const keyOn = tl.swapped ? 1 : 0;
+    key.intensity = KEY_LIGHT_MAX * keyOn;
+    keyFill.intensity = 0.3 * keyOn; // на мобильном статуя сразу светлая (у bersus текстуры с запечённым светом)
+    scene.environmentIntensity = tl.swapped ? lerp(0.5, ENV_FADE.to, t) : 0.1;
+    floor.material.opacity = keyOn ? SHADOW_FLOOR.after : SHADOW_FLOOR.before;
+
+    // заголовок: выезжает снизу и уменьшается 1.2 → 1 (smoothstep от 37.8% до 100%)
+    const st = seg(t, MOBILE.titleFrom, 1);
+    const u2 = st * st * (3 - 2 * st);
+    title.position.y = titleBase.y + MOBILE.titleYOffset * (1 - u2);
+    title.scale.setScalar(titleBase.scale * lerp(MOBILE.titleScaleFrom, 1, u2));
+    title.visible = tl.swapped;
+
+    tl.tagline = t >= MOBILE.taglineAt;
+    tl.hintHidden = t >= MOBILE.hintHideAt;
+    for (const fn of listeners) fn(tl);
+  }
+
   /** sticky — объект из stickyScroll: local(from, to). */
   function applyTimeline(sticky) {
+    if (preset === 'mobile') return applyTimelineMobile(sticky);
     const t01 = sticky.local('init', 'black-man');
     const t12 = sticky.local('black-man', 'into-white');
     const t23 = sticky.local('into-white', 'full');
@@ -348,7 +420,7 @@ export async function createScene(canvas, { onProgress } = {}) {
     pivot.rotation.y = state.baseRotY + Math.sin(t * 0.35) * 0.01;
     pivot.position.y = Math.sin(t * 1.1) * 0.003;
     const side = tl.swapped ? 1 : -1;
-    const par = tl.swapped ? 0.5 : 1;
+    const par = preset === 'mobile' ? 0 : (tl.swapped ? 0.5 : 1);
     camPos.copy(cam.pos);
     camPos.x += side * mouse.sx * 0.15 * par;
     camPos.y += -mouse.sy * 0.06 * par;
@@ -376,7 +448,7 @@ export async function createScene(canvas, { onProgress } = {}) {
 
   return {
     start() { running = true; frame(); },
-    attachScroll(s) { sticky = s; },
+    attachScroll(s, p = 'desktop') { sticky = s; preset = p; layoutTitle(); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },

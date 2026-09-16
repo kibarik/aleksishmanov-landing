@@ -29,3 +29,6 @@ await window.__compare()   // { ref, ours, diff, score } — меньше score 
 `src/glitchShader.js` (порт глитч-пасса), таймлайн в `src/scene.js` (`applyTimeline`).
 Шаги: init → black-man (prelude 2 с) → into-white (глитч, свап на 36%) → full (статуя, теглайн) → release.
 Кадры прогонов: `tests/shots/scroll/`, кадры оригинала: `tests/ref-scroll/`.
+Мобильный пресет (≤ 1024px, как `MOBILE_BREAKPOINT` у bersus): `UNIT 260`, один сегмент black-man → full
+(3.05·UNIT), без глитча, свап на абсолютном прогрессе 370, камера облетает фигуру по дуге,
+заголовок выезжает снизу над головой. Кадры: `tests/shots/scroll-mobile/`, оригинал: `tests/ref-scroll/mobile/`.
