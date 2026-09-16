@@ -110,12 +110,12 @@ export async function createScene(canvas, { onProgress } = {}) {
   // Белая фаза: мраморная статуя. Без света читается чёрным силуэтом (как у bersus после свапа).
   const marbleAlbedo = marbleTexture(1024);
   marbleAlbedo.repeat.set(3, 3);
-  const marbleNormal = noiseNormalTexture(512, 3.0);
-  marbleNormal.repeat.set(10, 10);
+  const marbleNormal = noiseNormalTexture(512, 1.2);
+  marbleNormal.repeat.set(4, 4);
+  // Чистая поверхность: без шумовой roughnessMap и с очень слабым normal-зерном — иначе рябь на белом
   const statueMat = new THREE.MeshPhysicalMaterial({
-    color: 0xa39f99, map: marbleAlbedo, roughness: 0.74, roughnessMap: grain, metalness: 0,
-    normalMap: marbleNormal, normalScale: new THREE.Vector2(1.0, 1.0), envMapIntensity: 0.5,
-    sheen: 0.25, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.9,
+    color: 0xa39f99, map: marbleAlbedo, roughness: 0.68, metalness: 0,
+    normalMap: marbleNormal, normalScale: new THREE.Vector2(0.18, 0.18), envMapIntensity: 0.5,
   });
   const meshes = [];
   root.traverse((o) => {
@@ -142,7 +142,7 @@ export async function createScene(canvas, { onProgress } = {}) {
   const white = new THREE.Group();
   white.visible = false;
   scene.add(white);
-  const marble = new THREE.MeshPhysicalMaterial({ color: 0xa5a29c, map: marbleAlbedo, roughness: 0.8, normalMap: marbleNormal, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.6 });
+  const marble = new THREE.MeshPhysicalMaterial({ color: 0xa5a29c, map: marbleAlbedo, roughness: 0.78, normalMap: marbleNormal, normalScale: new THREE.Vector2(0.15, 0.15), envMapIntensity: 0.6 });
   const PED_H = 0.62;
   const ped = new THREE.Group();
   ped.position.y = -PED_H;
@@ -328,13 +328,10 @@ export async function createScene(canvas, { onProgress } = {}) {
     white.visible = on;
     scene.background.copy(on ? WHITE : BLACK);
     document.body.classList.toggle('is-light', on);
-    grainPass.uniforms.amount.value = on ? 0.025 : 0.07;
+    grainPass.uniforms.amount.value = on ? 0.0 : 0.07;
     // AO на белом фоне даёт грязь по краям — ослабляем
-    // на белом: AO с малым радиусом подчёркивает складки, большой радиус даёт ореол на буквах
-    gtao.updateGtaoMaterial(on
-      ? { radius: 0.08, distanceExponent: 1.0, thickness: 0.7, scale: 1.8, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false }
-      : { radius: 0.22, distanceExponent: 1.5, thickness: 1.0, scale: 1.4, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false });
-    gtao.blendIntensity = on ? 0.9 : 1.0;
+    // на белом AO выключен: 16-сэмпловый GTAO даёт шум-рябь на ровных светлых поверхностях
+    gtao.enabled = !on;
   }
 
   let preset = 'desktop';
@@ -557,10 +554,6 @@ function marbleTexture(size) {
     for (let k = 0; k < 40; k++) { a += (rnd() - 0.5) * 0.9; x += Math.cos(a) * 14; y += Math.sin(a) * 14; ctx.lineTo(x, y); }
     ctx.stroke();
   }
-  // мелкое зерно
-  const img = ctx.getImageData(0, 0, size, size);
-  for (let i = 0; i < img.data.length; i += 4) { const n = (rnd() - 0.5) * 14; img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n; }
-  ctx.putImageData(img, 0, 0);
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.colorSpace = THREE.SRGBColorSpace;
