@@ -16,11 +16,8 @@
 const W = 288, H = 180;
 const ROI = { x0: 0.08, x1: 0.88, y0: 0.0, y1: 1.0 };
 
-function toGray(img) {
-  // img: { width, height, data(RGBA), flipY? } → Float32Array L (W×H) + RGB means
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
+/** Кадр { width, height, data(RGBA), flipY? } → canvas полного размера. */
+function frameToCanvas(img) {
   const src = document.createElement('canvas');
   src.width = img.width; src.height = img.height;
   const sctx = src.getContext('2d');
@@ -30,7 +27,15 @@ function toGray(img) {
     for (let y = 0; y < img.height; y++) id.data.set(img.data.subarray((img.height - 1 - y) * row, (img.height - y) * row), y * row);
   } else id.data.set(img.data);
   sctx.putImageData(id, 0, 0);
-  ctx.drawImage(src, 0, 0, W, H);
+  return src;
+}
+
+function toGray(img) {
+  // img: { width, height, data(RGBA), flipY? } → Float32Array L (W×H) + RGB means
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(frameToCanvas(img), 0, 0, W, H);
   const d = ctx.getImageData(0, 0, W, H).data;
   const L = new Float32Array(W * H), R = new Float32Array(W * H), B = new Float32Array(W * H);
   for (let i = 0; i < W * H; i++) {
@@ -101,14 +106,23 @@ async function loadRef(url) {
 }
 
 let refCache = null;
+const fmt = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'number' ? +v.toFixed(4) : v]));
+
+async function compareWith(app, refGray) {
+  const ours = toGray(await app.capture());
+  const mr = metrics(refGray), mo = metrics(ours);
+  const { d, score } = diff(mr, mo);
+  return { ref: fmt(mr), ours: fmt(mo), diff: fmt(d), score };
+}
+
 export function installCompare(app, refUrl = '/ref/bersus-1440.png') {
+  /** Сравнение с референсом (тюнинг тёмной сцены). */
   window.__compare = async () => {
     refCache ||= toGray(await loadRef(refUrl));
-    const ours = toGray(await app.capture());
-    const mr = metrics(refCache), mo = metrics(ours);
-    const { d, score } = diff(mr, mo);
-    const fmt = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'number' ? +v.toFixed(4) : v]));
-    return { ref: fmt(mr), ours: fmt(mo), diff: fmt(d), score };
+    return compareWith(app, refCache);
   };
-  window.__oursPng = async () => toGray(await app.capture()).canvas.toDataURL('image/png');
+  /** Сравнение с любым изображением (URL или data URL): золотые кадры E2E. */
+  window.__compareTo = async (url) => compareWith(app, toGray(await loadRef(url)));
+  /** Текущий кадр сцены полного размера как PNG data URL (золотые кадры E2E). */
+  window.__capturePng = async () => frameToCanvas(await app.capture()).toDataURL('image/png');
 }
