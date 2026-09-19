@@ -24,13 +24,17 @@ export const content = {
   /** Оффер: лоадер и «Обо мне». */
   offer: 'Превращаю идеи в работающие бизнес-платформы',
 
-  /** «Обо мне»: таймлайн практики. */
-  timeline: [
-    { year: '2016', text: 'Разрабатываю backend' },
-    { year: '2018', text: 'Запускаю B2B-платформы' },
-    { year: '2022', text: 'Руковожу backend-командами' },
-    { year: '2024', text: 'Изучаю ML и LLM' },
-  ],
+  /** «Обо мне»: заголовок секции, подпись и таймлайн практики. */
+  about: {
+    title: 'Обо мне',
+    since: 'В практике с',
+    timeline: [
+      { year: '2016', text: 'Разрабатываю backend' },
+      { year: '2018', text: 'Запускаю B2B-платформы' },
+      { year: '2022', text: 'Руковожу backend-командами' },
+      { year: '2024', text: 'Изучаю ML и LLM' },
+    ],
+  },
 
   /** Ask Ishmanov AI: замена на бота — правка href. */
   ask: { label: 'Ask Ishmanov AI', href: TELEGRAM_DM },
@@ -38,33 +42,37 @@ export const content = {
   contact: { title: 'Написать', label: 'Написать в Telegram', href: TELEGRAM_DM },
 
   /** Карточки проектов в порядке показа; direction — направление (см. CONTEXT.md). */
-  projects: [
-    {
-      id: 'neurobase',
-      direction: 'Руководителям',
-      title: 'PO-нейробаза',
-      essence: 'ИИ-навыки руководителей',
-      topics: ['Построение AI-систем', 'Внедрение AI-навыков', 'Интересные лайфхаки'],
-      links: [RESOURCES.corporateAi, RESOURCES.slides],
-    },
-    {
-      id: 'pmf',
-      direction: 'Фаундерам',
-      title: 'PMF-стратегии',
-      essence: 'Как находить и монетизировать проблемы, за решение которых люди готовы платить?',
-      topics: ['Продуктовые стратегии', 'Обзоры рынков, идей и решений', 'Инструменты и ответы'],
-      links: [RESOURCES.aiPmf, RESOURCES.threads],
-    },
-    {
-      id: 'prompts',
-      direction: 'Специалистам',
-      title: 'Промты',
-      essence: 'Подборка готовых prompt-шаблонов для продуктовой аналитики, исследований и операционных процессов',
-      topics: ['Продуктовые фреймворки', 'Аналитика и документация', 'Product Discovery'],
-      links: [RESOURCES.prompts],
-    },
-  ],
+  projects: {
+    title: 'Актуальные проекты',
+    items: [
+      {
+        id: 'neurobase',
+        direction: 'Руководителям',
+        title: 'PO-нейробаза',
+        essence: 'ИИ-навыки руководителей',
+        topics: ['Построение AI-систем', 'Внедрение AI-навыков', 'Интересные лайфхаки'],
+        links: [RESOURCES.corporateAi, RESOURCES.slides],
+      },
+      {
+        id: 'pmf',
+        direction: 'Фаундерам',
+        title: 'PMF-стратегии',
+        essence: 'Как находить и монетизировать проблемы, за решение которых люди готовы платить?',
+        topics: ['Продуктовые стратегии', 'Обзоры рынков, идей и решений', 'Инструменты и ответы'],
+        links: [RESOURCES.aiPmf, RESOURCES.threads],
+      },
+      {
+        id: 'prompts',
+        direction: 'Специалистам',
+        title: 'Промты',
+        essence: 'Подборка готовых prompt-шаблонов для продуктовой аналитики, исследований и операционных процессов',
+        topics: ['Продуктовые фреймворки', 'Аналитика и документация', 'Product Discovery'],
+        links: [RESOURCES.prompts],
+      },
+    ],
+  },
 
-  /** Футер и низ меню: все ресурсы. */
+  /** Футер: подпись копирайта и все ресурсы (те же — в низ меню). */
+  footer: { copyright: 'Aleks Ishmanov' },
   resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],
 };

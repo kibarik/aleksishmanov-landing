@@ -101,3 +101,94 @@ export async function expectFirstScreenTexts(page, content) {
   await expect(page.locator('#tagline')).toHaveText(content.tagline);
   await expect(page.locator('#tagline')).not.toHaveClass(/tagline--visible/);
 }
+
+/** Проходит путь до белой сцены жестами (колесо / свайпы) и ждёт паузу на шаге full. */
+export async function goToWhiteScene(page, preset) {
+  if (preset === 'mobile') {
+    await swipeUp(page);
+    await swipeUp(page);
+    await waitForProgress(page, STEPS.mobile.whiteScene);
+  } else {
+    await wheelBurst(page);
+    await waitForProgress(page, STEPS.desktop.transition);
+    await page.waitForTimeout(700); // пауза 500 мс в конце перехода
+    await wheelBurst(page);
+    await waitForProgress(page, STEPS.desktop.whiteScene);
+  }
+  await page.waitForTimeout(700); // пауза 500 мс на шаге full
+}
+
+/** Уход сцены виден снаружи: тело в режиме нативного скролла. */
+export async function expectSceneLeft(page) {
+  await expect(page.locator('body')).toHaveClass(/is-released/, { timeout: 10_000 });
+}
+
+/** Элемент хотя бы частично в зоне видимости. */
+export async function isInViewport(page, selector) {
+  return page.evaluate((sel) => {
+    const r = document.querySelector(sel)?.getBoundingClientRect();
+    return !!r && r.bottom > 0 && r.top < window.innerHeight;
+  }, selector);
+}
+
+/**
+ * Секции после сцены совпадают с модулем контента: «Обо мне», три карточки в порядке контента
+ * (направление, название, суть, темы, ссылки), «Написать», футер с ресурсами. Блога нет нигде.
+ */
+export async function expectSectionsMatchContent(page, content) {
+  const about = page.locator('#about');
+  await expect(about.locator('h2')).toHaveText(content.about.title);
+  await expect(about).toContainText(content.offer);
+  const rows = about.locator('.timeline__row');
+  await expect(rows).toHaveCount(content.about.timeline.length);
+  for (const [i, { year, text }] of content.about.timeline.entries()) {
+    await expect(rows.nth(i).locator('dt')).toHaveText(year);
+    await expect(rows.nth(i).locator('dd')).toHaveText(text);
+  }
+
+  await expect(page.locator('#projects h2')).toHaveText(content.projects.title);
+  const cards = page.locator('#projects [data-project]');
+  await expect(cards).toHaveCount(content.projects.items.length);
+  for (const [i, p] of content.projects.items.entries()) {
+    const card = cards.nth(i);
+    await expect(card).toHaveAttribute('data-project', p.id);
+    await expect(card.locator('.card__direction')).toHaveText(p.direction);
+    await expect(card.locator('.card__title')).toHaveText(p.title);
+    await expect(card.locator('.card__essence')).toHaveText(p.essence);
+    await expect(card.locator('.card__topics li')).toHaveText(p.topics);
+    const links = card.locator('.card__links a');
+    await expect(links).toHaveCount(p.links.length);
+    for (const [j, l] of p.links.entries()) {
+      await expect(links.nth(j)).toHaveAttribute('href', l.href);
+      await expect(links.nth(j)).toHaveAttribute('target', '_blank');
+      await expect(links.nth(j)).toContainText(l.label);
+    }
+  }
+
+  await expect(page.locator('#contact h2')).toHaveText(content.contact.title);
+  const contactBtn = page.locator('#contact a[href]');
+  await expect(contactBtn).toHaveCount(1);
+  await expect(contactBtn).toHaveAttribute('href', content.contact.href);
+  await expect(contactBtn).toContainText(content.contact.label);
+
+  const footerLinks = page.locator('#footer a[href]');
+  await expect(footerLinks).toHaveCount(content.resources.length);
+  for (const [i, r] of content.resources.entries()) {
+    await expect(footerLinks.nth(i)).toHaveAttribute('href', r.href);
+    await expect(footerLinks.nth(i)).toContainText(r.label);
+  }
+
+  await expect(page.locator('a[href*="blog.aleksishmanov.ru"]')).toHaveCount(0);
+  // без горизонтального скролла и с гаттером не меньше 16px: ни один элемент секций не выходит за край
+  const overflow = await page.evaluate(() => {
+    const w = window.innerWidth;
+    const bad = [];
+    for (const el of document.querySelectorAll('#content *')) {
+      const r = el.getBoundingClientRect();
+      if (r.width && (r.left < 16 - 0.5 || r.right > w - 16 + 0.5)) bad.push(`${el.tagName}.${el.className} ${Math.round(r.left)}..${Math.round(r.right)}`);
+    }
+    return { scrollW: document.documentElement.scrollWidth, w, bad };
+  });
+  expect(overflow.scrollW, 'горизонтальный скролл').toBeLessThanOrEqual(overflow.w);
+  expect(overflow.bad, 'элементы за гаттером 16px').toEqual([]);
+}

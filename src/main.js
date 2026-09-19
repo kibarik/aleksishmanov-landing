@@ -9,6 +9,7 @@ import { createScene } from './scene.js';
 import { installCompare } from './compare.js';
 import { createStickyScroll, buildSteps, UNITS, getDevicePreset } from './stickyScroll.js';
 import { content } from './content.js';
+import { mountSections } from './sections.js';
 
 const loader = document.getElementById('loader');
 const pct = document.getElementById('loader-pct');
@@ -21,6 +22,7 @@ const hero = document.getElementById('hero');
 // тексты первого экрана — из модуля контента, в разметке ничего не захардкожено
 document.getElementById('loader-offer').textContent = content.offer;
 tagline.textContent = content.tagline;
+mountSections(document.getElementById('content'), content);
 
 let real = 0;
 let shown = 0;
