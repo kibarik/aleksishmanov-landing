@@ -35,9 +35,7 @@ body { -webkit-font-smoothing: antialiased; }
 .loader__path { stroke-dasharray: 100; stroke-dashoffset: 100; stroke-width: 1.4; stroke: #fff; }
 .loader__label { font-size: 12px; letter-spacing: .12em; color: rgba(255,255,255,.7); display: flex; gap: 14px; }
 .loader__pct { font-variant-numeric: tabular-nums; color: #fff; }
-.loader__quote { text-align: center; font-size: 14px; line-height: 1.9; color: rgba(255,255,255,.85); }
-.loader__line { display: block; }
-.loader__author { display: block; margin-top: 6px; color: rgba(255,255,255,.4); font-size: 12px; }
+.loader__quote { text-align: center; font-size: 14px; line-height: 1.9; color: rgba(255,255,255,.85); max-width: 22em; padding: 0 16px; text-wrap: balance; }
 
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center;

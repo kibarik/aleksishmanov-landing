@@ -88,3 +88,16 @@ export async function expectGolden(page, name, { threshold = 4 } = {}) {
   const result = await page.evaluate((url) => window.__compareTo(url), goldenUrl);
   expect(result.score, `золотой кадр "${name}": score ${result.score} > ${threshold}: ${JSON.stringify(result.diff)}`).toBeLessThanOrEqual(threshold);
 }
+
+/**
+ * Тексты первого экрана из модуля контента: оффер на лоадере (цитаты больше нет),
+ * теглайн в разметке, но ещё скрыт до белой сцены. Вызывать сразу после goto.
+ */
+export async function expectFirstScreenTexts(page, content) {
+  await expect(page.locator('#loader')).toBeVisible();
+  await expect(page.locator('#loader-offer')).toHaveText(content.offer);
+  await expect(page.locator('#loader')).not.toContainText('Linus');
+  await waitForPrelude(page);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).not.toHaveClass(/tagline--visible/);
+}

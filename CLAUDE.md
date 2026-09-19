@@ -2,7 +2,7 @@
 
 Лендинг с 3D-персонажем (Three.js + Vite), первый экран и скролл-переход по модели bersus.io.
 Ключевые файлы: `src/scene.js` (сцена и таймлайн), `src/stickyScroll.js` (виртуальный скролл),
-`src/compare.js` (метрики против референса). Разбор оригинала: `tests/bersus-scroll-analysis.md`.
+`src/compare.js` (метрики против референса), `src/content.js` (все тексты и ссылки). Разбор оригинала: `tests/bersus-scroll-analysis.md`.
 
 ## Agent skills
 

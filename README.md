@@ -8,6 +8,7 @@ npm run build
 ```
 
 - `public/models/character.glb` — персонаж, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+- `src/content.js` — весь контент (имя, теглайн, оффер, таймлайн, проекты, ссылки); сцена и разметка читают оттуда.
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.
 - Пересжать модель: `npx @gltf-transform/cli optimize in.glb public/models/character.glb --compress draco --simplify false`
 

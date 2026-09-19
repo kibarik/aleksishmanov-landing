@@ -54,7 +54,15 @@ const MOBILE = {
 };
 const mmToFov = (mm) => THREE.MathUtils.radToDeg(2 * Math.atan(24 / (2 * mm))); // sensor 24 мм
 
-export async function createScene(canvas, { onProgress } = {}) {
+// Имя на белой сцене: плоскость с canvas-текстурой за фигурой
+const TITLE_W = 5.6;                                   // ширина плоскости, ед. сцены
+const TITLE_CANVAS_W = { desktop: 4096, mobile: 2048 }; // холст 4:1; на мобильном вдвое меньше (память)
+const TITLE_FONT_RATIO = 0.84;   // кегль от высоты холста
+const TITLE_MAX_FILL = 0.96;     // длинное имя ужимается до этой доли ширины холста
+const TITLE_FRAME_FILL = 0.9;    // desktop: буквы не шире этой доли видимой ширины кадра
+
+/** @param name {{ desktop: string, mobile: string }} имя по пресетам (content.name) */
+export async function createScene(canvas, { onProgress, name }) {
   RectAreaLightUniformsLib.init();
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -167,10 +175,10 @@ export async function createScene(canvas, { onProgress } = {}) {
   floor.position.y = -PED_H;
   floor.receiveShadow = true;
   white.add(floor);
-  // 3D-текст позади фигуры: плоскость с canvas-текстурой, фигура перекрывает буквы
-  const titleTex = makeTitleTexture('ALEKS');
-  document.fonts?.load('900 400px Montserrat').then(() => { drawTitle(titleTex.image, 'ALEKS'); titleTex.needsUpdate = true; }).catch(() => {});
-  const title = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0x0a0a0a }));
+  // 3D-текст позади фигуры: фигура перекрывает буквы. Рисуется в layoutTitle после attachScroll (известен пресет).
+  const titleTex = makeTitleTexture();
+  let titleFill = 0; // доля ширины плоскости, занятая буквами (для подгонки под кадр)
+  const title = new THREE.Mesh(new THREE.PlaneGeometry(TITLE_W, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0x0a0a0a }));
   title.position.set(0, 1.12, -0.9);
   title.castShadow = true;
   white.add(title);
@@ -335,12 +343,35 @@ export async function createScene(canvas, { onProgress } = {}) {
   }
 
   let preset = 'desktop';
+  let attached = false;
+  /** Перерисовка холста имени под пресет: при attachScroll и после загрузки шрифта. */
   function layoutTitle() {
+    if (!attached) return;
+    const c = titleTex.image;
+    const w = TITLE_CANVAS_W[preset];
+    if (c.width !== w) { c.width = w; c.height = w / 4; }
+    titleFill = drawTitle(c, name[preset]);
+    titleTex.needsUpdate = true;
     // desktop: буквы за торсом; mobile: над головой, узкая ширина под портрет
-    if (preset === 'mobile') { title.position.set(0, 2.1, -0.6); title.scale.setScalar(0.47); } // текст занимает ~70% ширины плоскости (Montserrat 900)
-    else { title.position.set(0, 1.12, -0.9); title.scale.setScalar(1); }
-    titleBase.y = title.position.y; titleBase.scale = title.scale.x;
+    if (preset === 'mobile') title.position.set(0, 2.1, -0.6);
+    else title.position.set(0, 1.12, -0.9);
+    titleBase.y = title.position.y;
+    scaleTitle();
   }
+  /** Масштаб имени; пересчитывается и при ресайзе — без перерисовки холста. */
+  function scaleTitle() {
+    if (!attached) return;
+    if (preset === 'mobile') title.scale.setScalar(0.47); // текст занимает ~70% ширины плоскости (Montserrat 900)
+    else {
+      // имя не выходит за кадр: ширина букв ≤ TITLE_FRAME_FILL видимой ширины на глубине плоскости в full
+      const dist = KF.full.pos[2] - title.position.z;
+      const visibleW = 2 * dist * Math.tan(THREE.MathUtils.degToRad(whiteFov(KF.full.mm, camera.aspect)) / 2) * camera.aspect;
+      title.scale.setScalar(Math.min(1, (TITLE_FRAME_FILL * visibleW) / (TITLE_W * titleFill)));
+    }
+    titleBase.scale = title.scale.x;
+  }
+  window.addEventListener('resize', scaleTitle);
+  document.fonts?.load('900 400px Montserrat').then(layoutTitle).catch(() => {});
 
   /** Mobile: один сегмент black-man → full, без глитча, орбита камеры, key light сразу после свапа. */
   function applyTimelineMobile(sticky) {
@@ -494,7 +525,7 @@ export async function createScene(canvas, { onProgress } = {}) {
 
   return {
     start() { running = true; frame(); },
-    attachScroll(s, p = 'desktop') { sticky = s; preset = p; layoutTitle(); layoutProps(); },
+    attachScroll(s, p = 'desktop') { sticky = s; preset = p; attached = true; layoutTitle(); layoutProps(); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },
@@ -506,25 +537,33 @@ export async function createScene(canvas, { onProgress } = {}) {
 
 function mesh(geo, mat, pos) { const m = new THREE.Mesh(geo, mat); m.position.set(...pos); return m; }
 
-/** Текстура заголовка: прозрачный фон, чёрные жирные буквы. */
-function makeTitleTexture(text) {
+/** Текстура имени: прозрачный фон, чёрные жирные буквы. Размер холста задаёт layoutTitle по пресету. */
+function makeTitleTexture() {
   const c = document.createElement('canvas');
-  c.width = 2048; c.height = 512;
-  drawTitle(c, text);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
   return tex;
 }
+/**
+ * Рисует имя по центру холста: кегль TITLE_FONT_RATIO высоты, длинное имя ужимается до TITLE_MAX_FILL ширины.
+ * Трекинг и оптический сдвиг по вертикали — доли кегля (подобраны под Montserrat 900).
+ * Возвращает долю ширины холста, занятую буквами.
+ */
 function drawTitle(c, text) {
   const ctx = c.getContext('2d');
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.fillStyle = '#000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '900 430px Montserrat, "Helvetica Neue", Arial, sans-serif';
-  ctx.letterSpacing = '-18px';
-  ctx.fillText(text, c.width / 2, c.height / 2 + 24);
+  const font = (px) => { ctx.font = `900 ${px}px Montserrat, "Helvetica Neue", Arial, sans-serif`; ctx.letterSpacing = `${-0.042 * px}px`; };
+  let px = c.height * TITLE_FONT_RATIO;
+  font(px);
+  const maxW = c.width * TITLE_MAX_FILL;
+  const w0 = ctx.measureText(text).width;
+  if (w0 > maxW) { px *= maxW / w0; font(px); }
+  ctx.fillText(text, c.width / 2, c.height / 2 + px * 0.056);
+  return Math.min(1, ctx.measureText(text).width / c.width);
 }
 
 /** Мрамор: светлая база, тонкие тёмные прожилки, лёгкие пятна. */

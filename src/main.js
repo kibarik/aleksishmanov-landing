@@ -8,6 +8,7 @@ import '@fontsource/montserrat/900.css';
 import { createScene } from './scene.js';
 import { installCompare } from './compare.js';
 import { createStickyScroll, buildSteps, UNITS, getDevicePreset } from './stickyScroll.js';
+import { content } from './content.js';
 
 const loader = document.getElementById('loader');
 const pct = document.getElementById('loader-pct');
@@ -16,6 +17,10 @@ const nav = document.getElementById('nav');
 const hint = document.getElementById('scroll-hint');
 const tagline = document.getElementById('tagline');
 const hero = document.getElementById('hero');
+
+// тексты первого экрана — из модуля контента, в разметке ничего не захардкожено
+document.getElementById('loader-offer').textContent = content.offer;
+tagline.textContent = content.tagline;
 
 let real = 0;
 let shown = 0;
@@ -78,7 +83,7 @@ function finish() {
   setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
 }
 
-createScene(document.getElementById('scene'), { onProgress: (p) => { real = Math.max(real, p); } })
+createScene(document.getElementById('scene'), { name: content.name, onProgress: (p) => { real = Math.max(real, p); } })
   .then((s) => {
     app = s; app.start(); real = 1; window.__app = app; installCompare(app);
     app.onTimeline((tl) => {
