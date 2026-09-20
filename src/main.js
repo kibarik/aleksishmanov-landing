@@ -18,10 +18,17 @@ const nav = document.getElementById('nav');
 const hint = document.getElementById('scroll-hint');
 const tagline = document.getElementById('tagline');
 const hero = document.getElementById('hero');
+const askScene = document.getElementById('ask-scene');
+const askNav = document.getElementById('ask-nav');
 
 // тексты первого экрана — из модуля контента, в разметке ничего не захардкожено
 document.getElementById('loader-offer').textContent = content.offer;
 tagline.textContent = content.tagline;
+// Ask Ishmanov AI: обе кнопки из одной константы контента (замена на бота — правка href там)
+askScene.href = content.ask.href;
+askScene.querySelector('.ask__label').textContent = content.ask.label;
+askNav.href = content.ask.href;
+askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
 
 let real = 0;
@@ -90,6 +97,7 @@ createScene(document.getElementById('scene'), { name: content.name, onProgress: 
     app = s; app.start(); real = 1; window.__app = app; installCompare(app);
     app.onTimeline((tl) => {
       tagline.classList.toggle('tagline--visible', tl.tagline);
+      askScene.classList.toggle('ask--visible', tl.tagline);
       hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
     });
   })

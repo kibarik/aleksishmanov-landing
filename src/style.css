@@ -14,6 +14,19 @@ body { -webkit-font-smoothing: antialiased; }
   opacity: 0; transform: translateY(10px); transition: opacity .7s ease, transform .7s ease; pointer-events: none;
 }
 .tagline--visible { opacity: 1; transform: none; }
+/* Ask Ishmanov AI под пьедесталом: капсула как у референса, появляется вместе с теглайном */
+.ask {
+  position: absolute; left: 50%; bottom: 11vh; transform: translate(-50%, 10px); width: min(360px, calc(100vw - 32px)); height: 64px;
+  display: flex; align-items: center; gap: 14px; padding: 0 8px 0 22px; border-radius: 999px; background: #ececec; color: #111;
+  font-family: var(--font); font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  opacity: 0; pointer-events: none; transition: opacity .7s ease, transform .7s ease, background .2s ease;
+}
+.ask--visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.ask:hover { background: #e2e2e2; }
+.ask__chevron { font-size: 22px; line-height: 1; color: #555; }
+.ask__label { flex: 1; }
+.ask__send { width: 48px; height: 48px; border-radius: 50%; background: #111; color: #fff; display: grid; place-items: center; transition: transform .2s ease; }
+.ask:hover .ask__send { transform: translateX(2px); }
 
 /* ---------- секции после сцены (src/sections.js): светлый фон продолжает белую сцену ---------- */
 .content { position: relative; z-index: 5; background: #f9f9f9; color: #111; margin-top: 100vh; padding: 0 clamp(16px, 5vw, 72px); }
@@ -68,7 +81,11 @@ body { -webkit-font-smoothing: antialiased; }
 .nav--visible { opacity: 1; transform: none; }
 body.is-light .nav { color: #111; }
 .nav__logo { font-family: var(--display); font-weight: 900; letter-spacing: .04em; font-size: 16px; color: currentColor; text-decoration: none; }
-.nav__menu { width: 34px; height: 22px; background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; padding: 3px 0; }
+.nav__right { display: flex; align-items: center; gap: 22px; }
+.nav__ask { font-family: var(--font); font-size: 13px; font-weight: 500; color: currentColor; text-decoration: none; padding: 9px 16px; border: 1px solid currentColor; border-radius: 999px; transition: background .2s ease, color .2s ease; }
+.nav__ask:hover { background: #fff; border-color: #fff; color: var(--black); }
+body.is-light .nav__ask:hover { background: #111; border-color: #111; color: #fff; }
+.nav__menu { width: 34px; height: 22px; background: none; border: 0; color: inherit; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; padding: 3px 0; }
 .nav__menu span { display: block; height: 2px; background: currentColor; border-radius: 2px; }
 .nav__menu span:last-child { width: 60%; margin-left: auto; }
 
@@ -94,6 +111,9 @@ body.is-light .nav { color: #111; }
 
 @media (max-width: 720px) { .nav { padding: 20px; } .scroll-hint { right: 20px; bottom: 24px; } }
 body[data-preset="mobile"] .tagline { top: 10.5vh; font-size: 14px; }
-body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 6.5vh; align-items: center; }
+body[data-preset="mobile"] .ask { bottom: 3.5vh; height: 56px; font-size: 14px; }
+body[data-preset="mobile"] .ask__send { width: 42px; height: 42px; }
+@media (max-width: 720px) { .nav__right { gap: 14px; } .nav__ask { padding: 7px 12px; font-size: 12px; } }
+body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 9.5vh; align-items: center; }
 body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
 @media (prefers-reduced-motion: reduce) { .grain, .scroll-hint__mouse span { animation: none; } }

@@ -123,12 +123,32 @@ export async function expectSceneLeft(page) {
   await expect(page.locator('body')).toHaveClass(/is-released/, { timeout: 10_000 });
 }
 
+/** Геометрия элемента в css-пикселях (boundingBox() в мобильной эмуляции врёт из-за DPR). */
+export async function rectOf(page, selector) {
+  return page.evaluate((sel) => {
+    const r = document.querySelector(sel).getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, viewportH: window.innerHeight };
+  }, selector);
+}
+
 /** Элемент хотя бы частично в зоне видимости. */
 export async function isInViewport(page, selector) {
-  return page.evaluate((sel) => {
-    const r = document.querySelector(sel)?.getBoundingClientRect();
-    return !!r && r.bottom > 0 && r.top < window.innerHeight;
-  }, selector);
+  const r = await rectOf(page, selector);
+  return r.bottom > 0 && r.top < r.viewportH;
+}
+
+/** С белой сцены: жест вниз — уход сцены, затем нативный скролл на screens высот экрана. */
+export async function leaveScene(page, preset, { screens = 1 } = {}) {
+  if (preset === 'mobile') await swipeUp(page);
+  else await wheelBurst(page);
+  await expectSceneLeft(page);
+  const { height } = page.viewportSize();
+  if (preset === 'mobile') {
+    for (let i = 0; i < screens * 2; i++) await swipeUp(page, { distance: height * 0.6 });
+  } else {
+    await page.mouse.wheel(0, height * screens);
+  }
+  await page.waitForTimeout(500);
 }
 
 /**
@@ -191,4 +211,26 @@ export async function expectSectionsMatchContent(page, content) {
   });
   expect(overflow.scrollW, 'горизонтальный скролл').toBeLessThanOrEqual(overflow.w);
   expect(overflow.bad, 'элементы за гаттером 16px').toEqual([]);
+}
+
+/** На тёмной сцене: Ask в шапке уже виден и ведёт по ссылке контента, на сцене — ещё скрыт. */
+export async function expectAskOnDarkScene(page, content) {
+  await expect(page.locator('#ask-nav')).toBeVisible();
+  await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
+  await expect(page.locator('#ask-scene')).not.toHaveClass(/ask--visible/);
+}
+
+/**
+ * На белой сцене: кнопка под пьедесталом показана (появляется с теглайном), обе кнопки видимы,
+ * href из контента, новая вкладка.
+ */
+export async function expectAskButtons(page, content) {
+  await expect(page.locator('#ask-scene')).toHaveClass(/ask--visible/);
+  for (const id of ['#ask-scene', '#ask-nav']) {
+    const btn = page.locator(id);
+    await expect(btn).toBeVisible();
+    await expect(btn).toHaveAttribute('href', content.ask.href);
+    await expect(btn).toHaveAttribute('target', '_blank');
+    await expect(btn).toContainText(content.ask.label);
+  }
 }
