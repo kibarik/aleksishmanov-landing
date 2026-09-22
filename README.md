@@ -13,10 +13,26 @@ npm run build
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.
 - Пересжать модель: `npx @gltf-transform/cli optimize in.glb public/models/character.glb --compress draco --simplify false`
 
+## Фолбэк без WebGL
+
+Инлайн-проверка в `<head>` ставит `html[data-webgl="off"]`, если WebGL недоступен: лоадер и канвас
+скрываются, показывается статичный кадр белой сцены (`public/fallback/*.webp`, два размера),
+страница скроллится нативно, шапка в светлой теме. Модуль сцены (`src/boot3d.js`) и бандл three
+в этой ветке не импортируются.
+
+Кадры генерируются из самой сцены:
+
+```bash
+npm run capture:fallback
+```
+
+Скрипт поднимает dev-сервер, доводит сцену до белой сцены на обоих пресетах и сохраняет webp.
+Перегенерируйте его после правок имени, теглайна или композиции сцены.
+
 ## Тесты
 
 E2E на Playwright, один шов — собранная страница. Прогоны в трёх проектах: `desktop` 1440×900,
-`mobile` 390×844 (touch, свайпы через CDP), `no-webgl` (Chromium с `--disable-3d-apis`, тесты фолбэка).
+`mobile` 390×844 (touch, свайпы через CDP), `no-webgl` (Chrome с `--disable-3d-apis`, тесты фолбэка).
 
 ```bash
 npm test                      # все проекты; dev-сервер поднимается сам

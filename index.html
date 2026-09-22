@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aleks — Developer</title>
   <link rel="stylesheet" href="./src/style.css" />
+  <script>
+    // WebGL-проверка до загрузки бандла: при провале сцена не импортируется, показываем кадр
+    (function () {
+      var ok = false;
+      try {
+        var c = document.createElement('canvas');
+        var o = { failIfMajorPerformanceCaveat: true };
+        ok = !!(c.getContext('webgl2', o) || c.getContext('webgl', o));
+      } catch (e) { ok = false; }
+      if (!ok) document.documentElement.dataset.webgl = 'off';
+    })();
+  </script>
 </head>
 <body class="is-loading">
   <div class="loader" id="loader">
@@ -24,6 +36,10 @@
 
   <div class="hero" id="hero">
     <canvas id="scene" class="scene"></canvas>
+    <picture class="fallback" id="fallback">
+      <source media="(max-width: 1024px)" srcset="./fallback/white-mobile.webp" />
+      <img src="./fallback/white-desktop.webp" alt="Статуя Алекса Ишманова на пьедестале с надписью ALEKS ISHMANOV" decoding="async" />
+    </picture>
     <p class="tagline" id="tagline"></p>
     <a class="ask" id="ask-scene" target="_blank" rel="noopener noreferrer">
       <span class="ask__chevron" aria-hidden="true">›</span>

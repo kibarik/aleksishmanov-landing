@@ -5,132 +5,50 @@ import '@fontsource/manrope/500.css';
 import '@fontsource/manrope/800.css';
 import '@fontsource/montserrat/600.css';
 import '@fontsource/montserrat/900.css';
-import { createScene } from './scene.js';
-import { installCompare } from './compare.js';
-import { createStickyScroll, buildSteps, UNITS, getDevicePreset } from './stickyScroll.js';
 import { content } from './content.js';
 import { mountSections } from './sections.js';
 import { mountMenu } from './menu.js';
+import { getDevicePreset } from './stickyScroll.js';
 
-const loader = document.getElementById('loader');
-const pct = document.getElementById('loader-pct');
-const path = document.querySelector('.loader__path');
-const nav = document.getElementById('nav');
-const hint = document.getElementById('scroll-hint');
-const tagline = document.getElementById('tagline');
-const hero = document.getElementById('hero');
-const askScene = document.getElementById('ask-scene');
-const askNav = document.getElementById('ask-nav');
+const dom = {
+  loader: document.getElementById('loader'),
+  pct: document.getElementById('loader-pct'),
+  path: document.querySelector('.loader__path'),
+  nav: document.getElementById('nav'),
+  hint: document.getElementById('scroll-hint'),
+  tagline: document.getElementById('tagline'),
+  hero: document.getElementById('hero'),
+  askScene: document.getElementById('ask-scene'),
+  askNav: document.getElementById('ask-nav'),
+  canvas: document.getElementById('scene'),
+};
 
 // тексты первого экрана — из модуля контента, в разметке ничего не захардкожено
 document.getElementById('loader-offer').textContent = content.offer;
-tagline.textContent = content.tagline;
+dom.tagline.textContent = content.tagline;
 // Ask Ishmanov AI: обе кнопки из одной константы контента (замена на бота — правка href там)
-askScene.href = content.ask.href;
-askScene.querySelector('.ask__label').textContent = content.ask.label;
-askNav.href = content.ask.href;
-askNav.textContent = content.ask.label;
+dom.askScene.href = content.ask.href;
+dom.askScene.querySelector('.ask__label').textContent = content.ask.label;
+dom.askNav.href = content.ask.href;
+dom.askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
 
-let real = 0;
-let shown = 0;
-const t0 = performance.now();
-let app = null;
-let finished = false;
-
-function tickLoader() {
-  const elapsed = (performance.now() - t0) / 1800;
-  const target = Math.min(real, elapsed, 1);
-  shown += (target - shown) * 0.15;
-  if (target >= 1 && shown > 0.995) shown = 1;
-  pct.textContent = Math.round(shown * 100) + '%';
-  path.style.strokeDashoffset = 100 - shown * 100;
-  if (shown < 1 || !app) requestAnimationFrame(tickLoader);
-  else finish();
-}
-requestAnimationFrame(tickLoader);
-
-// ---------- sticky scroll: шаги и сегменты как у bersus (desktop / mobile) ----------
 const preset = getDevicePreset();
-const UNIT = UNITS[preset];
 document.body.dataset.preset = preset;
-const steps = buildSteps(preset === 'mobile'
-  ? [{ id: 'init' }, { id: 'black-man', length: UNIT }, { id: 'full', length: UNIT * 3.05 }]
-  : [{ id: 'init' }, { id: 'black-man', length: UNIT }, { id: 'into-white', length: UNIT * 1.2 }, { id: 'full', length: UNIT }]);
-const sticky = createStickyScroll({
-  preset,
-  steps,
-  segments: preset === 'mobile'
-    ? [
-      { from: 'init', to: 'black-man', prelude: true, snapStart: 0.5, snapEnd: 0.5 },
-      { from: 'black-man', to: 'full', commit: 0.3 },
-    ]
-    : [
-      { from: 'init', to: 'black-man', prelude: true, snapStart: 0.5, snapEnd: 0.5 },
-      { from: 'black-man', to: 'into-white', commit: 0.3 },
-      { from: 'into-white', to: 'full', commit: 0.3 },
-    ],
-  pauses: preset === 'mobile'
-    ? [{ at: 'full', duration: 500, when: 'forward' }]
-    : [{ at: 'into-white', duration: 500, when: 'forward' }, { at: 'full', duration: 500, when: 'forward' }],
-  onRelease(released) {
-    // после full отдаём нативный скролл: сцена перестаёт быть fixed и уезжает вместе с контентом
-    hero.classList.toggle('hero--released', released);
-    document.body.classList.toggle('is-released', released);
-    sceneParallax(released);
-  },
-});
 
-// ---------- уход сцены: персонаж задерживается в кадре ----------
-// Канвас отстаёт от контента на первом экране высоты (коэффициент PARALLAX), потом идёт с ним
-// синхронно. Теглайн и кнопка Ask лежат в потоке hero и уезжают вместе с контентом.
-const PARALLAX = 0.7;
-const canvas = document.getElementById('scene');
-let parallaxOn = false;
-let parallaxRaf = 0;
-
-function applyParallax() {
-  parallaxRaf = 0;
-  const lag = (1 - PARALLAX) * Math.min(window.scrollY, window.innerHeight);
-  canvas.style.transform = `translate3d(0, ${lag.toFixed(2)}px, 0)`;
-}
-function onParallaxScroll() {
-  if (!parallaxRaf) parallaxRaf = requestAnimationFrame(applyParallax);
-}
-function sceneParallax(on) {
-  if (parallaxOn === on) return;
-  parallaxOn = on;
-  if (on) {
-    window.addEventListener('scroll', onParallaxScroll, { passive: true });
-    applyParallax();
-  } else {
-    window.removeEventListener('scroll', onParallaxScroll);
-    if (parallaxRaf) { cancelAnimationFrame(parallaxRaf); parallaxRaf = 0; }
-    canvas.style.transform = '';
-  }
-}
-window.__sticky = sticky;
-mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, sticky);
-
-function finish() {
-  if (finished) return;
-  finished = true;
-  loader.classList.add('loader--done');
+/** Без WebGL: статичный кадр белой сцены, обычный скролл, светлая тема; сцена не импортируется. */
+function bootFallback() {
   document.body.classList.remove('is-loading');
-  app.lightsOn();
-  app.attachScroll(sticky, preset);
-  sticky.start(); // prelude стартует через 500 мс, длится 2 с
-  setTimeout(() => { nav.classList.add('nav--visible'); }, 900);
-  setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
+  document.body.classList.add('is-light', 'is-released');
+  dom.hero.classList.add('hero--released');
+  dom.nav.classList.add('nav--visible');
+  dom.tagline.classList.add('tagline--visible');
+  dom.askScene.classList.add('ask--visible');
+  // меню работает и здесь: сцены нет, скролл уже нативный
+  mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, {
+    state: { released: true }, release() {}, setPaused() {},
+  });
 }
 
-createScene(document.getElementById('scene'), { name: content.name, onProgress: (p) => { real = Math.max(real, p); } })
-  .then((s) => {
-    app = s; app.start(); real = 1; window.__app = app; installCompare(app);
-    app.onTimeline((tl) => {
-      tagline.classList.toggle('tagline--visible', tl.tagline);
-      askScene.classList.toggle('ask--visible', tl.tagline);
-      hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
-    });
-  })
-  .catch((err) => { console.error(err); pct.textContent = 'error'; });
+if (document.documentElement.dataset.webgl === 'off') bootFallback();
+else import('./boot3d.js').then((m) => m.boot3d({ preset, dom }));

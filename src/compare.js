@@ -125,4 +125,16 @@ export function installCompare(app, refUrl = `${import.meta.env.BASE_URL}ref/ber
   window.__compareTo = async (url) => compareWith(app, toGray(await loadRef(url)));
   /** Текущий кадр сцены полного размера как PNG data URL (золотые кадры E2E). */
   window.__capturePng = async () => frameToCanvas(await app.capture()).toDataURL('image/png');
+  /** Кадр сцены как webp data URL, ужатый до ширины width (фолбэк-кадр без WebGL). */
+  window.__captureWebp = async (width, quality = 0.9) => {
+    const src = frameToCanvas(await app.capture());
+    const c = document.createElement('canvas');
+    const k = width ? width / src.width : 1;
+    c.width = Math.round(src.width * k);
+    c.height = Math.round(src.height * k);
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    return c.toDataURL('image/webp', quality);
+  };
 }
