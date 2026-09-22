@@ -7,7 +7,13 @@ npm run dev      # http://localhost:5173
 npm run build
 ```
 
-- `public/models/character.glb` — персонаж, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+- `public/models/character.glb` — персонаж для десктопа, 1M треугольников, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+- `public/models/character-mobile.glb` — облегчённый персонаж, 150k треугольников, Draco (710 KB):
+
+  ```bash
+  npx @gltf-transform/cli simplify public/models/character.glb /tmp/m.glb --ratio 0.15 --error 0.002
+  npx @gltf-transform/cli draco /tmp/m.glb public/models/character-mobile.glb
+  ```
 - `src/content.js` — весь контент (имя, теглайн, оффер, таймлайн, проекты, ссылки); сцена и разметка читают оттуда.
 - `src/sections.js` — секции после сцены («Обо мне», проекты, «Написать», футер), рендер из контента.
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.

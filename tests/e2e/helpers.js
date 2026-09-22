@@ -262,3 +262,20 @@ export async function openMenu(page) {
   await expect(page.locator('#menu')).toHaveClass(/menu--open/);
   await expect(page.locator('#menu-toggle')).toHaveAttribute('aria-expanded', 'true');
 }
+
+/**
+ * Средний fps за время действия: считаем кадры rAF, пока идёт переход.
+ * Меряет частоту цикла отрисовки сцены — просадки видны сразу.
+ */
+export async function measureFps(page, action) {
+  await page.evaluate(() => {
+    window.__fps = { frames: 0, t0: performance.now(), raf: 0 };
+    const loop = () => { window.__fps.frames++; window.__fps.raf = requestAnimationFrame(loop); };
+    loop();
+  });
+  await action();
+  return page.evaluate(() => {
+    cancelAnimationFrame(window.__fps.raf);
+    return window.__fps.frames / ((performance.now() - window.__fps.t0) / 1000);
+  });
+}

@@ -32,7 +32,17 @@ const seg = (t, a, b) => clamp01((t - a) / (b - a));
 
 // BASE_URL: пути относительно базы сборки, чтобы статика работала и не в корне домена
 const BASE = import.meta.env.BASE_URL;
-const MODEL_URL = `${BASE}models/character.glb`; // draco, 2.7 MB (исходник base.glb 36 MB)
+// desktop: 1M треугольников, draco, 2.7 MB (исходник base.glb 36 MB)
+// mobile: децимация до 150k (gltf-transform simplify), draco, 710 KB — см. README
+const MODEL_URL = {
+  desktop: `${BASE}models/character.glb`,
+  mobile: `${BASE}models/character-mobile.glb`,
+};
+/** Настройки рендера по пресету: мобильный облегчён по образцу референса. */
+const RENDER_PRESET = {
+  desktop: { dprMax: 1.5, gtao: true, glitch: true, shadowMap: 2048 },
+  mobile: { dprMax: 1.5, gtao: false, glitch: false, shadowMap: 128 },
+};
 const TARGET_HEIGHT = 1.85;
 const BLACK = new THREE.Color(0x0a0a0a);
 const WHITE = new THREE.Color(3, 3, 3); // >1: после ACES tone mapping даёт чистый белый
@@ -64,11 +74,12 @@ const TITLE_MAX_FILL = 0.96;     // длинное имя ужимается д�
 const TITLE_FRAME_FILL = 0.9;    // desktop: буквы не шире этой доли видимой ширины кадра
 
 /** @param name {{ desktop: string, mobile: string }} имя по пресетам (content.name) */
-export async function createScene(canvas, { onProgress, name }) {
+export async function createScene(canvas, { onProgress, name, preset = 'desktop' }) {
+  const RP = RENDER_PRESET[preset] ?? RENDER_PRESET.desktop;
   RectAreaLightUniformsLib.init();
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, 1), RP.dprMax));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.9;
@@ -90,7 +101,7 @@ export async function createScene(canvas, { onProgress, name }) {
     draco.setDecoderPath(`${BASE}draco/`);
     const loader = new GLTFLoader();
     loader.setDRACOLoader(draco);
-    loader.load(MODEL_URL, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
+    loader.load(MODEL_URL[preset] ?? MODEL_URL.desktop, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
   });
   const root = gltf.scene;
   const PART = new URLSearchParams(location.search).get('part') || 'back';
@@ -237,7 +248,7 @@ export async function createScene(canvas, { onProgress, name }) {
   spot.position.set(2.6, 4.6, -1.0);
   spot.target.position.copy(target);
   spot.castShadow = true;
-  spot.shadow.mapSize.set(2048, 2048);
+  spot.shadow.mapSize.set(RP.shadowMap, RP.shadowMap);
   spot.shadow.bias = -0.0002;
   spot.shadow.normalBias = 0.02;
   spot.userData.base = 6;
@@ -249,7 +260,7 @@ export async function createScene(canvas, { onProgress, name }) {
   key.position.set(-3.2, 3.6, 2.8);
   key.target.position.set(0, 0.7, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(RP.shadowMap, RP.shadowMap);
   key.shadow.camera.left = key.shadow.camera.bottom = -3.2;
   key.shadow.camera.right = key.shadow.camera.top = 3.2;
   key.shadow.camera.near = 0.5; key.shadow.camera.far = 14;
@@ -305,10 +316,12 @@ export async function createScene(canvas, { onProgress, name }) {
   gtao.blendIntensity = 1.0;
   gtao.updateGtaoMaterial({ radius: 0.22, distanceExponent: 1.5, thickness: 1.0, scale: 1.4, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false });
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, radiusExponent: 1, rings: 2, samples: 16 });
-  composer.addPass(gtao);
+  gtao.enabled = RP.gtao;
+  if (RP.gtao) composer.addPass(gtao);
   composer.addPass(new OutputPass());
+  // мобильный пресет: глитч-пасс не добавляется в композер (переход идёт облётом камеры)
   const glitchPass = new ShaderPass(GlitchShader);
-  composer.addPass(glitchPass);
+  if (RP.glitch) composer.addPass(glitchPass);
   const grainPass = new ShaderPass(GrainShader);
   grainPass.uniforms.amount.value = 0.07;
   composer.addPass(grainPass);
@@ -341,10 +354,9 @@ export async function createScene(canvas, { onProgress, name }) {
     grainPass.uniforms.amount.value = on ? 0.0 : 0.07;
     // AO на белом фоне даёт грязь по краям — ослабляем
     // на белом AO выключен: 16-сэмпловый GTAO даёт шум-рябь на ровных светлых поверхностях
-    gtao.enabled = !on;
+    gtao.enabled = RP.gtao && !on;
   }
 
-  let preset = 'desktop';
   let attached = false;
   /** Перерисовка холста имени под пресет: при attachScroll и после загрузки шрифта. */
   function layoutTitle() {
@@ -527,7 +539,7 @@ export async function createScene(canvas, { onProgress, name }) {
 
   return {
     start() { running = true; frame(); },
-    attachScroll(s, p = 'desktop') { sticky = s; preset = p; attached = true; layoutTitle(); layoutProps(); },
+    attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },

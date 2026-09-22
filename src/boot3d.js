@@ -96,13 +96,13 @@ export function boot3d({ preset, dom }) {
     loader.classList.add('loader--done');
     document.body.classList.remove('is-loading');
     app.lightsOn();
-    app.attachScroll(sticky, preset);
+    app.attachScroll(sticky);
     sticky.start(); // prelude стартует через 500 мс, длится 2 с
     setTimeout(() => { nav.classList.add('nav--visible'); }, 900);
     setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
   }
 
-  createScene(canvas, { name: content.name, onProgress: (p) => { real = Math.max(real, p); } })
+  createScene(canvas, { name: content.name, preset, onProgress: (p) => { real = Math.max(real, p); } })
     .then((s) => {
       app = s; app.start(); real = 1; window.__app = app; installCompare(app);
       app.onTimeline((tl) => {
