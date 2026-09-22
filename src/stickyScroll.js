@@ -59,6 +59,7 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
     locked: false,
     lockEndsAt: 0,
     released: false, // отдали нативному скроллу (после последнего шага)
+    paused: false,   // жесты игнорируются (открыто меню)
   };
   const listeners = new Set();
   let raf = null;
@@ -94,7 +95,7 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
 
   // ---------- input ----------
   function applyDelta(raw) {
-    if (!state.active || state.preludePlaying || state.locked || state.released) return;
+    if (!state.active || state.paused || state.preludePlaying || state.locked || state.released) return;
     const delta = Math.min(Math.max(raw, -CFG.wheelClamp), CFG.wheelClamp) * CFG.wheelSensitivity;
     if (delta === 0) return;
     state.direction = delta > 0 ? 1 : -1;
@@ -112,14 +113,14 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
   }
 
   function onWheel(e) {
-    if (state.released) return;
+    if (state.released || state.paused) return;
     e.preventDefault();
     applyDelta(e.deltaY);
   }
   let touchY = null;
   function onTouchStart(e) { if (e.touches.length === 1) touchY = e.touches[0].clientY; }
   function onTouchMove(e) {
-    if (state.released || touchY == null || e.touches.length !== 1) return;
+    if (state.released || state.paused || touchY == null || e.touches.length !== 1) return;
     e.preventDefault();
     const y = e.touches[0].clientY;
     applyDelta((touchY - y) * CFG.touchPixelScale);
@@ -127,7 +128,7 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
   }
   function onTouchEnd() { touchY = null; }
   function onKey(e) {
-    if (state.released) return;
+    if (state.released || state.paused) return;
     const map = { ArrowDown: 1, PageDown: 1, ' ': 1, ArrowUp: -1, PageUp: -1 };
     const d = map[e.key];
     if (!d) return;
@@ -136,7 +137,7 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
   }
   // возврат в липкий режим, если из нативного скролла долистали до верха и крутят вверх
   function onNativeWheel(e) {
-    if (!state.released) return;
+    if (!state.released || state.paused) return;
     if (e.deltaY < 0 && window.scrollY <= 0) reengage();
   }
 
@@ -221,6 +222,10 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
       raf = requestAnimationFrame(loop);
     },
     seek(p) { state.progress = state.target = p; emit(); },
+    /** Отдать нативный скролл принудительно (переход по якорю меню). */
+    release,
+    /** Пауза ввода: жесты не двигают сцену, пока открыто меню. */
+    setPaused(v) { state.paused = v; },
     destroy() {
       destroyed = true;
       cancelAnimationFrame(raf);

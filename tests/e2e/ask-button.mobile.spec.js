@@ -12,7 +12,14 @@ test('mobile: Ask Ishmanov AI под пьедесталом не перекры�
 
   // низ пьедестала на 390×844 — ~86% высоты кадра (tests/e2e/golden/white-mobile.png)
   const r = await rectOf(page, '#ask-scene');
-  expect(r.top).toBeGreaterThanOrEqual(r.viewportH * 0.86);
+  const diag = await page.evaluate(() => ({
+    preset: document.body.dataset.preset,
+    cls: document.getElementById('ask-scene').className,
+    bottom: getComputedStyle(document.getElementById('ask-scene')).bottom,
+    progress: Math.round(window.__sticky.progress),
+    scrollY: window.scrollY,
+  }));
+  expect(r.top, `ask: ${JSON.stringify({ ...r, ...diag })}`).toBeGreaterThanOrEqual(r.viewportH * 0.86);
   expect(r.bottom).toBeLessThanOrEqual(r.viewportH);
 
   await leaveScene(page, 'mobile', { screens: 1.5 });

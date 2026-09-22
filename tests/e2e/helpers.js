@@ -137,10 +137,18 @@ export async function isInViewport(page, selector) {
   return r.bottom > 0 && r.top < r.viewportH;
 }
 
-/** С белой сцены: жест вниз — уход сцены, затем нативный скролл на screens высот экрана. */
-export async function leaveScene(page, preset, { screens = 1 } = {}) {
-  if (preset === 'mobile') await swipeUp(page);
-  else await wheelBurst(page);
+/**
+ * С белой сцены: жест вниз — уход сцены, затем нативный скролл на screens высот экрана.
+ * Жест повторяется до release: под нагрузкой один свайп не всегда доезжает до конца шага.
+ */
+export async function leaveScene(page, preset, { screens = 1, attempts = 4 } = {}) {
+  for (let i = 0; i < attempts; i++) {
+    if (preset === 'mobile') await swipeUp(page);
+    else await wheelBurst(page);
+    const released = await page.waitForFunction(() => window.__sticky.state.released === true, null, { timeout: 3000 })
+      .then(() => true).catch(() => false);
+    if (released) break;
+  }
   await expectSceneLeft(page);
   const { height } = page.viewportSize();
   if (preset === 'mobile') {
@@ -233,4 +241,17 @@ export async function expectAskButtons(page, content) {
     await expect(btn).toHaveAttribute('target', '_blank');
     await expect(btn).toContainText(content.ask.label);
   }
+}
+
+/** Меню закрыто: панель скрыта от скринридера и не в фокусе. */
+export async function expectMenuClosed(page) {
+  await expect(page.locator('#menu')).not.toHaveClass(/menu--open/);
+  await expect(page.locator('#menu-toggle')).toHaveAttribute('aria-expanded', 'false');
+}
+
+/** Открывает меню кнопкой в шапке и ждёт, пока панель раскроется. */
+export async function openMenu(page) {
+  await page.locator('#menu-toggle').click();
+  await expect(page.locator('#menu')).toHaveClass(/menu--open/);
+  await expect(page.locator('#menu-toggle')).toHaveAttribute('aria-expanded', 'true');
 }

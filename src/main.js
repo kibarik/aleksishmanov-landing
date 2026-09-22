@@ -10,6 +10,7 @@ import { installCompare } from './compare.js';
 import { createStickyScroll, buildSteps, UNITS, getDevicePreset } from './stickyScroll.js';
 import { content } from './content.js';
 import { mountSections } from './sections.js';
+import { mountMenu } from './menu.js';
 
 const loader = document.getElementById('loader');
 const pct = document.getElementById('loader-pct');
@@ -79,6 +80,7 @@ const sticky = createStickyScroll({
   },
 });
 window.__sticky = sticky;
+mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, sticky);
 
 function finish() {
   if (finished) return;

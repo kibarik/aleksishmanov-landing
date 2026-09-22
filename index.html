@@ -36,7 +36,7 @@
     <a class="nav__logo" href="#">ALEKS</a>
     <div class="nav__right">
       <a class="nav__ask" id="ask-nav" target="_blank" rel="noopener noreferrer"></a>
-      <button class="nav__menu" type="button" aria-label="Menu"><span></span><span></span></button>
+      <button class="nav__menu" id="menu-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
     </div>
   </header>
 
@@ -46,6 +46,8 @@
   </div>
 
   <main class="content" id="content"></main>
+
+  <div class="menu" id="menu" aria-hidden="true"></div>
 
   <div class="grain" aria-hidden="true"></div>
   <script type="module" src="/src/main.js"></script>

@@ -72,6 +72,17 @@ export const content = {
     ],
   },
 
+  /** Меню: якоря по секциям (короткие подписи) и заголовок блока ресурсов внизу. */
+  menu: {
+    title: 'Меню',
+    resourcesTitle: 'Мои ресурсы',
+    anchors: [
+      { label: 'Обо мне', href: '#about' },
+      { label: 'Проекты', href: '#projects' },
+      { label: 'Написать', href: '#contact' },
+    ],
+  },
+
   /** Футер: подпись копирайта и все ресурсы (те же — в низ меню). */
   footer: { copyright: 'Aleks Ishmanov' },
   resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],
