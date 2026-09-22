@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+.playwright-mcp
+test-results
+playwright-report
+
+# Референсные материалы bersus.io и прогоны скриншотов: только локально, в публичный репозиторий не уходят
+tests/ref-scroll/
+tests/ref-assets/
+tests/shots/
+public/ref/
