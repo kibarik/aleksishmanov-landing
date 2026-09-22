@@ -30,7 +30,9 @@ const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const seg = (t, a, b) => clamp01((t - a) / (b - a));
 
-const MODEL_URL = '/models/character.glb'; // draco, 2.7 MB (исходник base.glb 36 MB)
+// BASE_URL: пути относительно базы сборки, чтобы статика работала и не в корне домена
+const BASE = import.meta.env.BASE_URL;
+const MODEL_URL = `${BASE}models/character.glb`; // draco, 2.7 MB (исходник base.glb 36 MB)
 const TARGET_HEIGHT = 1.85;
 const BLACK = new THREE.Color(0x0a0a0a);
 const WHITE = new THREE.Color(3, 3, 3); // >1: после ACES tone mapping даёт чистый белый
@@ -85,7 +87,7 @@ export async function createScene(canvas, { onProgress, name }) {
   // ---------- model ----------
   const gltf = await new Promise((resolve, reject) => {
     const draco = new DRACOLoader();
-    draco.setDecoderPath('/draco/');
+    draco.setDecoderPath(`${BASE}draco/`);
     const loader = new GLTFLoader();
     loader.setDRACOLoader(draco);
     loader.load(MODEL_URL, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
@@ -185,7 +187,7 @@ export async function createScene(canvas, { onProgress, name }) {
   // Пропсы вокруг пьедестала — вместо шахмат bersus: глянцевые чёрные глифы кода
   const glyphMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 1.4 });
   const props = [];
-  new FontLoader().load('/fonts/helvetiker_bold.typeface.json', (font) => {
+  new FontLoader().load(`${BASE}fonts/helvetiker_bold.typeface.json`, (font) => {
     const add = (ch, size, pos, rot) => {
       const g = new TextGeometry(ch, { font, size, depth: size * 0.42, curveSegments: 10, bevelEnabled: true, bevelThickness: size * 0.03, bevelSize: size * 0.025, bevelSegments: 3 });
       g.center();
