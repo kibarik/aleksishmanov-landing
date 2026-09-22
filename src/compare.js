@@ -115,7 +115,7 @@ async function compareWith(app, refGray) {
   return { ref: fmt(mr), ours: fmt(mo), diff: fmt(d), score };
 }
 
-export function installCompare(app, refUrl = '/ref/bersus-1440.png') {
+export function installCompare(app, refUrl = `${import.meta.env.BASE_URL}ref/bersus-1440.png`) {
   /** Сравнение с референсом (тюнинг тёмной сцены). */
   window.__compare = async () => {
     refCache ||= toGray(await loadRef(refUrl));
