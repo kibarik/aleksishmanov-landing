@@ -27,7 +27,8 @@ const PRESETS = {
   desktop: { wheelSensitivity: 0.4, wheelClamp: 100, touchPixelScale: 3.2, lerpTarget: 0.035, lerpCurrent: 0.04, maxSpeed: 12 },
   mobile: { wheelSensitivity: 1.4, wheelClamp: 140, touchPixelScale: 5.1, lerpTarget: 0.065, lerpCurrent: 0.07, maxSpeed: 7 },
 };
-const COMMON = { keyboardStep: 60, preludeDelayMs: 500, preludeDurationMs: 2000, snapEps: 0.05 };
+// reengageTouchPx: протяжка вниз на самом верху, после которой возвращаемся в липкий режим
+const COMMON = { keyboardStep: 60, preludeDelayMs: 500, preludeDurationMs: 2000, snapEps: 0.05, reengageTouchPx: 40 };
 
 const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
@@ -120,7 +121,16 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
   let touchY = null;
   function onTouchStart(e) { if (e.touches.length === 1) touchY = e.touches[0].clientY; }
   function onTouchMove(e) {
-    if (state.released || state.paused || touchY == null || e.touches.length !== 1) return;
+    if (touchY == null || e.touches.length !== 1) return;
+    // из нативного скролла: на самом верху тянем вниз — возвращаемся в липкий режим
+    if (state.released) {
+      if (!state.paused && window.scrollY <= 0 && e.touches[0].clientY - touchY > CFG.reengageTouchPx) {
+        reengage();
+        touchY = null; // остаток этого жеста не тянет сцену назад: возврат встаёт ровно на белой сцене
+      }
+      return;
+    }
+    if (state.paused) return;
     e.preventDefault();
     const y = e.touches[0].clientY;
     applyDelta((touchY - y) * CFG.touchPixelScale);
@@ -140,6 +150,7 @@ export function createStickyScroll({ steps, segments, pauses = [], onRelease, pr
     if (!state.released || state.paused) return;
     if (e.deltaY < 0 && window.scrollY <= 0) reengage();
   }
+
 
   // ---------- release / reengage ----------
   function release() {

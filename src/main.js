@@ -77,8 +77,38 @@ const sticky = createStickyScroll({
     // после full отдаём нативный скролл: сцена перестаёт быть fixed и уезжает вместе с контентом
     hero.classList.toggle('hero--released', released);
     document.body.classList.toggle('is-released', released);
+    sceneParallax(released);
   },
 });
+
+// ---------- уход сцены: персонаж задерживается в кадре ----------
+// Канвас отстаёт от контента на первом экране высоты (коэффициент PARALLAX), потом идёт с ним
+// синхронно. Теглайн и кнопка Ask лежат в потоке hero и уезжают вместе с контентом.
+const PARALLAX = 0.7;
+const canvas = document.getElementById('scene');
+let parallaxOn = false;
+let parallaxRaf = 0;
+
+function applyParallax() {
+  parallaxRaf = 0;
+  const lag = (1 - PARALLAX) * Math.min(window.scrollY, window.innerHeight);
+  canvas.style.transform = `translate3d(0, ${lag.toFixed(2)}px, 0)`;
+}
+function onParallaxScroll() {
+  if (!parallaxRaf) parallaxRaf = requestAnimationFrame(applyParallax);
+}
+function sceneParallax(on) {
+  if (parallaxOn === on) return;
+  parallaxOn = on;
+  if (on) {
+    window.addEventListener('scroll', onParallaxScroll, { passive: true });
+    applyParallax();
+  } else {
+    window.removeEventListener('scroll', onParallaxScroll);
+    if (parallaxRaf) { cancelAnimationFrame(parallaxRaf); parallaxRaf = 0; }
+    canvas.style.transform = '';
+  }
+}
 window.__sticky = sticky;
 mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, sticky);
 

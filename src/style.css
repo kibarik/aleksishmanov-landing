@@ -1,22 +1,23 @@
 :root { --black: #0a0a0a; --font: 'Manrope', system-ui, sans-serif; --display: 'Montserrat', 'Manrope', system-ui, sans-serif; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--black); color: #fff; font-family: var(--font); }
-body.is-sticky, body.is-loading { overflow: hidden; height: 100vh; }
+/* svh: на мобильных браузерах с исчезающей панелью адреса 100vh больше видимой области (как у референса) */
+body.is-sticky, body.is-loading { overflow: hidden; height: 100vh; height: 100svh; }
 body.is-light { background: #f9f9f9; }
 body { -webkit-font-smoothing: antialiased; }
 
-.hero { position: fixed; inset: 0; height: 100vh; z-index: 0; }
+.hero { position: fixed; inset: 0; height: 100vh; height: 100svh; z-index: 0; }
 .hero--released { position: absolute; top: 0; left: 0; right: 0; }
 .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tagline {
-  position: absolute; left: 0; right: 0; top: 20vh; text-align: center; color: #111;
+  position: absolute; left: 0; right: 0; top: 20vh; top: 20svh; text-align: center; color: #111;
   font-family: var(--display); font-size: clamp(13px, 1.15vw, 17px); font-weight: 600; letter-spacing: .01em;
   opacity: 0; transform: translateY(10px); transition: opacity .7s ease, transform .7s ease; pointer-events: none;
 }
 .tagline--visible { opacity: 1; transform: none; }
 /* Ask Ishmanov AI под пьедесталом: капсула как у референса, появляется вместе с теглайном */
 .ask {
-  position: absolute; left: 50%; bottom: 11vh; transform: translate(-50%, 10px); width: min(360px, calc(100vw - 32px)); height: 64px;
+  position: absolute; left: 50%; bottom: 11vh; bottom: 11svh; transform: translate(-50%, 10px); width: min(360px, calc(100vw - 32px)); height: 64px;
   display: flex; align-items: center; gap: 14px; padding: 0 8px 0 22px; border-radius: 999px; background: #ececec; color: #111;
   font-family: var(--font); font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 10px 30px rgba(0,0,0,.08);
   opacity: 0; pointer-events: none; transition: opacity .7s ease, transform .7s ease, background .2s ease;
@@ -29,7 +30,7 @@ body { -webkit-font-smoothing: antialiased; }
 .ask:hover .ask__send { transform: translateX(2px); }
 
 /* ---------- секции после сцены (src/sections.js): светлый фон продолжает белую сцену ---------- */
-.content { position: relative; z-index: 5; background: #f9f9f9; color: #111; margin-top: 100vh; padding: 0 clamp(16px, 5vw, 72px); }
+.content { position: relative; z-index: 5; background: #f9f9f9; color: #111; margin-top: 100vh; margin-top: 100svh; padding: 0 clamp(16px, 5vw, 72px); }
 .section { max-width: 960px; margin: 0 auto; padding: clamp(72px, 12vh, 140px) 0; border-top: 1px solid #e6e6e6; }
 .about { border-top: 0; padding-top: clamp(64px, 14vh, 160px); }
 .section__label { font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #777; margin-bottom: 28px; }
@@ -142,10 +143,10 @@ body.is-menu-open { overflow: hidden; }
 @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,2%)} 40%{transform:translate(2%,-4%)} 60%{transform:translate(-4%,-1%)} 80%{transform:translate(3%,3%)} 100%{transform:translate(0,0)} }
 
 @media (max-width: 720px) { .nav { padding: 20px; } .scroll-hint { right: 20px; bottom: 24px; } }
-body[data-preset="mobile"] .tagline { top: 10.5vh; font-size: 14px; }
-body[data-preset="mobile"] .ask { bottom: 3.5vh; height: 56px; font-size: 14px; }
+body[data-preset="mobile"] .tagline { top: 10.5vh; top: 10.5svh; font-size: 14px; }
+body[data-preset="mobile"] .ask { bottom: 3.5vh; bottom: 3.5svh; height: 56px; font-size: 14px; }
 body[data-preset="mobile"] .ask__send { width: 42px; height: 42px; }
 @media (max-width: 720px) { .nav__right { gap: 14px; } .nav__ask { padding: 7px 12px; font-size: 12px; } }
-body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 9.5vh; align-items: center; }
+body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 9.5vh; top: 9.5svh; align-items: center; }
 body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
 @media (prefers-reduced-motion: reduce) { .grain, .scroll-hint__mouse span { animation: none; } }

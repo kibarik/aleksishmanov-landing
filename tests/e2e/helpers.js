@@ -123,11 +123,18 @@ export async function expectSceneLeft(page) {
   await expect(page.locator('body')).toHaveClass(/is-released/, { timeout: 10_000 });
 }
 
-/** Геометрия элемента в css-пикселях (boundingBox() в мобильной эмуляции врёт из-за DPR). */
+/**
+ * Геометрия элемента в css-пикселях (boundingBox() в мобильной эмуляции врёт из-за DPR).
+ * heroH — высота кадра сцены: позиции внутри сцены задаются в долях кадра, а не окна.
+ */
 export async function rectOf(page, selector) {
   return page.evaluate((sel) => {
     const r = document.querySelector(sel).getBoundingClientRect();
-    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, viewportH: window.innerHeight };
+    return {
+      top: r.top, bottom: r.bottom, left: r.left, right: r.right,
+      viewportH: window.innerHeight,
+      heroH: document.getElementById('hero').getBoundingClientRect().height,
+    };
   }, selector);
 }
 
