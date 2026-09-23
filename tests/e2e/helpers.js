@@ -223,11 +223,13 @@ export async function expectSectionsMatchContent(page, content) {
   }
 
   await expect(page.locator('a[href*="blog.aleksishmanov.ru"]')).toHaveCount(0);
-  // без горизонтального скролла и с гаттером не меньше 16px: ни один элемент секций не выходит за край
+  // без горизонтального скролла и с гаттером не меньше 16px.
+  // Тёмная секция самопрезентации намеренно во всю ширину, поэтому проверяем её содержимое,
+  // а не саму секцию: .intro__inner держит тот же гаттер, что и светлые секции.
   const overflow = await page.evaluate(() => {
     const w = window.innerWidth;
     const bad = [];
-    for (const el of document.querySelectorAll('#content *')) {
+    for (const el of document.querySelectorAll('#content .section *, #content .footer *, #content .intro__inner *')) {
       const r = el.getBoundingClientRect();
       if (r.width && (r.left < 16 - 0.5 || r.right > w - 16 + 0.5)) bad.push(`${el.tagName}.${el.className} ${Math.round(r.left)}..${Math.round(r.right)}`);
     }

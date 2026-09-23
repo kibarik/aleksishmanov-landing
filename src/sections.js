@@ -19,8 +19,18 @@ function card(p) {
 }
 
 export function renderSections(content) {
-  const { about, projects, contact, footer, resources } = content;
+  const { intro, about, projects, contact, footer, resources } = content;
   return `
+    <section class="intro" id="intro">
+      <div class="intro__sticky">
+        <div class="intro__inner">
+          <h2 class="intro__title">${esc(content.offer)}</h2>
+          <p class="intro__lead">${esc(intro.lead)}</p>
+          <p class="intro__name">${esc(intro.name)}</p>
+          <p class="intro__role">${esc(intro.role)}</p>
+        </div>
+      </div>
+    </section>
     <section class="section about" id="about">
       <h2 class="section__label">${esc(about.title)}</h2>
       <p class="about__offer">${esc(content.offer)}</p>

@@ -39,6 +39,15 @@ dom.askNav.href = content.ask.href;
 dom.askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
 
+// Тёмная секция: пока она в кадре, шапка светлая; текст приезжает при входе в зону видимости
+const intro = document.getElementById('intro');
+new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    document.body.classList.toggle('is-dark-section', e.isIntersecting);
+    if (e.isIntersecting) intro.classList.add('intro--in');
+  }
+}, { threshold: 0.12 }).observe(intro.querySelector('.intro__sticky'));
+
 const preset = getDevicePreset();
 document.body.dataset.preset = preset;
 mountCursor();
