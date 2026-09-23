@@ -83,6 +83,20 @@ export const content = {
     ],
   },
 
+  /** Мета-теги и превью ссылки: title, description, Open Graph. */
+  meta: {
+    title: 'Алекс Ишманов — AI-платформы и практикумы',
+    description: 'Превращаю идеи в работающие бизнес-платформы. Проекты и практикумы по AI-разработке и продуктовому менеджменту: PO-нейробаза, PMF-стратегии, промты.',
+    url: 'https://aleksishmanov.ru/',
+    image: 'fallback/white-desktop.webp',
+  },
+
+  /** Яндекс.Метрика: идентификатор счётчика и цели. */
+  analytics: {
+    counter: 103355275,
+    goals: { whiteScene: 'white-scene', ask: 'ask', contact: 'contact' },
+  },
+
   /** Футер: подпись копирайта и все ресурсы (те же — в низ меню). */
   footer: { copyright: 'Aleks Ishmanov' },
   resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],

@@ -9,6 +9,7 @@ import { content } from './content.js';
 import { mountSections } from './sections.js';
 import { mountMenu } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
+import { installAnalytics } from './analytics.js';
 
 const dom = {
   loader: document.getElementById('loader'),
@@ -50,5 +51,12 @@ function bootFallback() {
   });
 }
 
-if (document.documentElement.dataset.webgl === 'off') bootFallback();
-else import('./boot3d.js').then((m) => m.boot3d({ preset, dom }));
+const noWebgl = document.documentElement.dataset.webgl === 'off';
+const analytics = installAnalytics(content, { hasScene: !noWebgl });
+
+if (noWebgl) {
+  bootFallback();
+  analytics.whiteScene(); // кадр белой сцены — это и есть первый экран фолбэка
+} else {
+  import('./boot3d.js').then((m) => m.boot3d({ preset, dom, analytics }));
+}

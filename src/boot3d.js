@@ -11,7 +11,7 @@ import { mountMenu } from './menu.js';
 /** Доля скролла, на которую персонаж отстаёт от контента на первом экране при уходе сцены. */
 const PARALLAX = 0.7;
 
-export function boot3d({ preset, dom }) {
+export function boot3d({ preset, dom, analytics }) {
   const { loader, pct, path, nav, hint, tagline, hero, askScene, canvas } = dom;
 
   let real = 0;
@@ -106,6 +106,7 @@ export function boot3d({ preset, dom }) {
     .then((s) => {
       app = s; app.start(); real = 1; window.__app = app; installCompare(app);
       app.onTimeline((tl) => {
+        if (tl.swapped) analytics?.whiteScene();
         tagline.classList.toggle('tagline--visible', tl.tagline);
         askScene.classList.toggle('ask--visible', tl.tagline);
         hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
