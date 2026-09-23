@@ -25,7 +25,7 @@ test('прод: путь посетителя от лоадера до секц�
 
   await goToWhiteScene(page, 'desktop');
   await expect(page.locator('body')).toHaveClass(/is-light/);
-  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expectAskButtons(page, content);
 
   await leaveScene(page, 'desktop');

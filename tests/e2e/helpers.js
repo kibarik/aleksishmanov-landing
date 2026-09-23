@@ -107,7 +107,7 @@ export async function expectFirstScreenTexts(page, content) {
   await expect(page.locator('#loader-offer')).toHaveText(content.offer);
   await expect(page.locator('#loader')).not.toContainText('Linus');
   await waitForPrelude(page);
-  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expect(page.locator('#tagline')).not.toHaveClass(/tagline--visible/);
 }
 

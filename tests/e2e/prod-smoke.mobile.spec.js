@@ -15,6 +15,6 @@ test('прод: мобильный пресет доходит до белой �
 
   await goToWhiteScene(page, 'mobile');
   await expect(page.locator('body')).toHaveClass(/is-light/);
-  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expectAskButtons(page, content);
 });

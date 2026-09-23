@@ -64,6 +64,9 @@ const MOBILE = {
   mmFrom: 24, mmTo: 46,
   titleYOffset: -0.8, titleScaleFrom: 1.2,
 };
+// Сила отклика сцены на мышь (единицы сцены на единицу смещения курсора −1…1)
+const MOUSE = { camX: 0.38, camY: 0.16, tgtX: 0.09, tgtY: 0.035, propX: 0.5, propY: 0.16 };
+
 const mmToFov = (mm) => THREE.MathUtils.radToDeg(2 * Math.atan(24 / (2 * mm))); // sensor 24 мм
 
 // Имя на белой сцене: плоскость с canvas-текстурой за фигурой
@@ -71,7 +74,7 @@ const TITLE_W = 5.6;                                   // ширина плос�
 const TITLE_CANVAS_W = { desktop: 4096, mobile: 2048 }; // холст 4:1; на мобильном вдвое меньше (память)
 const TITLE_FONT_RATIO = 0.84;   // кегль от высоты холста
 const TITLE_MAX_FILL = 0.96;     // длинное имя ужимается до этой доли ширины холста
-const TITLE_FRAME_FILL = 0.9;    // desktop: буквы не шире этой доли видимой ширины кадра
+const TITLE_FRAME_FILL = 0.84;   // desktop: буквы не шире этой доли видимой ширины кадра
 
 /** @param name {{ desktop: string, mobile: string }} имя по пресетам (content.name) */
 export async function createScene(canvas, { onProgress, name, preset = 'desktop' }) {
@@ -209,24 +212,29 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
       m.position.set(...pos); m.rotation.set(...rot);
       m.castShadow = true; m.receiveShadow = true;
       m.userData.base = { pos: [...pos], size };
+      m.name = pos[2] > 1 ? 'glyph-near' : 'glyph-far'; // имя для тестов параллакса
       white.add(m); props.push(m);
       return m;
     };
-    // лежит слева, стоит справа, брошен под углом за спиной справа
-    add('{', 0.42, [-1.55, -PED_H + 0.22, 0.1], [0, 0.35, -0.12]);
-    add('}', 0.42, [1.45, -PED_H + 0.22, 0.25], [0, -0.3, 0.1]);
-    add('/', 0.5, [2.05, -PED_H + 0.07, -0.7], [Math.PI / 2, 0, 0.6]);
-    add(';', 0.34, [-1.05, -PED_H + 0.18, 0.75], [0, 0.5, 0]);
-    add('<', 0.36, [-2.2, -PED_H + 0.19, -0.6], [0, 0.8, 0]);
+    // Глубина кадра: ближние глифы крупные и у края, дальние мелкие и за пьедесталом.
+    // z растёт к камере (она на +8.74), поэтому размер задаётся вместе с z: ближний крупнее.
+    add('{', 0.55, [-1.85, -PED_H + 0.52, 2.1], [0.06, 0.42, -0.14]);   // передний план слева
+    add('}', 0.48, [1.9, -PED_H + 0.46, 1.6], [-0.05, -0.38, 0.12]);    // передний план справа
+    add(';', 0.3, [-1.15, -PED_H + 0.16, 0.5], [0, 0.55, 0]);           // средний план у пьедестала
+    add('<', 0.44, [-2.5, -PED_H + 0.24, -1.9], [0, 0.85, 0.05]);       // дальний слева, за именем
+    add('/', 0.46, [2.6, -PED_H + 0.06, -2.6], [Math.PI / 2, 0, 0.75]); // дальний справа, лежит
     layoutProps();
   });
   function layoutProps() {
-    // на мобильном кадр узкий: пропсы ближе к пьедесталу и мельче
-    const k = preset === 'mobile' ? 0.5 : 1;
+    // на мобильном кадр узкий: глифы ближе к оси и мельче, глубина сохраняется
+    const kx = preset === 'mobile' ? 0.42 : 1;
+    const kz = preset === 'mobile' ? 0.7 : 1;
     for (const m of props) {
       const b = m.userData.base;
-      m.position.set(b.pos[0] * k, b.pos[1] - (1 - k) * b.size * 0.25, b.pos[2] * k);
-      m.scale.setScalar(preset === 'mobile' ? 0.75 : 1);
+      m.position.set(b.pos[0] * kx, b.pos[1] - (1 - kx) * b.size * 0.25, b.pos[2] * kz);
+      m.userData.laidOutX = m.position.x;
+      m.userData.laidOutY = m.position.y;
+      m.scale.setScalar(preset === 'mobile' ? 0.7 : 1);
     }
   }
 
@@ -523,14 +531,22 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     pivot.rotation.y = state.baseRotY + Math.sin(t * 0.35) * 0.01;
     pivot.position.y = Math.sin(t * 1.1) * 0.003;
     const side = tl.swapped ? 1 : -1;
-    const par = preset === 'mobile' ? 0 : (tl.swapped ? 0.5 : 1);
+    // отклик на мышь: кадр должен читаться объёмным, поэтому сдвиг заметный, но с инерцией (mouse.sx)
+    const par = preset === 'mobile' ? 0 : (tl.swapped ? 1 : 0.8);
     camPos.copy(cam.pos);
-    camPos.x += side * mouse.sx * 0.15 * par;
-    camPos.y += -mouse.sy * 0.06 * par;
+    camPos.x += side * mouse.sx * MOUSE.camX * par;
+    camPos.y += -mouse.sy * MOUSE.camY * par;
     camera.position.copy(camPos);
     camTarget.copy(cam.tgt);
-    camTarget.x += side * mouse.sx * 0.03 * par;
-    camTarget.y += -mouse.sy * 0.015 * par;
+    camTarget.x += side * mouse.sx * MOUSE.tgtX * par;
+    camTarget.y += -mouse.sy * MOUSE.tgtY * par;
+    // глифы переднего плана уходят за курсором сильнее дальних: параллакс по глубине
+    for (const m of props) {
+      const b = m.userData.base;
+      const depth = Math.max(0, b.pos[2] + 3) / 6; // 0 у дальних, ~1 у ближних
+      m.position.x = m.userData.laidOutX + side * mouse.sx * MOUSE.propX * depth * par;
+      m.position.y = m.userData.laidOutY + -mouse.sy * MOUSE.propY * depth * par;
+    }
     camera.lookAt(camTarget);
     if (Math.abs(camera.fov - cam.fov) > 1e-3) { camera.fov = cam.fov; camera.updateProjectionMatrix(); }
 

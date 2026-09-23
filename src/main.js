@@ -5,8 +5,12 @@ import '@fontsource/manrope/500.css';
 import '@fontsource/manrope/800.css';
 import '@fontsource/montserrat/600.css';
 import '@fontsource/montserrat/900.css';
+import '@fontsource/onest/500.css';
+import '@fontsource/onest/600.css';
 import { content } from './content.js';
 import { mountSections } from './sections.js';
+import { mountFlipText } from './flipText.js';
+import { mountCursor } from './cursor.js';
 import { mountMenu, NO_SCENE_SCROLL } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
 import { installAnalytics } from './analytics.js';
@@ -27,7 +31,7 @@ const dom = {
 // тексты первого экрана — из модуля контента; мета-теги живут в index.html: их читают краулеры
 // и Telegram до выполнения JS
 document.getElementById('loader-offer').textContent = content.offer;
-dom.tagline.textContent = content.tagline;
+mountFlipText(dom.tagline, content.tagline);
 // Ask Ishmanov AI: обе кнопки из одной константы контента (замена на бота — правка href там)
 dom.askScene.href = content.ask.href;
 dom.askScene.querySelector('.ask__label').textContent = content.ask.label;
@@ -37,6 +41,7 @@ mountSections(document.getElementById('content'), content);
 
 const preset = getDevicePreset();
 document.body.dataset.preset = preset;
+mountCursor();
 
 /** Без WebGL: статичный кадр белой сцены, обычный скролл, светлая тема; сцена не импортируется. */
 function bootFallback() {
