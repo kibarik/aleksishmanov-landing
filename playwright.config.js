@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 // В CI: PW_CHANNEL=chromium после `npx playwright install chromium`.
 const channel = process.env.PW_CHANNEL || 'chrome';
 
+
 export default defineConfig({
   testDir: './tests/e2e',
   timeout: 90_000,

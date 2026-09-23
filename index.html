@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aleks — Developer</title>
+  <style>
+    /* Critical CSS лоадера: первый экран рисуется до загрузки основного файла стилей */
+    :root { --black: #0a0a0a; }
+    html, body { margin: 0; background: var(--black); color: #fff; font-family: 'Manrope', system-ui, sans-serif; }
+    body.is-loading { overflow: hidden; height: 100vh; height: 100svh; }
+    .loader { position: fixed; inset: 0; z-index: 50; background: var(--black); color: #fff; display: grid; place-items: center; transition: opacity 1s ease, visibility 1s; }
+    .loader--done { opacity: 0; visibility: hidden; }
+    .loader__inner { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+    .loader__spiral { width: 160px; height: auto; color: rgba(255,255,255,.5); }
+    .loader__path { stroke-dasharray: 100; stroke-dashoffset: 100; stroke-width: 1.4; stroke: #fff; }
+    .loader__label { font-size: 12px; letter-spacing: .12em; color: rgba(255,255,255,.7); display: flex; gap: 14px; }
+    .loader__quote { text-align: center; font-size: 14px; line-height: 1.9; color: rgba(255,255,255,.85); max-width: 22em; padding: 0 16px; text-wrap: balance; }
+    html[data-webgl="off"] .loader { display: none; }
+  </style>
   <link rel="stylesheet" href="./src/style.css" />
   <script>
     // WebGL-проверка до загрузки бандла: при провале сцена не импортируется, показываем кадр
@@ -14,7 +28,17 @@
         var o = { failIfMajorPerformanceCaveat: true };
         ok = !!(c.getContext('webgl2', o) || c.getContext('webgl', o));
       } catch (e) { ok = false; }
-      if (!ok) document.documentElement.dataset.webgl = 'off';
+      if (!ok) { document.documentElement.dataset.webgl = 'off'; return; }
+      // preload модели по тому же брейкпоинту, что и пресет сцены (1024): грузится параллельно бандлу.
+      // Ставим только при живом WebGL — иначе фолбэк тянул бы модель впустую.
+      var l = document.createElement('link');
+      l.rel = 'preload';
+      l.as = 'fetch';
+      l.type = 'model/gltf-binary';
+      l.crossOrigin = 'anonymous';
+      l.setAttribute('fetchpriority', 'high');
+      l.href = window.innerWidth <= 1024 ? './models/character-mobile.glb' : './models/character.glb';
+      document.head.appendChild(l);
     })();
   </script>
 </head>

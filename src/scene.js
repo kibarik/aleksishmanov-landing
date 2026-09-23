@@ -40,7 +40,7 @@ const MODEL_URL = {
 };
 /** Настройки рендера по пресету: мобильный облегчён по образцу референса. */
 const RENDER_PRESET = {
-  desktop: { dprMax: 1.5, gtao: true, glitch: true, shadowMap: 2048 },
+  desktop: { dprMax: 1.5, gtao: true, glitch: true, shadowMap: 256 }, // тени 256 с прогревом — как у референса
   mobile: { dprMax: 1.5, gtao: false, glitch: false, shadowMap: 128 },
 };
 const TARGET_HEIGHT = 1.85;
@@ -85,6 +85,9 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   renderer.toneMappingExposure = 0.9;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // тени пересчитываются не каждый кадр, а прогревом по событию (свап, ресайз): см. warmShadows
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
 
   const scene = new THREE.Scene();
   scene.background = BLACK.clone();
@@ -336,7 +339,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => { resize(); warmShadows(); });
   resize();
 
   // ---------- timeline ----------
@@ -351,6 +354,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     white.visible = on;
     scene.background.copy(on ? WHITE : BLACK);
     document.body.classList.toggle('is-light', on);
+    warmShadows(8); // материалы и свет сменились — даём теням догнать
     grainPass.uniforms.amount.value = on ? 0.0 : 0.07;
     // AO на белом фоне даёт грязь по краям — ослабляем
     // на белом AO выключен: 16-сэмпловый GTAO даёт шум-рябь на ровных светлых поверхностях
@@ -455,6 +459,10 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
       cam.fov = lerp(whiteFov(55, a), whiteFov(60, a), e);
     }
 
+    // GTAO только в покое тёмной сцены: во время перехода его всё равно скрывает глитч,
+    // а 16-сэмпловый проход стоит дороже всего остального вместе взятого
+    gtao.enabled = RP.gtao && !tl.swapped && t12 <= 0;
+
     // --- глитч: 1%…90% сегмента black-man → into-white
     const g = t12 <= GLITCH_START || t12 >= GLITCH_END ? 0 : (t12 - GLITCH_START) / (GLITCH_END - GLITCH_START);
     tl.glitch = g;
@@ -484,11 +492,15 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   // ---------- loop ----------
   const clock = new THREE.Clock();
   let running = false;
+  let firstFrameSent = false;
   let lightOnAt = -1;
   let sticky = null;
   const camPos = new THREE.Vector3();
   const camTarget = new THREE.Vector3();
   const state = { baseRotY: pivot.rotation.y };
+  // Прогрев теней: несколько кадров подряд после события, потом снова заморозка.
+  let shadowWarm = 0;
+  const warmShadows = (frames = 4) => { shadowWarm = Math.max(shadowWarm, frames); };
 
   function frame() {
     if (!running) return;
@@ -524,7 +536,14 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
     grainPass.uniforms.time.value = t;
     glitchPass.uniforms.uTime.value = t;
+    renderer.shadowMap.needsUpdate = shadowWarm > 0;
+    if (shadowWarm > 0) shadowWarm--;
     composer.render();
+    if (!firstFrameSent) {
+      firstFrameSent = true;
+      // по этому событию страница подключает сторонний JS (Метрика), не мешая первой отрисовке
+      window.dispatchEvent(new CustomEvent('scene:first-frame'));
+    }
     if (captureCb) { const cb = captureCb; captureCb = null; cb(readPixels()); }
   }
 
@@ -537,13 +556,24 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     return { width: w, height: h, data: buf, flipY: true };
   }
 
+  // Прогрев шейдеров: материал статуи и белое окружение компилируются заранее, иначе свап
+  // в середине перехода даёт длинный кадр на компиляции.
+  function precompile() {
+    const prev = meshes.map((m) => m.material);
+    for (const m of meshes) m.material = statueMat;
+    white.visible = true;
+    renderer.compile(scene, camera);
+    white.visible = false;
+    meshes.forEach((m, i) => { m.material = prev[i]; });
+  }
+
   return {
-    start() { running = true; frame(); },
-    attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); },
+    start() { running = true; precompile(); frame(); },
+    attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); warmShadows(8); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },
-    lightsOn() { lightOnAt = clock.getElapsedTime(); },
+    lightsOn() { lightOnAt = clock.getElapsedTime(); warmShadows(150); }, // свет разгорается 2.2 с
     gtao, grainPass, glitchPass, composer, tl,
     scene, camera, renderer, pivot, material: darkMat, statueMat, state, darkLights, key,
   };
