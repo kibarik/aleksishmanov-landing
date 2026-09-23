@@ -13,6 +13,15 @@ test('прод: путь посетителя от лоадера до секц�
   const origin = new URL(process.env.PROD_URL).origin;
   const failed = [];
   page.on('requestfailed', (r) => { if (r.url().startsWith(origin)) failed.push(`${r.url()} ${r.failure()?.errorText}`); });
+  // 4xx/5xx и подмена типа (этот хостинг отдаёт на несуществующий путь HTML с кодом 200)
+  page.on('response', (r) => {
+    if (!r.url().startsWith(origin)) return;
+    const type = r.headers()['content-type'] || '';
+    if (r.status() >= 400) failed.push(`${r.status()} ${r.url()}`);
+    else if (/\.(js|css|woff2?|glb|wasm|webp)$/.test(new URL(r.url()).pathname) && /text\/html/.test(type)) {
+      failed.push(`вместо файла пришёл HTML: ${r.url()}`);
+    }
+  });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
 
@@ -32,6 +41,13 @@ test('прод: путь посетителя от лоадера до секц�
   expect(await isInViewport(page, '#about')).toBe(true);
   await expectSectionsMatchContent(page, content);
 
-  expect(failed, 'запросы с ошибкой').toEqual([]);
-  expect(errors, 'ошибки страницы').toEqual([]);
+  // сцена не просто смонтирована, а рисует: канвас отдаёт непустой кадр
+  const painted = await page.evaluate(async () => {
+    const png = await window.__capturePng();
+    return png.length;
+  });
+  expect(painted, 'канвас должен отдавать кадр').toBeGreaterThan(5000);
+
+  expect(failed, `запросы с ошибкой:\n${failed.join('\n')}`).toEqual([]);
+  expect(errors, `ошибки страницы:\n${errors.join('\n')}`).toEqual([]);
 });

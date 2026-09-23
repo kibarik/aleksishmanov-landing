@@ -83,9 +83,25 @@ function bootFallback() {
 const noWebgl = document.documentElement.dataset.webgl === 'off';
 const analytics = installAnalytics(content.analytics, { hasScene: !noWebgl });
 
+/** Один раз перезагрузить страницу: обычно чанк пропал из-за свежего деплоя, а HTML в кеше старый. */
+const RETRY_KEY = 'scene-chunk-retry';
+const retried = () => { try { return sessionStorage.getItem(RETRY_KEY) === '1'; } catch { return true; } };
+const markRetry = () => { try { sessionStorage.setItem(RETRY_KEY, '1'); } catch { /* приватный режим */ } };
+
 if (noWebgl) {
   bootFallback();
   analytics.whiteScene(); // кадр белой сцены — это и есть первый экран фолбэка
 } else {
-  import('./boot3d.js').then((m) => m.boot3d({ preset, dom, analytics }));
+  import('./boot3d.js')
+    .then((m) => m.boot3d({ preset, dom, analytics }))
+    .catch((err) => {
+      // Чанк сцены не приехал: во время деплоя старые имена файлов исчезают, а этот хостинг
+      // отдаёт на них HTML с кодом 200 — импорт падает. Первый раз пробуем перезагрузиться
+      // за свежим HTML, второй — показываем фолбэк, чтобы первый экран не остался пустым.
+      console.error('сцена не загрузилась:', err);
+      if (!retried()) { markRetry(); location.reload(); return; }
+      document.documentElement.dataset.webgl = 'off';
+      bootFallback();
+      analytics.whiteScene();
+    });
 }

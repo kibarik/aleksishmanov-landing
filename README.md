@@ -19,6 +19,23 @@ npm run build
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.
 - Пересжать модель: `npx @gltf-transform/cli optimize in.glb public/models/character.glb --compress draco --simplify false`
 
+## Проверка прода
+
+```bash
+npm run test:prod
+```
+
+Два набора. `prod-assets` идёт по HTTP без браузера: собирает все ссылки из HTML, чанки из бандла
+и шрифты из css, проверяет каждый файл на код 200, непустоту и правильный content-type. Это ловит
+частичный деплой — на этом хостинге несуществующий путь отдаёт **HTML с кодом 200**, а не 404,
+поэтому пропавший чанк выглядит как успешный ответ, и сцена молча не стартует.
+`prod-smoke` проходит путь посетителя в браузере и падает на любом 4xx/5xx, подменённом типе файла
+и ошибке в консоли.
+
+Страница переживает такую поломку: если чанк сцены не загрузился, она один раз перезагружается
+за свежим HTML, а затем показывает статичный кадр вместо пустого первого экрана
+(`tests/e2e/scene-chunk-failure.desktop.spec.js`).
+
 ## Производительность
 
 ```bash
@@ -60,7 +77,7 @@ E2E на Playwright, один шов — собранная страница. П
 npm test                      # desktop, mobile, no-webgl, firefox; dev-сервер поднимается сам
 npm run test:build            # те же тесты против собранной статики (vite build + vite preview)
 npm run test:webkit           # путь посетителя в WebKit (см. ограничение ниже)
-npm run test:prod             # путь посетителя по живому сайту (PROD_URL)
+npm run test:prod             # прод: целостность файлов + путь посетителя (PROD_URL)
 npx playwright test --project=desktop
 npm run test:update-golden    # перезаписать золотые кадры
 ```
