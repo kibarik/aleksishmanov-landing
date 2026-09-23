@@ -15,25 +15,10 @@ import { mountMenu } from './menu.js';
 const PARALLAX = 0.7;
 
 export function boot3d({ preset, dom, analytics }) {
-  const { loader, pct, path, nav, hint, tagline, hero, askScene, canvas } = dom;
+  const { loader, pct, nav, hint, tagline, hero, askScene, canvas } = dom;
 
-  let real = 0;
-  let shown = 0;
-  const t0 = performance.now();
   let app = null;
   let finished = false;
-
-  function tickLoader() {
-    const elapsed = (performance.now() - t0) / 1800;
-    const target = Math.min(real, elapsed, 1);
-    shown += (target - shown) * 0.15;
-    if (target >= 1 && shown > 0.995) shown = 1;
-    pct.textContent = Math.round(shown * 100) + '%';
-    path.style.strokeDashoffset = 100 - shown * 100;
-    if (shown < 1 || !app) requestAnimationFrame(tickLoader);
-    else finish();
-  }
-  requestAnimationFrame(tickLoader);
 
   // ---------- sticky scroll: шаги и сегменты как у bersus (desktop / mobile) ----------
   const UNIT = UNITS[preset];
@@ -98,21 +83,30 @@ export function boot3d({ preset, dom, analytics }) {
     }
   }
 
+  /** Сколько длится наклон иконки перед показом сцены (совпадает с .loader--out в style.css). */
+  const OUTRO_MS = 620;
+
+  /** Лоадер досчитал до 100% и наклонил иконку — открываем сцену. */
   function finish() {
-    if (finished) return;
+    if (finished || !app) return;
     finished = true;
-    loader.classList.add('loader--done');
-    document.body.classList.remove('is-loading');
     app.lightsOn();
     app.attachScroll(sticky);
-    sticky.start(); // prelude стартует через 500 мс, длится 2 с
-    setTimeout(() => { nav.classList.add('nav--visible'); }, 900);
-    setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
+    setTimeout(() => {
+      loader.classList.add('loader--done');
+      document.body.classList.remove('is-loading');
+      sticky.start(); // prelude стартует через 500 мс, длится 2 с
+      setTimeout(() => { nav.classList.add('nav--visible'); }, 900);
+      setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
+    }, OUTRO_MS);
   }
+  window.addEventListener('loader:done', finish, { once: true });
 
-  createScene(canvas, { name: content.name, preset, onProgress: (p) => { real = Math.max(real, p); } })
+  createScene(canvas, { name: content.name, preset })
     .then((s) => {
-      app = s; app.start(); real = 1; window.__app = app; installCompare(app);
+      app = s; app.start(); window.__app = app; installCompare(app);
+      window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
+      if (loader.classList.contains('loader--out')) finish();
       app.onTimeline((tl) => {
         if (tl.swapped) analytics?.whiteScene();
         tagline.classList.toggle('tagline--visible', tl.tagline);
@@ -120,5 +114,5 @@ export function boot3d({ preset, dom, analytics }) {
         hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
       });
     })
-    .catch((err) => { console.error(err); pct.textContent = 'error'; });
+    .catch((err) => { console.error(err); pct.textContent = 'ошибка'; });
 }

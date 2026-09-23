@@ -215,12 +215,22 @@ export async function expectSectionsMatchContent(page, content) {
   await expect(contactBtn).toHaveAttribute('href', content.contact.href);
   await expect(contactBtn).toContainText(content.contact.label);
 
-  const footerLinks = page.locator('#footer a[href]');
-  await expect(footerLinks).toHaveCount(content.resources.length);
-  for (const [i, r] of content.resources.entries()) {
-    await expect(footerLinks.nth(i)).toHaveAttribute('href', r.href);
-    await expect(footerLinks.nth(i)).toContainText(r.label);
+  // футер: колонки ссылок, призыв и якоря разделов — всё из контента
+  const columns = page.locator('#footer .footer__column');
+  await expect(columns).toHaveCount(content.footer.columns.length);
+  for (const [i, col] of content.footer.columns.entries()) {
+    await expect(columns.nth(i).locator('.footer__column-title')).toHaveText(col.title);
+    const links = columns.nth(i).locator('a');
+    await expect(links).toHaveCount(col.links.length);
+    for (const [j, l] of col.links.entries()) {
+      await expect(links.nth(j)).toHaveAttribute('href', l.href);
+      await expect(links.nth(j)).toContainText(l.label);
+    }
   }
+  await expect(page.locator('#footer .footer__lead')).toHaveText(content.footer.lead);
+  await expect(page.locator('#footer .footer__btn')).toHaveAttribute('href', content.contact.href);
+  const footerAnchors = page.locator('#footer .footer__chip');
+  await expect(footerAnchors).toHaveText(content.menu.anchors.map((a) => a.label));
 
   await expect(page.locator('a[href*="blog.aleksishmanov.ru"]')).toHaveCount(0);
   // без горизонтального скролла и с гаттером не меньше 16px.

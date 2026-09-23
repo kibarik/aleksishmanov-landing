@@ -43,10 +43,26 @@ mountSections(document.getElementById('content'), content);
 const intro = document.getElementById('intro');
 new IntersectionObserver((entries) => {
   for (const e of entries) {
-    document.body.classList.toggle('is-dark-section', e.isIntersecting);
+    document.body.classList.toggle('is-intro-visible', e.isIntersecting);
+    document.body.classList.toggle('is-dark-section', e.isIntersecting || document.body.classList.contains('is-footer-visible'));
     if (e.isIntersecting) intro.classList.add('intro--in');
   }
 }, { threshold: 0.12 }).observe(intro.querySelector('.intro__sticky'));
+
+// Футер тоже тёмный: шапка на нём светлая. 3D-объект живёт только пока футер в кадре.
+const footer = document.getElementById('footer');
+let footer3d = null;
+new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    document.body.classList.toggle('is-footer-visible', e.isIntersecting);
+    document.body.classList.toggle('is-dark-section', e.isIntersecting || document.body.classList.contains('is-intro-visible'));
+    if (document.documentElement.dataset.webgl === 'off' || preset === 'mobile') continue;
+    if (e.isIntersecting) {
+      footer3d ??= import('./footer3d.js').then((m) => m.mountFooter3d(document.getElementById('footer-scene')));
+      footer3d.then((s) => s.start());
+    } else footer3d?.then((s) => s.stop());
+  }
+}, { threshold: 0.25 }).observe(footer);
 
 const preset = getDevicePreset();
 document.body.dataset.preset = preset;

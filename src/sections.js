@@ -19,7 +19,7 @@ function card(p) {
 }
 
 export function renderSections(content) {
-  const { intro, about, projects, contact, footer, resources } = content;
+  const { intro, about, projects, contact, footer } = content;
   return `
     <section class="intro" id="intro">
       <div class="intro__sticky">
@@ -46,7 +46,24 @@ export function renderSections(content) {
       ${externalLink(contact, 'btn')}
     </section>
     <footer class="footer" id="footer">
-      <ul class="footer__resources" aria-label="Ресурсы">${resources.map((r) => `<li>${externalLink(r, 'footer__link')}</li>`).join('')}</ul>
+      <canvas class="footer__scene" id="footer-scene" aria-hidden="true"></canvas>
+      <img class="footer__fallback" id="footer-fallback" src="./fallback/white-desktop.webp" alt="" aria-hidden="true" />
+      <div class="footer__inner">
+        <div class="footer__columns">
+          ${footer.columns.map((c) => `
+            <nav class="footer__column" aria-label="${esc(c.title)}">
+              <p class="footer__column-title">${esc(c.title)}</p>
+              <ul>${c.links.map((l) => `<li>${l.href.startsWith('#')
+                ? `<a class="footer__link" href="${esc(l.href)}">${esc(l.label)}</a>`
+                : externalLink(l, 'footer__link')}</li>`).join('')}</ul>
+            </nav>`).join('')}
+        </div>
+        <div class="footer__cta">
+          <p class="footer__lead">${esc(footer.lead)}</p>
+          ${externalLink(contact, 'footer__btn')}
+          <ul class="footer__anchors" aria-label="Разделы страницы">${content.menu.anchors.map((a) => `<li><a class="footer__chip" href="${esc(a.href)}">${esc(a.label)}</a></li>`).join('')}</ul>
+        </div>
+      </div>
       <p class="footer__copy">© ${new Date().getFullYear()} ${esc(footer.copyright)}</p>
     </footer>`;
 }

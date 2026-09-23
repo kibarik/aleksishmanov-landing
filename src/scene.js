@@ -102,13 +102,17 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const camera = new THREE.PerspectiveCamera(16, 1, 0.1, 60);
 
   // ---------- model ----------
-  const gltf = await new Promise((resolve, reject) => {
-    const draco = new DRACOLoader();
-    draco.setDecoderPath(`${BASE}draco/`);
-    const loader = new GLTFLoader();
-    loader.setDRACOLoader(draco);
-    loader.load(MODEL_URL[preset] ?? MODEL_URL.desktop, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
-  });
+  const draco = new DRACOLoader();
+  draco.setDecoderPath(`${BASE}draco/`);
+  const loader = new GLTFLoader();
+  loader.setDRACOLoader(draco);
+  // Буфер модели уже качает инлайн-скрипт из index.html (один запрос, честный прогресс);
+  // если его почему-то нет — грузим сами по URL.
+  const gltf = window.__model
+    ? await window.__model.then((buf) => new Promise((resolve, reject) => loader.parse(buf, '', resolve, reject)))
+    : await new Promise((resolve, reject) => {
+      loader.load(MODEL_URL[preset] ?? MODEL_URL.desktop, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
+    });
   const root = gltf.scene;
   const PART = new URLSearchParams(location.search).get('part') || 'back';
   root.traverse((o) => { if (o.isMesh) o.geometry = keepHalf(o.geometry, PART === 'front' ? 1 : -1); });

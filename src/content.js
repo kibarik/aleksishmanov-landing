@@ -97,7 +97,24 @@ export const content = {
     goals: { whiteScene: 'white-scene', ask: 'ask', contact: 'contact' },
   },
 
-  /** Футер: подпись копирайта и все ресурсы (те же — в низ меню). */
-  footer: { copyright: 'Aleks Ishmanov' },
+  /**
+   * Футер: отдельный тёмный экран. Колонки ссылок, призыв и подпись.
+   * columns — заголовок и ссылки; ссылки берутся из тех же RESOURCES, что и везде.
+   */
+  footer: {
+    copyright: 'Aleks Ishmanov',
+    lead: 'Пишите — разберём вашу задачу.',
+    columns: [
+      {
+        title: 'Проекты',
+        links: [
+          { label: 'PO-нейробаза', href: RESOURCES.corporateAi.href },
+          { label: 'PMF-стратегии', href: RESOURCES.aiPmf.href },
+          { label: 'Промты', href: RESOURCES.prompts.href },
+        ],
+      },
+      { title: 'Ресурсы', links: [RESOURCES.slides, RESOURCES.threads] },
+    ],
+  },
   resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],
 };
