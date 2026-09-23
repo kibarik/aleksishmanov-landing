@@ -7,28 +7,78 @@ npm run dev      # http://localhost:5173
 npm run build
 ```
 
-- `public/models/character.glb` — персонаж, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+- `public/models/character.glb` — персонаж для десктопа, 1M треугольников, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+- `public/models/character-mobile.glb` — облегчённый персонаж, 150k треугольников, Draco (710 KB):
+
+  ```bash
+  npx @gltf-transform/cli simplify public/models/character.glb /tmp/m.glb --ratio 0.15 --error 0.002
+  npx @gltf-transform/cli draco /tmp/m.glb public/models/character-mobile.glb
+  ```
 - `src/content.js` — весь контент (имя, теглайн, оффер, таймлайн, проекты, ссылки); сцена и разметка читают оттуда.
 - `src/sections.js` — секции после сцены («Обо мне», проекты, «Написать», футер), рендер из контента.
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.
 - Пересжать модель: `npx @gltf-transform/cli optimize in.glb public/models/character.glb --compress draco --simplify false`
 
+## Производительность
+
+```bash
+npm run perf     # fps тёмной сцены и перехода на обоих пресетах
+```
+
+Скрипт собирает статику, поднимает `vite preview` и запускает Chrome без vsync (иначе частота
+упирается в частоту экрана); печатает fps для десктопа и мобильного пресета, цели — 50 и 40 fps
+в переходе. В окно замера входят только жесты перехода, паузы между шагами исключены. Мерить нужно на свободной
+машине: внутри общего прогона Playwright числа показывают загрузку CPU, а не сцену, поэтому
+в E2E проверяются сами оптимизации (GTAO только в покое тёмной сцены, DPR, тени, чанки), а не fps.
+
+Что держит кадр: тени не пересчитываются каждый кадр (`shadowMap.autoUpdate = false`, прогрев
+по событию), карты теней 256 на десктопе и 128 на мобильном, GTAO работает только в покое тёмной
+сцены, материал статуи компилируется заранее (`renderer.compile`), three вынесен в отдельный чанк.
+
+## Фолбэк без WebGL
+
+Инлайн-проверка в `<head>` ставит `html[data-webgl="off"]`, если WebGL недоступен: лоадер и канвас
+скрываются, показывается статичный кадр белой сцены (`public/fallback/*.webp`, два размера),
+страница скроллится нативно, шапка в светлой теме. Модуль сцены (`src/boot3d.js`) и бандл three
+в этой ветке не импортируются.
+
+Кадры генерируются из самой сцены:
+
+```bash
+npm run capture:fallback
+```
+
+Скрипт поднимает dev-сервер, доводит сцену до белой сцены на обоих пресетах и сохраняет webp.
+Перегенерируйте его после правок имени, теглайна или композиции сцены.
+
 ## Тесты
 
 E2E на Playwright, один шов — собранная страница. Прогоны в трёх проектах: `desktop` 1440×900,
-`mobile` 390×844 (touch, свайпы через CDP), `no-webgl` (Chromium с `--disable-3d-apis`, тесты фолбэка).
+`mobile` 390×844 (touch, свайпы через CDP), `no-webgl` (Chrome с `--disable-3d-apis`, тесты фолбэка).
 
 ```bash
-npm test                      # все проекты; dev-сервер поднимается сам
+npm test                      # desktop, mobile, no-webgl, firefox; dev-сервер поднимается сам
+npm run test:build            # те же тесты против собранной статики (vite build + vite preview)
+npm run test:webkit           # путь посетителя в WebKit (см. ограничение ниже)
 npx playwright test --project=desktop
 npm run test:update-golden    # перезаписать золотые кадры
 ```
+
+Пик глитча золотым кадром не фиксируется: эффект шумит по времени, поэтому в `golden-states.desktop`
+он проверяется структурно — кадр в середине перехода сильно отличается от тёмной сцены.
+
+Кроссбраузерность: путь посетителя прогоняется в проектах `firefox` (входит в `npm test`) и `webkit`
+(`npm run test:webkit`, в набор по умолчанию не входит). Firefox зелёный.
+WebKit на macOS 14 с Playwright 1.63 не стартует (`Protocol error (Page.overrideSetting):
+Unknown setting: PushAPIEnabled`) — сборка WebKit для этой версии ОС старше, чем ждёт Playwright;
+проект оставлен в конфиге, прогонять на другой машине или после обновления Playwright.
+Mobile Safari по той же причине не проверен.
 
 Локально тесты используют установленный Google Chrome (`channel: 'chrome'`), чтобы не качать Chromium.
 На машине без Chrome: `npx playwright install chromium` и `PW_CHANNEL=chromium npm test`.
 Отсутствующий золотой кадр — падение теста; создать его можно только через `test:update-golden`.
 
-Золотые кадры лежат в `tests/e2e/golden/` и сравниваются метриками (`src/compare.js`,
+Золотые кадры ключевых состояний (`dark-*`, `white-*`, `leave-*` для обоих пресетов) лежат в `tests/e2e/golden/` и сравниваются метриками (`src/compare.js`,
 `window.__compareTo`) по порогу score, не попиксельно. Хуки `window.__sticky` / `window.__app`
 используются только для чтения прогресса и захвата кадра. Хелперы в `tests/e2e/helpers.js`.
 
