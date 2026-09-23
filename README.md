@@ -60,6 +60,7 @@ E2E на Playwright, один шов — собранная страница. П
 npm test                      # desktop, mobile, no-webgl, firefox; dev-сервер поднимается сам
 npm run test:build            # те же тесты против собранной статики (vite build + vite preview)
 npm run test:webkit           # путь посетителя в WebKit (см. ограничение ниже)
+npm run test:prod             # путь посетителя по живому сайту (PROD_URL)
 npx playwright test --project=desktop
 npm run test:update-golden    # перезаписать золотые кадры
 ```
