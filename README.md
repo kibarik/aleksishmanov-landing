@@ -56,16 +56,28 @@ E2E на Playwright, один шов — собранная страница. П
 `mobile` 390×844 (touch, свайпы через CDP), `no-webgl` (Chrome с `--disable-3d-apis`, тесты фолбэка).
 
 ```bash
-npm test                      # все проекты; dev-сервер поднимается сам
+npm test                      # desktop, mobile, no-webgl, firefox; dev-сервер поднимается сам
+npm run test:build            # те же тесты против собранной статики (vite build + vite preview)
+npm run test:webkit           # путь посетителя в WebKit (см. ограничение ниже)
 npx playwright test --project=desktop
 npm run test:update-golden    # перезаписать золотые кадры
 ```
+
+Пик глитча золотым кадром не фиксируется: эффект шумит по времени, поэтому в `golden-states.desktop`
+он проверяется структурно — кадр в середине перехода сильно отличается от тёмной сцены.
+
+Кроссбраузерность: путь посетителя прогоняется в проектах `firefox` (входит в `npm test`) и `webkit`
+(`npm run test:webkit`, в набор по умолчанию не входит). Firefox зелёный.
+WebKit на macOS 14 с Playwright 1.63 не стартует (`Protocol error (Page.overrideSetting):
+Unknown setting: PushAPIEnabled`) — сборка WebKit для этой версии ОС старше, чем ждёт Playwright;
+проект оставлен в конфиге, прогонять на другой машине или после обновления Playwright.
+Mobile Safari по той же причине не проверен.
 
 Локально тесты используют установленный Google Chrome (`channel: 'chrome'`), чтобы не качать Chromium.
 На машине без Chrome: `npx playwright install chromium` и `PW_CHANNEL=chromium npm test`.
 Отсутствующий золотой кадр — падение теста; создать его можно только через `test:update-golden`.
 
-Золотые кадры лежат в `tests/e2e/golden/` и сравниваются метриками (`src/compare.js`,
+Золотые кадры ключевых состояний (`dark-*`, `white-*`, `leave-*` для обоих пресетов) лежат в `tests/e2e/golden/` и сравниваются метриками (`src/compare.js`,
 `window.__compareTo`) по порогу score, не попиксельно. Хуки `window.__sticky` / `window.__app`
 используются только для чтения прогресса и захвата кадра. Хелперы в `tests/e2e/helpers.js`.
 

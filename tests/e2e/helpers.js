@@ -72,6 +72,15 @@ const goldenPath = (name) => path.join(GOLDEN_DIR, `${name}.png`);
  * score — взвешенная сумма отклонений; 0 = идентично. Порог по умолчанию 4.
  * Отсутствующий золотой кадр — ошибка; записать можно только с UPDATE_GOLDEN=1.
  */
+/** Сравнивает текущий кадр с золотым и возвращает score (без утверждений). */
+export async function scoreAgainstGolden(page, name) {
+  const file = goldenPath(name);
+  expect(fs.existsSync(file), `нет золотого кадра ${file}`).toBe(true);
+  const url = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64');
+  const { score } = await page.evaluate((u) => window.__compareTo(u), url);
+  return score;
+}
+
 export async function expectGolden(page, name, { threshold = 4 } = {}) {
   // имя на сцене перерисовывается после загрузки шрифта — дожидаемся, чтобы кадр был детерминирован
   await page.waitForFunction(() => document.fonts.check('900 40px Montserrat'), null, { timeout: 15_000 });
