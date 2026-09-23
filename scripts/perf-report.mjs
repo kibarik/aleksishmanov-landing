@@ -1,35 +1,20 @@
 /**
- * Замер fps сцены на свободной машине: прогон Playwright меряет не сцену, а загруженный CPU,
- * поэтому производительность снимается отдельной командой.
+ * Замер fps сцены на свободной машине: внутри общего прогона Playwright частота упирается
+ * в vsync или загрузку CPU, поэтому производительность снимается отдельной командой
+ * и по собранной статике, а не по dev-серверу.
  *
  *   npm run perf
  *
  * Chrome запускается без vsync, иначе частота упирается в частоту экрана (30–60 Гц).
  */
-import { spawn } from 'node:child_process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { chromium, devices } from '@playwright/test';
+import { startServer, swipeUp } from './local-server.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const URL_ = process.env.PERF_URL || 'http://localhost:5173/';
+const URL_ = process.env.PERF_URL || 'http://localhost:4173/';
 const TARGET = { desktop: 50, mobile: 40 };
 const ARGS = ['--disable-gpu-vsync', '--disable-frame-rate-limit', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'];
 
-async function reachable(url) {
-  try { await fetch(url, { signal: AbortSignal.timeout(1500) }); return true; } catch { return false; }
-}
-async function startServer() {
-  if (await reachable(URL_)) return null;
-  const proc = spawn('npm', ['run', 'dev'], { cwd: root, stdio: 'ignore' });
-  for (let i = 0; i < 60; i++) {
-    if (await reachable(URL_)) return proc;
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  proc.kill();
-  throw new Error(`dev-сервер не поднялся на ${URL_}`);
-}
-
+/** Считает кадры rAF за ms миллисекунд. */
 const fpsOver = (page, ms) => page.evaluate(async (d) => {
   let n = 0;
   const t0 = performance.now();
@@ -37,19 +22,43 @@ const fpsOver = (page, ms) => page.evaluate(async (d) => {
   return n / ((performance.now() - t0) / 1000);
 }, ms);
 
-async function swipeUp(page, distance = 300) {
-  const vp = page.viewportSize();
-  const cdp = await page.context().newCDPSession(page);
-  const x = vp.width / 2;
-  const y0 = vp.height * 0.7;
-  const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
-  await touch('touchStart', y0);
-  for (let i = 1; i <= 12; i++) { await touch('touchMove', y0 - (distance * i) / 12); await page.waitForTimeout(16); }
-  await touch('touchEnd', 0);
-  await cdp.detach();
+/** Кадры считаются только пока идут жесты перехода, без пауз между сегментами. */
+async function transitionFps(page, preset) {
+  await page.evaluate(() => {
+    window.__perf = { n: 0, ms: 0, raf: 0, on: false, last: 0 };
+    const loop = () => {
+      const now = performance.now();
+      if (window.__perf.on) { window.__perf.n++; window.__perf.ms += now - window.__perf.last; }
+      window.__perf.last = now;
+      window.__perf.raf = requestAnimationFrame(loop);
+    };
+    loop();
+  });
+  const on = (v) => page.evaluate((x) => { window.__perf.on = x; window.__perf.last = performance.now(); }, v);
+
+  if (preset === 'mobile') {
+    await on(true);
+    await swipeUp(page);
+    await swipeUp(page);
+    await page.waitForFunction(() => Math.abs(window.__sticky.progress - 1053) <= 1, null, { timeout: 20_000 });
+    await on(false);
+  } else {
+    await page.mouse.move(720, 450);
+    for (const target of [440, 640]) {
+      await on(true);
+      for (let i = 0; i < 4; i++) { await page.mouse.wheel(0, 100); await page.waitForTimeout(40); }
+      await page.waitForFunction((t) => Math.abs(window.__sticky.progress - t) <= 1, target, { timeout: 20_000 });
+      await on(false);
+      await page.waitForTimeout(900); // пауза шага: в замер не входит
+    }
+  }
+  return page.evaluate(() => {
+    cancelAnimationFrame(window.__perf.raf);
+    return window.__perf.n / (window.__perf.ms / 1000);
+  });
 }
 
-const server = await startServer();
+const server = await startServer(URL_, 'preview:build');
 const browser = await chromium.launch({ channel: process.env.PW_CHANNEL || 'chrome', args: ARGS });
 try {
   for (const [preset, opts] of [['desktop', { viewport: { width: 1440, height: 900 } }], ['mobile', { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } }]]) {
@@ -58,30 +67,11 @@ try {
     await page.goto(URL_, { waitUntil: 'load', timeout: 60_000 });
     await page.waitForFunction(() => window.__sticky?.state?.preludeDone === true, null, { timeout: 90_000 });
     await page.waitForTimeout(1500);
-    const dark = await fpsOver(page, 3000);
 
-    const t0 = performance.now();
-    let frames = 0;
-    const counting = page.evaluate(() => {
-      window.__perf = { n: 0, t0: performance.now() };
-      const loop = () => { window.__perf.n++; window.__perf.raf = requestAnimationFrame(loop); };
-      loop();
-    });
-    await counting;
-    if (preset === 'mobile') { await swipeUp(page); await swipeUp(page); } else {
-      await page.mouse.move(720, 450);
-      for (let k = 0; k < 2; k++) {
-        for (let i = 0; i < 4; i++) { await page.mouse.wheel(0, 100); await page.waitForTimeout(40); }
-        await page.waitForTimeout(900);
-      }
-    }
-    const transition = await page.evaluate(() => {
-      cancelAnimationFrame(window.__perf.raf);
-      return window.__perf.n / ((performance.now() - window.__perf.t0) / 1000);
-    });
-    void frames; void t0;
-    const ok = transition >= TARGET[preset] ? 'ok' : 'НИЖЕ ЦЕЛИ';
-    console.log(`${preset}: тёмная сцена ${dark.toFixed(1)} fps, переход ${transition.toFixed(1)} fps (цель ${TARGET[preset]}) — ${ok}`);
+    const idle = await fpsOver(page, 3000);
+    const transition = await transitionFps(page, preset);
+    const verdict = transition >= TARGET[preset] ? 'ok' : 'НИЖЕ ЦЕЛИ';
+    console.log(`${preset}: тёмная сцена ${idle.toFixed(1)} fps, переход ${transition.toFixed(1)} fps (цель ${TARGET[preset]}) — ${verdict}`);
     await ctx.close();
   }
 } finally {

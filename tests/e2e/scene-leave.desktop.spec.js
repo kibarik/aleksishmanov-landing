@@ -17,37 +17,35 @@ test('desktop: персонаж отстаёт при уходе сцены, в�
   expect(await page.evaluate(() => document.getElementById('hero').getBoundingClientRect().top)).toBe(0);
 
   // персонаж отстаёт от контента: канвас смещается вниз относительно уехавшего hero
+  const geom = () => page.evaluate(() => {
+    const r = (id) => document.getElementById(id).getBoundingClientRect().top;
+    return { hero: r('hero'), scene: r('scene'), tagline: r('tagline'), ask: r('ask-scene'), scrollY: window.scrollY, h: window.innerHeight };
+  });
   await page.mouse.wheel(0, 400);
   await page.waitForTimeout(400);
-  const lag = await page.evaluate(() => {
-    const hero = document.getElementById('hero').getBoundingClientRect().top;
-    const scene = document.getElementById('scene').getBoundingClientRect().top;
-    return { hero, scene, scrollY: window.scrollY };
-  });
-  expect(lag.scrollY).toBeGreaterThan(0);
-  expect(lag.scene).toBeGreaterThan(lag.hero + 40); // канвас ниже своего контейнера — отстаёт
+  const mid = await geom();
+  expect(mid.scrollY).toBeGreaterThan(0);
+  expect(mid.scene - mid.hero).toBeGreaterThan(40); // канвас ниже своего контейнера — отстаёт
 
-  // теглайн и кнопка Ask уезжают вместе с контентом, не отстают
-  const overlay = await page.evaluate(() => ({
-    hero: document.getElementById('hero').getBoundingClientRect().top,
-    tagline: document.getElementById('tagline').getBoundingClientRect().top,
-    ask: document.getElementById('ask-scene').getBoundingClientRect().top,
-  }));
-  expect(overlay.tagline - overlay.hero).toBeLessThan(overlay.hero + 1000);
-  expect(Math.abs((overlay.ask - overlay.hero) - (await page.evaluate(() => {
-    const h = document.getElementById('hero'); const a = document.getElementById('ask-scene');
-    return a.offsetTop - h.offsetTop;
-  })))).toBeLessThan(2);
-
-  // после первого экрана отставание перестаёт расти: догоняет по скорости
-  await page.mouse.wheel(0, 2000);
-  await page.waitForTimeout(400);
-  const after = await page.evaluate(() => {
-    const hero = document.getElementById('hero').getBoundingClientRect().top;
-    const scene = document.getElementById('scene').getBoundingClientRect().top;
-    return scene - hero;
+  // теглайн и кнопка Ask уезжают вместе с контентом: их смещение от hero не меняется со скроллом
+  const start = await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    const r = (id) => document.getElementById(id).getBoundingClientRect().top;
+    return { tagline: r('tagline') - r('hero'), ask: r('ask-scene') - r('hero') };
   });
-  expect(after).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight * 0.31));
+  await page.waitForTimeout(300);
+  expect(Math.abs((mid.tagline - mid.hero) - start.tagline)).toBeLessThan(2);
+  expect(Math.abs((mid.ask - mid.hero) - start.ask)).toBeLessThan(2);
+
+  // на втором экране персонаж догоняет контент: отставание возвращается к нулю
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight));
+  await page.waitForTimeout(300);
+  const atScreen = await geom();
+  expect(atScreen.scene - atScreen.hero).toBeGreaterThan(atScreen.h * 0.2);
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2));
+  await page.waitForTimeout(300);
+  const caught = await geom();
+  expect(caught.scene - caught.hero, 'персонаж должен догнать контент').toBeLessThan(2);
 
   // возврат: наверху жест вверх включает липкий режим на белой сцене
   await page.evaluate(() => window.scrollTo(0, 0));

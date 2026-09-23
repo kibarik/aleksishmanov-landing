@@ -29,9 +29,12 @@ test('desktop: мета-теги на русском и превью, цели �
   expect(await meta('meta[property="og:locale"]')).toBe('ru_RU');
   expect(await page.locator('html').getAttribute('lang')).toBe('ru');
 
+  // до первой отрисовки сцены счётчика в документе нет: он не конкурирует с загрузкой персонажа
+  const counterPresent = () => page.evaluate(() => !!document.querySelector('script[src*="mc.yandex.ru"]'));
+  expect(await counterPresent()).toBe(false);
+
   await waitForPrelude(page);
-  // счётчик подключается после первой отрисовки сцены, а не до неё
-  expect(await page.evaluate(() => !!document.querySelector('script[src*="mc.yandex.ru"]'))).toBe(true);
+  expect(await counterPresent()).toBe(true);
 
   await goToWhiteScene(page, 'desktop');
   await page.waitForTimeout(300);

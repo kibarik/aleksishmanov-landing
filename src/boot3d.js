@@ -8,7 +8,10 @@ import { createStickyScroll, buildSteps, UNITS } from './stickyScroll.js';
 import { content } from './content.js';
 import { mountMenu } from './menu.js';
 
-/** Доля скролла, на которую персонаж отстаёт от контента на первом экране при уходе сцены. */
+/**
+ * Уход сцены: персонаж отстаёт от контента на первом экране высоты, на втором догоняет.
+ * PARALLAX — доля скорости контента, с которой движется канвас на первом экране.
+ */
 const PARALLAX = 0.7;
 
 export function boot3d({ preset, dom, analytics }) {
@@ -71,7 +74,12 @@ export function boot3d({ preset, dom, analytics }) {
 
   function applyParallax() {
     parallaxRaf = 0;
-    const lag = (1 - PARALLAX) * Math.min(window.scrollY, window.innerHeight);
+    const h = window.innerHeight;
+    const s = window.scrollY;
+    // первый экран — отстаём, второй — догоняем, дальше идём вровень с контентом
+    const lag = s <= h
+      ? (1 - PARALLAX) * s
+      : (1 - PARALLAX) * h * Math.max(0, 1 - (s - h) / h);
     canvas.style.transform = `translate3d(0, ${lag.toFixed(2)}px, 0)`;
   }
   function onParallaxScroll() {

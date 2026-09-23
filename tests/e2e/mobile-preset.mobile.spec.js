@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { waitForPrelude, goToWhiteScene } from './helpers.js';
 
-test('mobile: грузится облегчённая модель, рендер в облегчённом пресете', async ({ page }) => {
+test('mobile: грузится облегчённый персонаж, рендер в облегчённом пресете', async ({ page }) => {
   const models = [];
   page.on('request', (r) => { if (/\.glb(\?|$)/.test(r.url())) models.push(r.url()); });
   await page.goto('/');
   await waitForPrelude(page);
 
-  // облегчённая модель вместо десктопной
+  // облегчённый персонаж вместо десктопного
   expect(models.some((u) => u.includes('character-mobile.glb')), `запрошено: ${models}`).toBe(true);
   expect(models.some((u) => /\/character\.glb/.test(u))).toBe(false);
 

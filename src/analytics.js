@@ -22,11 +22,10 @@ function loadCounter(id) {
 }
 
 /**
- * @param content модуль контента (нужны analytics.counter и analytics.goals)
+ * @param analytics секция контента: { counter, goals }
  * @param hasScene есть ли 3D-сцена: с ней ждём первую отрисовку, без неё подключаемся сразу
  */
-export function installAnalytics(content, { hasScene }) {
-  const { counter, goals } = content.analytics;
+export function installAnalytics({ counter, goals }, { hasScene }) {
   const reach = (goal) => { try { window.ym?.(counter, 'reachGoal', goal); } catch { /* счётчик мог не загрузиться */ } };
 
   if (hasScene) window.addEventListener('scene:first-frame', () => loadCounter(counter), { once: true });

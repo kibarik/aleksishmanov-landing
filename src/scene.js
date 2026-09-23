@@ -75,11 +75,11 @@ const TITLE_FRAME_FILL = 0.9;    // desktop: буквы не шире этой �
 
 /** @param name {{ desktop: string, mobile: string }} имя по пресетам (content.name) */
 export async function createScene(canvas, { onProgress, name, preset = 'desktop' }) {
-  const RP = RENDER_PRESET[preset] ?? RENDER_PRESET.desktop;
+  const RENDER = RENDER_PRESET[preset] ?? RENDER_PRESET.desktop;
   RectAreaLightUniformsLib.init();
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, 1), RP.dprMax));
+  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, 1), RENDER.dprMax));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.9;
@@ -251,7 +251,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   spot.position.set(2.6, 4.6, -1.0);
   spot.target.position.copy(target);
   spot.castShadow = true;
-  spot.shadow.mapSize.set(RP.shadowMap, RP.shadowMap);
+  spot.shadow.mapSize.set(RENDER.shadowMap, RENDER.shadowMap);
   spot.shadow.bias = -0.0002;
   spot.shadow.normalBias = 0.02;
   spot.userData.base = 6;
@@ -263,7 +263,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   key.position.set(-3.2, 3.6, 2.8);
   key.target.position.set(0, 0.7, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(RP.shadowMap, RP.shadowMap);
+  key.shadow.mapSize.set(RENDER.shadowMap, RENDER.shadowMap);
   key.shadow.camera.left = key.shadow.camera.bottom = -3.2;
   key.shadow.camera.right = key.shadow.camera.top = 3.2;
   key.shadow.camera.near = 0.5; key.shadow.camera.far = 14;
@@ -319,12 +319,12 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   gtao.blendIntensity = 1.0;
   gtao.updateGtaoMaterial({ radius: 0.22, distanceExponent: 1.5, thickness: 1.0, scale: 1.4, samples: 16, distanceFallOff: 1.0, screenSpaceRadius: false });
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, radiusExponent: 1, rings: 2, samples: 16 });
-  gtao.enabled = RP.gtao;
-  if (RP.gtao) composer.addPass(gtao);
+  gtao.enabled = RENDER.gtao;
+  if (RENDER.gtao) composer.addPass(gtao);
   composer.addPass(new OutputPass());
   // мобильный пресет: глитч-пасс не добавляется в композер (переход идёт облётом камеры)
   const glitchPass = new ShaderPass(GlitchShader);
-  if (RP.glitch) composer.addPass(glitchPass);
+  if (RENDER.glitch) composer.addPass(glitchPass);
   const grainPass = new ShaderPass(GrainShader);
   grainPass.uniforms.amount.value = 0.07;
   composer.addPass(grainPass);
@@ -355,10 +355,10 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     scene.background.copy(on ? WHITE : BLACK);
     document.body.classList.toggle('is-light', on);
     warmShadows(8); // материалы и свет сменились — даём теням догнать
+    // GTAO включается только в applyTimeline: единственное место, где решается его судьба
     grainPass.uniforms.amount.value = on ? 0.0 : 0.07;
     // AO на белом фоне даёт грязь по краям — ослабляем
     // на белом AO выключен: 16-сэмпловый GTAO даёт шум-рябь на ровных светлых поверхностях
-    gtao.enabled = RP.gtao && !on;
   }
 
   let attached = false;
@@ -461,7 +461,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
     // GTAO только в покое тёмной сцены: во время перехода его всё равно скрывает глитч,
     // а 16-сэмпловый проход стоит дороже всего остального вместе взятого
-    gtao.enabled = RP.gtao && !tl.swapped && t12 <= 0;
+    gtao.enabled = RENDER.gtao && !tl.swapped && t12 <= 0;
 
     // --- глитч: 1%…90% сегмента black-man → into-white
     const g = t12 <= GLITCH_START || t12 >= GLITCH_END ? 0 : (t12 - GLITCH_START) / (GLITCH_END - GLITCH_START);

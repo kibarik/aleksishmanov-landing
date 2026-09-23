@@ -26,6 +26,9 @@ function markup(content) {
     </nav>`;
 }
 
+/** Липкий скролл без сцены (фолбэк без WebGL): страница уже отдана нативному скроллу. */
+export const NO_SCENE_SCROLL = { state: { released: true }, release() {}, setPaused() {} };
+
 /**
  * @param root контейнер меню (#menu)
  * @param toggle кнопка в шапке

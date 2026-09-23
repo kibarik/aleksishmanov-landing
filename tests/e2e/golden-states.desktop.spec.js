@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { STEPS, waitForPrelude, waitForProgress, wheelBurst, leaveScene, expectGolden, scoreAgainstGolden } from './helpers.js';
+import { STEPS, waitForPrelude, waitForProgress, wheelBurst, expectGolden, scoreAgainstGolden } from './helpers.js';
 
 const S = STEPS.desktop;
 
+// Кадра ухода сцены здесь нет: __capturePng снимает буфер WebGL, а уход — это CSS-трансформ
+// канваса и смена потока. Геометрия ухода проверяется в scene-leave.*.spec.js.
 test('desktop: золотые кадры ключевых состояний', async ({ page }) => {
   await page.goto('/');
   await waitForPrelude(page);
@@ -22,9 +24,4 @@ test('desktop: золотые кадры ключевых состояний', a
   await waitForProgress(page, S.whiteScene);
   await page.waitForTimeout(900);
   await expectGolden(page, 'white-desktop');
-
-  // уход сцены: персонаж отстал, кадр другой
-  await leaveScene(page, 'desktop', { screens: 0.5 });
-  await page.waitForTimeout(500);
-  await expectGolden(page, 'leave-desktop');
 });

@@ -7,7 +7,7 @@ import '@fontsource/montserrat/600.css';
 import '@fontsource/montserrat/900.css';
 import { content } from './content.js';
 import { mountSections } from './sections.js';
-import { mountMenu } from './menu.js';
+import { mountMenu, NO_SCENE_SCROLL } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
 import { installAnalytics } from './analytics.js';
 
@@ -24,7 +24,8 @@ const dom = {
   canvas: document.getElementById('scene'),
 };
 
-// тексты первого экрана — из модуля контента, в разметке ничего не захардкожено
+// тексты первого экрана — из модуля контента; мета-теги живут в index.html: их читают краулеры
+// и Telegram до выполнения JS
 document.getElementById('loader-offer').textContent = content.offer;
 dom.tagline.textContent = content.tagline;
 // Ask Ishmanov AI: обе кнопки из одной константы контента (замена на бота — правка href там)
@@ -46,13 +47,11 @@ function bootFallback() {
   dom.tagline.classList.add('tagline--visible');
   dom.askScene.classList.add('ask--visible');
   // меню работает и здесь: сцены нет, скролл уже нативный
-  mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, {
-    state: { released: true }, release() {}, setPaused() {},
-  });
+  mountMenu(document.getElementById('menu'), document.getElementById('menu-toggle'), content, NO_SCENE_SCROLL);
 }
 
 const noWebgl = document.documentElement.dataset.webgl === 'off';
-const analytics = installAnalytics(content, { hasScene: !noWebgl });
+const analytics = installAnalytics(content.analytics, { hasScene: !noWebgl });
 
 if (noWebgl) {
   bootFallback();

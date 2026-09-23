@@ -25,7 +25,12 @@ test('desktop: переход держит кадры, тени обновляю
   expect(await page.evaluate(() => window.__app.gtao.enabled)).toBe(false);
   expect(await page.evaluate(() => window.__app.renderer.getPixelRatio())).toBeLessThanOrEqual(1.5);
 
-  // три отдельно от кода страницы: чанк грузится своим запросом
-  const chunks = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name));
-  expect(chunks.some((u) => /three|boot3d/.test(u)), `чанки: ${chunks.filter((u) => u.endsWith('.js')).join(', ')}`).toBe(true);
+  // карта теней по спеке: 256 на десктопе (откат к 2048 роняет кадр в переходе)
+  expect(await page.evaluate(() => window.__app.key.shadow.mapSize.x)).toBe(256);
+
+  // three вынесен в отдельный чанк — видно только на сборке (в dev модули грузятся по одному)
+  if (process.env.PREVIEW) {
+    const js = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name).filter((u) => u.endsWith('.js')));
+    expect(js.some((u) => /three-[^/]*\.js$/.test(u)), `чанки: ${js.join(', ')}`).toBe(true);
+  }
 });
