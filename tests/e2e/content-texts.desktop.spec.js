@@ -18,5 +18,5 @@ test('desktop: лоадер показывает оффер, теглайн из
   await waitForProgress(page, S.whiteScene);
   await expect(page.locator('#tagline')).toHaveClass(/tagline--visible/);
   await expect(page.locator('#tagline')).toBeVisible();
-  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
 });

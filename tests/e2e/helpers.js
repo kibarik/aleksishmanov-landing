@@ -107,7 +107,7 @@ export async function expectFirstScreenTexts(page, content) {
   await expect(page.locator('#loader-offer')).toHaveText(content.offer);
   await expect(page.locator('#loader')).not.toContainText('Linus');
   await waitForPrelude(page);
-  await expect(page.locator('#tagline')).toHaveText(content.tagline);
+  await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expect(page.locator('#tagline')).not.toHaveClass(/tagline--visible/);
 }
 
@@ -215,19 +215,31 @@ export async function expectSectionsMatchContent(page, content) {
   await expect(contactBtn).toHaveAttribute('href', content.contact.href);
   await expect(contactBtn).toContainText(content.contact.label);
 
-  const footerLinks = page.locator('#footer a[href]');
-  await expect(footerLinks).toHaveCount(content.resources.length);
-  for (const [i, r] of content.resources.entries()) {
-    await expect(footerLinks.nth(i)).toHaveAttribute('href', r.href);
-    await expect(footerLinks.nth(i)).toContainText(r.label);
+  // футер: колонки ссылок, призыв и якоря разделов — всё из контента
+  const columns = page.locator('#footer .footer__column');
+  await expect(columns).toHaveCount(content.footer.columns.length);
+  for (const [i, col] of content.footer.columns.entries()) {
+    await expect(columns.nth(i).locator('.footer__column-title')).toHaveText(col.title);
+    const links = columns.nth(i).locator('a');
+    await expect(links).toHaveCount(col.links.length);
+    for (const [j, l] of col.links.entries()) {
+      await expect(links.nth(j)).toHaveAttribute('href', l.href);
+      await expect(links.nth(j)).toContainText(l.label);
+    }
   }
+  await expect(page.locator('#footer .footer__lead')).toHaveText(content.footer.lead);
+  await expect(page.locator('#footer .footer__btn')).toHaveAttribute('href', content.contact.href);
+  const footerAnchors = page.locator('#footer .footer__chip');
+  await expect(footerAnchors).toHaveText(content.menu.anchors.map((a) => a.label));
 
   await expect(page.locator('a[href*="blog.aleksishmanov.ru"]')).toHaveCount(0);
-  // без горизонтального скролла и с гаттером не меньше 16px: ни один элемент секций не выходит за край
+  // без горизонтального скролла и с гаттером не меньше 16px.
+  // Тёмная секция самопрезентации намеренно во всю ширину, поэтому проверяем её содержимое,
+  // а не саму секцию: .intro__inner держит тот же гаттер, что и светлые секции.
   const overflow = await page.evaluate(() => {
     const w = window.innerWidth;
     const bad = [];
-    for (const el of document.querySelectorAll('#content *')) {
+    for (const el of document.querySelectorAll('#content .section *, #content .footer *, #content .intro__inner *')) {
       const r = el.getBoundingClientRect();
       if (r.width && (r.left < 16 - 0.5 || r.right > w - 16 + 0.5)) bad.push(`${el.tagName}.${el.className} ${Math.round(r.left)}..${Math.round(r.right)}`);
     }

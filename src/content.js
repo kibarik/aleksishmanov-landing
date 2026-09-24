@@ -19,11 +19,18 @@ const RESOURCES = {
 
 export const content = {
   /** Имя на белой сцене: бренд латиницей, короткое на мобильном. */
-  name: { desktop: 'ALEKS ISHMANOV', mobile: 'ALEKS' },
-  /** Теглайн над именем: три направления. */
-  tagline: 'Руководителям. Специалистам. Фаундерам.',
+  name: { desktop: 'ISHMANOV', mobile: 'ISHMANOV' },
+  /** Теглайн над именем: три направления, каждое слово переворачивается по очереди (flip). */
+  tagline: ['Компаниям.', 'Специалистам.', 'Основателям.'],
   /** Оффер: лоадер и «Обо мне». */
   offer: 'Превращаю идеи в работающие бизнес-платформы',
+
+  /** Тёмная секция сразу после сцены: кто это и чем занимается. */
+  intro: {
+    lead: 'Строю платформы с 2016 года: backend, B2B-продукты, команды. С 2024 — ML и LLM в продукте.',
+    name: 'Меня зовут Алекс Ишманов.',
+    role: 'Product Owner · AI/ML-платформы',
+  },
 
   /** «Обо мне»: заголовок секции, подпись и таймлайн практики. */
   about: {
@@ -90,7 +97,24 @@ export const content = {
     goals: { whiteScene: 'white-scene', ask: 'ask', contact: 'contact' },
   },
 
-  /** Футер: подпись копирайта и все ресурсы (те же — в низ меню). */
-  footer: { copyright: 'Aleks Ishmanov' },
+  /**
+   * Футер: отдельный тёмный экран. Колонки ссылок, призыв и подпись.
+   * columns — заголовок и ссылки; ссылки берутся из тех же RESOURCES, что и везде.
+   */
+  footer: {
+    copyright: 'Aleks Ishmanov',
+    lead: 'Пишите — разберём вашу задачу.',
+    columns: [
+      {
+        title: 'Проекты',
+        links: [
+          { label: 'PO-нейробаза', href: RESOURCES.corporateAi.href },
+          { label: 'PMF-стратегии', href: RESOURCES.aiPmf.href },
+          { label: 'Промты', href: RESOURCES.prompts.href },
+        ],
+      },
+      { title: 'Ресурсы', links: [RESOURCES.slides, RESOURCES.threads] },
+    ],
+  },
   resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],
 };
