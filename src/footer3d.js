@@ -16,7 +16,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 const BASE = import.meta.env.BASE_URL;
 /** Пусто — рисуем глиф. Непусто — грузим модель (например сгенерированную в hyper3d). */
 const MODEL_URL = '';
-const GLYPH = '{ }';
+const GLYPH = '{}';
 
 export async function mountFooter3d(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });

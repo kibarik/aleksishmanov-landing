@@ -440,7 +440,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     title.visible = tl.swapped;
 
     tl.tagline = t >= MOBILE.taglineAt;
-    tl.hintHidden = t >= MOBILE.hintHideAt;
+    tl.hintHidden = t >= MOBILE.hintHideAt * 0.35 && t < MOBILE.hintHideAt;
     for (const fn of listeners) fn(tl);
   }
 
@@ -494,7 +494,9 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
     // --- HUD-события
     const tagline = t23 >= TAGLINE_AT;
-    const hintHidden = t12 > 0.2;
+    // подсказка нужна и на белой сцене: дальше посетителю тоже надо крутить.
+    // Прячем только на время перехода, пока идёт глитч и пролёт камеры.
+    const hintHidden = t12 > 0.2 && t23 < 0.75;
     if (tagline !== tl.tagline || hintHidden !== tl.hintHidden) {
       tl.tagline = tagline; tl.hintHidden = hintHidden;
     }
