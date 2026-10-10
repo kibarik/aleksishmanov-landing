@@ -217,22 +217,32 @@ export async function expectSectionsMatchContent(page, content) {
   await expect(contactBtn).toHaveAttribute('href', content.contact.href);
   await expect(contactBtn).toContainText(content.contact.label);
 
-  // футер: колонки ссылок, призыв и якоря разделов — всё из контента
-  const columns = page.locator('#footer .footer__column');
-  await expect(columns).toHaveCount(content.footer.columns.length);
-  for (const [i, col] of content.footer.columns.entries()) {
-    await expect(columns.nth(i).locator('.footer__column-title')).toHaveText(col.title);
-    const links = columns.nth(i).locator('a');
-    await expect(links).toHaveCount(col.links.length);
-    for (const [j, l] of col.links.entries()) {
+  // футер: карточка групп слева, блоки справа, призыв и соцсети — всё из контента
+  const fcards = page.locator('#footer .footer__card');
+  await expect(fcards).toHaveCount(content.footer.groups.length);
+  for (const [i, g] of content.footer.groups.entries()) {
+    await expect(fcards.nth(i).locator('.footer__card-title a')).toHaveText(g.title);
+    await expect(fcards.nth(i).locator('.footer__card-title a')).toHaveAttribute('href', g.href);
+    const links = fcards.nth(i).locator('.footer__card-links a');
+    await expect(links).toHaveCount(g.links.length);
+    for (const [j, l] of g.links.entries()) {
       await expect(links.nth(j)).toHaveAttribute('href', l.href);
-      await expect(links.nth(j)).toContainText(l.label);
+      await expect(links.nth(j)).toHaveText(l.label);
     }
   }
-  await expect(page.locator('#footer .footer__lead')).toHaveText(content.footer.lead);
+  const columns = page.locator('#footer .footer__column');
+  await expect(columns).toHaveCount(content.footer.blocks.length);
+  for (const [i, b] of content.footer.blocks.entries()) {
+    await expect(columns.nth(i).locator('.footer__column-title')).toHaveText(b.title);
+    if (b.links) {
+      const links = columns.nth(i).locator('.footer__sublinks a');
+      await expect(links).toHaveCount(b.links.length);
+      for (const [j, l] of b.links.entries()) await expect(links.nth(j)).toHaveAttribute('href', l.href);
+    }
+  }
   await expect(page.locator('#footer .footer__btn')).toHaveAttribute('href', content.contact.href);
-  const footerAnchors = page.locator('#footer .footer__chip');
-  await expect(footerAnchors).toHaveText(content.menu.anchors.map((a) => a.label));
+  await expect(page.locator('#footer .footer__btn')).toHaveText(content.contact.title);
+  await expect(page.locator('#footer .footer__social-link')).toHaveCount(content.footer.social.items.length);
 
   await expect(page.locator('a[href*="blog.aleksishmanov.ru"]')).toHaveCount(0);
   // без горизонтального скролла и с гаттером не меньше 16px.

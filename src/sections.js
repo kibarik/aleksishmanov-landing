@@ -22,6 +22,17 @@ function latestSection(latest) {
     </section>`;
 }
 
+/** Ссылка футера: внешняя — в новой вкладке, внутренняя (якорь или путь сайта) — в той же. */
+const footerLink = (l, cls) => /^https?:/.test(l.href)
+  ? `<a class="${cls}" href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`
+  : `<a class="${cls}" href="${esc(l.href)}">${esc(l.label)}</a>`;
+
+const ICONS = {
+  up: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10.5"/><path d="M12 17V7M7.5 11.5 12 7l4.5 4.5"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  telegram: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
+  threads: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16.5 8.4C16 6.3 14.3 5 12 5c-3.1 0-5 2.4-5 7s1.9 7 5 7c2.6 0 4.4-1.4 4.4-3.4 0-1.9-1.6-3-4-3-1.4 0-2.4.5-2.4 1.4 0 .8.8 1.3 1.9 1.3 1.7 0 2.7-1.2 2.7-3.9"/></svg>',
+};
 
 function card(p) {
   return `
@@ -56,25 +67,45 @@ export function renderSections(content, { latest = [] } = {}) {
       ${externalLink(contact, 'btn')}
     </section>
     <footer class="footer" id="footer">
-      <canvas class="footer__scene" id="footer-scene" aria-hidden="true"></canvas>
-      <img class="footer__fallback" id="footer-fallback" src="./fallback/white-desktop.webp" alt="" aria-hidden="true" />
-      <div class="footer__inner">
-        <div class="footer__columns">
-          ${footer.columns.map((c) => `
-            <nav class="footer__column" aria-label="${esc(c.title)}">
-              <p class="footer__column-title">${esc(c.title)}</p>
-              <ul>${c.links.map((l) => `<li>${l.href.startsWith('#')
-                ? `<a class="footer__link" href="${esc(l.href)}">${esc(l.label)}</a>`
-                : externalLink(l, 'footer__link')}</li>`).join('')}</ul>
-            </nav>`).join('')}
+      <div class="footer__panel">
+        <span class="footer__handle" aria-hidden="true"></span>
+        <a class="footer__up" href="#top" aria-label="Наверх" data-footer-up>${ICONS.up}</a>
+        <div class="footer__grid">
+          <div class="footer__list">
+            <div class="footer__scroll" data-footer-scroll>
+              ${footer.groups.map((g) => `
+                <div class="footer__card">
+                  <p class="footer__card-title"><a href="${esc(g.href)}">${esc(g.title)}</a></p>
+                  <span class="footer__card-arrow" aria-hidden="true">${ICONS.arrow}</span>
+                  <ul class="footer__card-links">${g.links.map((l) => `<li>${footerLink(l, 'footer__link')}</li>`).join('')}</ul>
+                </div>`).join('')}
+            </div>
+          </div>
+          <div class="footer__object">
+            <canvas class="footer__scene" id="footer-scene" aria-hidden="true"></canvas>
+            <img class="footer__fallback" id="footer-fallback" src="./fallback/white-desktop.webp" alt="" aria-hidden="true" />
+          </div>
+          <div class="footer__right">
+            <div class="footer__blocks">
+              ${footer.blocks.map((b) => `
+                <nav class="footer__column" aria-label="${esc(b.title)}">
+                  <p class="footer__column-title">${b.href ? footerLink({ label: b.title, href: b.href }, 'footer__title-link') : esc(b.title)}</p>
+                  ${b.desc ? `<p class="footer__desc">${esc(b.desc)}</p>` : ''}
+                  ${b.links ? `<ul class="footer__sublinks">${b.links.map((l) => `<li>${footerLink(l, 'footer__link')}</li>`).join('')}</ul>` : ''}
+                </nav>`).join('')}
+            </div>
+            <div class="footer__bottom">
+              <div class="nice-btn"><a class="footer__btn" href="${esc(contact.href)}" target="_blank" rel="noopener noreferrer"><span class="footer__btn-text">${esc(contact.title)}</span></a></div>
+              <div class="footer__social">
+                <p class="footer__desc">${esc(footer.social.title)}</p>
+                <ul class="footer__social-list">${footer.social.items.map((i) => `<li><a class="footer__social-link" href="${esc(i.href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(i.label)}">${ICONS[i.icon]}</a></li>`).join('')}</ul>
+              </div>
+              <p class="footer__copy">© ${new Date().getFullYear()} ${esc(footer.copyright)}</p>
+            </div>
+          </div>
         </div>
-        <div class="footer__cta">
-          <p class="footer__lead">${esc(footer.lead)}</p>
-          ${externalLink(contact, 'footer__btn')}
-          <ul class="footer__anchors" aria-label="Разделы страницы">${content.menu.anchors.map((a) => `<li><a class="footer__chip" href="${esc(a.href)}">${esc(a.label)}</a></li>`).join('')}</ul>
-        </div>
+        <canvas class="footer__noise" id="footer-noise" aria-hidden="true"></canvas>
       </div>
-      <p class="footer__copy">© ${new Date().getFullYear()} ${esc(footer.copyright)}</p>
     </footer>`;
 }
 
