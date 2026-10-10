@@ -12,7 +12,9 @@ check https://aleksishmanov.ru/ 200 'Алексей Ишманов'
 check https://aleksishmanov.ru/blog/ 200 'class="site-nav"'
 check https://aleksishmanov.ru/blog/bullseye-framework/ 200 '"@type":"Article"'
 check https://aleksishmanov.ru/bullseye-framework/ 200 'url=https://aleksishmanov.ru/blog/bullseye-framework/'
-check https://aleksishmanov.ru/net-takoy-stranicy/ 404 'Такой страницы нет'
+# хостинг в режиме SPA отдаёт главную с кодом 200, она уводит на /404.html (ADR 0003, поправка)
+check https://aleksishmanov.ru/net-takoy-stranicy/ 200 "location.replace('/404.html')"
+check https://aleksishmanov.ru/404.html 200 'Такой страницы нет'
 check https://aleksishmanov.ru/sitemap-index.xml 200 'sitemap'
 check https://aleksishmanov.ru/llms.txt 200 '# Алексей Ишманов'
 for d in blog slides prompts call www; do
