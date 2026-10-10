@@ -38,12 +38,9 @@ test('прод: путь посетителя от лоадера до секц�
   await expectAskButtons(page, content);
 
   await leaveScene(page, 'desktop');
-  // сразу после сцены идёт тёмная секция самопрезентации, «Обо мне» ниже неё
-  expect(await isInViewport(page, '#intro')).toBe(true);
-  await expect(page.locator('#intro .intro__title')).toHaveText(content.offer);
-  await page.evaluate(() => document.getElementById('about').scrollIntoView());
-  await page.waitForTimeout(500);
+  // сразу после сцены идёт тёмная секция «Обо мне»
   expect(await isInViewport(page, '#about')).toBe(true);
+  await expect(page.locator('#about .about__offer')).toHaveText(content.offer);
   await expectSectionsMatchContent(page, content);
 
   // сцена не просто смонтирована, а рисует: канвас отдаёт непустой кадр

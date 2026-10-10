@@ -40,7 +40,7 @@ dom.askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
 
 // Тёмная секция: пока она в кадре, шапка светлая; текст приезжает при входе в зону видимости
-const intro = document.getElementById('intro');
+const intro = document.getElementById('about');
 new IntersectionObserver((entries) => {
   for (const e of entries) {
     document.body.classList.toggle('is-intro-visible', e.isIntersecting);
@@ -93,7 +93,7 @@ if (noWebgl) {
   analytics.whiteScene(); // кадр белой сцены — это и есть первый экран фолбэка
 } else {
   import('./boot3d.js')
-    .then((m) => m.boot3d({ preset, dom, analytics }))
+    .then((m) => { window.__bundleReady = true; return m.boot3d({ preset, dom, analytics }); })
     .catch((err) => {
       // Чанк сцены не приехал: во время деплоя старые имена файлов исчезают, а этот хостинг
       // отдаёт на них HTML с кодом 200 — импорт падает. Первый раз пробуем перезагрузиться
