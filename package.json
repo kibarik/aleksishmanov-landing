@@ -5,7 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
+    "build:landing": "vite build",
+    "build:portal": "astro build --root portal",
+    "dev:portal": "astro dev --root portal",
+    "import": "node tools/import-sources.mjs --sources ../sources",
+    "test:unit": "node --test tests/unit",
+    "test:portal": "npm run build && PORTAL=1 playwright test --project=portal",
     "preview": "vite preview",
     "test": "playwright test --project=desktop --project=mobile --project=no-webgl --project=firefox",
     "test:update-golden": "UPDATE_GOLDEN=1 playwright test --project=desktop --project=mobile",
@@ -23,7 +29,10 @@
     "three": "^0.170.0"
   },
   "devDependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
     "@playwright/test": "^1.63.0",
+    "astro": "^5.18.2",
     "vite": "^5.4.0"
   }
 }

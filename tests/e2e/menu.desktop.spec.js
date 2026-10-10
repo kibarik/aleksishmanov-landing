@@ -41,9 +41,9 @@ test('desktop: меню ведёт к секциям, закрывается к�
   await expectMenuClosed(page);
   await expect(page.locator('#menu-toggle')).toBeFocused();
 
-  // клик по «Проекты» со сцены: сцена отпускается, страница скроллит к секции, меню закрыто
+  // клик по «Направления» (секция #projects) со сцены: сцена отпускается, страница скроллит к секции, меню закрыто
   await openMenu(page);
-  await page.locator('#menu .menu__anchor', { hasText: 'Проекты' }).click();
+  await page.locator('#menu .menu__anchor', { hasText: content.menu.anchors.find((a) => a.href === '#projects').label }).click();
   await expectMenuClosed(page);
   await page.waitForFunction(() => window.__sticky.state.released === true, null, { timeout: 10_000 });
   await page.waitForTimeout(1200); // плавный скролл

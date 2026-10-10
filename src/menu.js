@@ -20,7 +20,9 @@ function markup(content) {
       <div class="menu__footer">
         <p class="menu__footer-title">${esc(menu.resourcesTitle)}</p>
         <ul class="menu__resources">
-          ${resources.map((r) => `<li><a class="menu__resource" href="${esc(r.href)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}<span aria-hidden="true"> ↗</span></a></li>`).join('')}
+          ${resources.map((r) => /^https?:/.test(r.href)
+            ? `<li><a class="menu__resource" href="${esc(r.href)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}<span aria-hidden="true"> ↗</span></a></li>`
+            : `<li><a class="menu__resource" href="${esc(r.href)}">${esc(r.label)}</a></li>`).join('')}
         </ul>
       </div>
     </nav>`;

@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, DIRECTION_INFO, PROFILES } from '../lib/site';
+import { person, graph, breadcrumbs } from '../lib/schema';
+import { listAll } from '../lib/materials';
+
+const counts = await listAll();
+const n = (c: string) => counts.filter((m) => m.collection === c).length;
+const timeline = [
+  { year: '2016', text: 'Разрабатываю backend' },
+  { year: '2018', text: 'Запускаю B2B-платформы' },
+  { year: '2022', text: 'Руковожу backend-командами' },
+  { year: '2024', text: 'Изучаю ML и LLM, внедряю ИИ-агентов в работу руководителей' },
+];
+---
+<Base title={`${SITE.name} — обо мне`} description={`${SITE.name}: ${SITE.positioning.toLowerCase()}. Практика с 2016 года: backend, B2B-платформы, команды, ИИ.`} current="about"
+  jsonld={graph({ ...person, mainEntityOfPage: `${SITE.url}/about/` }, { '@type': 'ProfilePage', url: `${SITE.url}/about/`, mainEntity: { '@id': person['@id'] } }, breadcrumbs([{ name: 'Главная', url: '/' }, { name: 'Обо мне', url: '/about/' }]))}>
+  <article class="article">
+    <p class="crumbs"><a href="/">Главная</a> / Обо мне</p>
+    <header class="article__head">
+      <p class="eyebrow">Обо мне</p>
+      <h1>{SITE.name}</h1>
+      <p class="lead">{SITE.positioning}.</p>
+    </header>
+    <div class="prose">
+      <p>Я в практике с 2016 года: начинал с backend-разработки, запускал B2B-платформы, руководил backend-командами. С 2024 года занимаюсь ML и LLM — и тем, как ИИ меняет работу продуктовых команд и руководителей.</p>
+      <h2>Чем занимаюсь</h2>
+      <ul>
+        {Object.values(DIRECTION_INFO).map((d) => <li><a href={d.path}><strong>{d.title}</strong></a> — {d.lead}</li>)}
+      </ul>
+      <h2>Путь</h2>
+      <ul>{timeline.map((t) => <li><strong>{t.year}</strong> — {t.text}</li>)}</ul>
+      <h2>Что на сайте</h2>
+      <p>Здесь собраны все мои материалы: <a href="/blog/">статьи</a> ({n('blog')}), <a href="/reviews/">разборы</a> ({n('reviews')}), <a href="/tools/">карточки инструментов</a> ({n('tools')}), <a href="/prompts/">промты</a> ({n('prompts')}) и <a href="/slides/">презентации практикумов</a> ({n('slides')}). Раньше они жили на Teletype, в трёх Telegram-каналах и на отдельных поддоменах — теперь у каждого материала один адрес.</p>
+      <h2>Где ещё меня читать</h2>
+      <ul>{PROFILES.map((p) => <li><a href={p.href} target="_blank" rel="noopener me">{p.label}</a></li>)}</ul>
+    </div>
+    <aside class="cta">
+      <p>Пишите в Telegram — разберём вашу задачу. Можно сразу <a href="/call/" style="color:inherit">назначить звонок</a>.</p>
+      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+    </aside>
+  </article>
+</Base>

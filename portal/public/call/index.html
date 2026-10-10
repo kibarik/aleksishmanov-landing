@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Постоянная страница для подключения к звонку с Алексеем Ишмановым">
+  <title>Звонок с Алексеем Ишмановым</title>
+  <link rel="canonical" href="https://aleksishmanov.ru/call/" />
+  <meta name="description" content="Звонок с Алексеем Ишмановым: комната MTS Link." />
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --black: #050505;
+      --white: #f7f7f5;
+      --muted: rgba(247, 247, 245, .58);
+      --gradient: linear-gradient(105deg, #ff75c3 0%, #9d8cff 43%, #59d9ff 76%, #8fffc1 110%);
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+    }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-width: 320px;
+      color: var(--white);
+      background: var(--black);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: clamp(20px, 4vw, 56px) clamp(14px, 5vw, 72px) calc(20px + env(safe-area-inset-bottom));
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .ambient {
+      position: absolute;
+      inset: -20%;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .ambient span {
+      position: absolute;
+      width: min(68vw, 860px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      filter: blur(110px);
+      will-change: transform, opacity;
+    }
+
+    .ambient span:first-child {
+      top: 8%;
+      left: 12%;
+      background: radial-gradient(circle, #ff58ba 0%, #7067ff 48%, transparent 72%);
+      animation: drift-pink 14s var(--ease-in-out) infinite alternate;
+    }
+
+    .ambient span:last-child {
+      right: 10%;
+      bottom: 4%;
+      background: radial-gradient(circle, #4be7ff 0%, #79ffc1 42%, transparent 72%);
+      animation: drift-cyan 17s var(--ease-in-out) infinite alternate;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+      align-content: center;
+      width: min(100%, 820px);
+      min-width: 0;
+      padding: clamp(44px, 7vw, 86px) clamp(24px, 6vw, 76px);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: clamp(24px, 3vw, 40px);
+      background: rgba(5, 5, 5, .74);
+      box-shadow: 0 40px 120px rgba(0,0,0,.46);
+      -webkit-backdrop-filter: blur(28px);
+      backdrop-filter: blur(28px);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 24px 0 0;
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-size: clamp(58px, 8.5vw, 112px);
+      font-weight: 400;
+      letter-spacing: -.072em;
+      line-height: .88;
+    }
+
+    h1 em {
+      display: block;
+      color: transparent;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      font-weight: 400;
+    }
+
+    .phrase { white-space: nowrap; }
+
+    .ellipsis {
+      display: inline-grid;
+      grid-template-columns: repeat(3, .14em);
+      width: .42em;
+      text-align: center;
+    }
+
+    .ellipsis i {
+      opacity: 1;
+      display: block;
+      font-style: inherit;
+      transition: opacity 160ms var(--ease-out);
+    }
+
+    .ellipsis[data-count="1"] i:nth-child(n + 2),
+    .ellipsis[data-count="2"] i:nth-child(3) { opacity: 0; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .action { margin-top: 34px; }
+
+    .call-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 240px;
+      min-height: 52px;
+      padding: 0 22px;
+      border-radius: 14px;
+      color: var(--black);
+      background: var(--white);
+      font-size: 16px;
+      font-weight: 650;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 160ms var(--ease-out), background-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .call-link:active { transform: scale(.98); }
+    .call-link:focus-visible { outline: 3px solid var(--white); outline-offset: 4px; }
+
+    .arrow {
+      font-size: 20px;
+      line-height: 1;
+      transition: transform 160ms var(--ease-out);
+    }
+
+    .enter {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: enter 260ms var(--ease-out) forwards;
+    }
+
+    .enter-2 { animation-delay: 45ms; }
+    .enter-3 { animation-delay: 90ms; }
+
+    @keyframes enter {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes drift-pink {
+      from { opacity: .22; transform: translate3d(-8%, -5%, 0) scale(.92); }
+      to { opacity: .38; transform: translate3d(12%, 9%, 0) scale(1.08); }
+    }
+
+    @keyframes drift-cyan {
+      from { opacity: .34; transform: translate3d(8%, 7%, 0) scale(1.04); }
+      to { opacity: .18; transform: translate3d(-14%, -10%, 0) scale(.9); }
+    }
+
+    @keyframes ambient-breathe {
+      from { opacity: .72; }
+      to { opacity: 1; }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .call-link:hover {
+        transform: translateY(-2px);
+        background: #fff;
+        box-shadow: 0 10px 38px rgba(117, 189, 255, .16);
+      }
+
+      .call-link:hover .arrow { transform: translateX(3px); }
+    }
+
+    @media (max-width: 720px) {
+      .ambient span {
+        width: 150vw;
+        filter: blur(72px);
+      }
+
+      .card {
+        justify-items: stretch;
+        padding: 46px 22px 40px;
+      }
+
+      h1 {
+        font-size: clamp(52px, 15.5vw, 76px);
+        line-height: .9;
+      }
+
+      .action { margin-top: 28px; }
+      .call-link { width: 100%; }
+    }
+
+    @media (max-height: 680px) and (min-width: 721px) {
+      .card { padding-top: 42px; padding-bottom: 38px; }
+      h1 { font-size: clamp(58px, 9vw, 104px); }
+      .action { margin-top: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .enter {
+        transform: none;
+        animation-name: fade-only;
+        animation-duration: 180ms;
+        animation-delay: 0ms;
+      }
+
+      .call-link:hover,
+      .call-link:hover .arrow { transform: none; }
+
+      .ambient span {
+        animation-name: ambient-breathe;
+        animation-duration: 20s;
+        animation-timing-function: var(--ease-in-out);
+      }
+
+      .ellipsis i { transition: none; }
+    }
+
+    @keyframes fade-only {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="ambient" aria-hidden="true"><span></span><span></span></div>
+    <section class="card" aria-labelledby="page-title">
+      <p class="eyebrow enter">Личное приглашение</p>
+      <h1 id="page-title" class="enter">Нам надо <em><span class="phrase"><span>поговорить</span><span class="ellipsis" data-count="1" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span><span class="sr-only">...</span></span></em></h1>
+      <div class="action enter enter-3">
+        <a class="call-link" href="https://mts.mts-link.ru/j/MTC/11308670521" target="_blank" rel="noopener noreferrer">
+          <span>Открыть звонок</span><span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+  </main>
+  <script>
+    const ellipsis = document.querySelector('.ellipsis');
+    let dotCount = 1;
+
+    window.setInterval(() => {
+      dotCount = dotCount === 3 ? 1 : dotCount + 1;
+      ellipsis.dataset.count = String(dotCount);
+    }, 550);
+  </script>
+</body>
+</html>

@@ -281,3 +281,13 @@ body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
   .flip__word, .loader__art { transition: none; }
   .loader__grid > * { animation: none; stroke-dashoffset: 0; }
 }
+
+/* Свежие материалы портала (главная): список ссылок на страницы /blog/, /reviews/, /tools/ */
+.latest__list { list-style: none; margin: 24px 0 0; padding: 0; border-top: 1px solid rgba(10, 10, 10, .12); }
+.latest__item { display: flex; gap: 20px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid rgba(10, 10, 10, .12); text-decoration: none; color: inherit; }
+.latest__item:hover .latest__title { text-decoration: underline; }
+.latest__type { flex: 0 0 110px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .55; }
+.latest__title { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.35; }
+.latest__all { margin: 20px 0 0; font-size: 15px; }
+.latest__all a { color: inherit; }
+@media (max-width: 640px) { .latest__item { flex-direction: column; gap: 4px; } .latest__type { flex-basis: auto; } }

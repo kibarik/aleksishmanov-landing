@@ -26,7 +26,7 @@ test('прод: путь посетителя от лоадера до секц�
   page.on('pageerror', (e) => errors.push(String(e)));
 
   await page.goto(process.env.PROD_URL, { waitUntil: 'load', timeout: 60_000 });
-  await expect(page).toHaveTitle(/Алекс Ишманов/);
+  await expect(page).toHaveTitle(/Алексей Ишманов/);
   await expect(page.locator('#loader-offer')).toHaveText(content.offer);
 
   await waitForPrelude(page);

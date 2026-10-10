@@ -1,0 +1,181 @@
+host,path,path_decoded,sources,first_seen,last_seen,status_now,kind,text_available
+aleksishmanov.ru,/corporate-nocode/,/corporate-nocode/,t.me/corporate_ai/22;wayback:snapshot-links,2024-12-31,2025-08-11,,article,нет полного текста; анонс — t.me/corporate_ai/22 и карточка на главной WordPress https://web.archive.org/web/20250331043816/https://aleksishmanov.ru/
+aleksishmanov.ru,/sgr-%D0%B0%D0%B2%D1%82%D0%BE%D1%83%D0%BB%D1%83%D1%87%D1%88%D0%B5%D0%BD%D0%B8%D0%B5-schema-guided-reasoning/,/sgr-автоулучшение-schema-guided-reasoning/,t.me/ai_pmf/105;t.me/corporate_ai/33,2025-09-27,2026-08-02,,article,нет (в Wayback и Common Crawl снимков нет); анонс — sources/telegram/corporate_ai/posts/00033.md (= ai_pmf/00105.md)
+aleksishmanov.ru,/solo-founder-saas-leads,/solo-founder-saas-leads,t.me/ai_pmf/79,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/solo-founder-saas-leads/article.md (та же статья Teletype)
+aleksishmanov.ru,/,/,aishmanov-landing;aleksishmanov-landing;prompts-site;slides-catalog;t.me/ai_pmf/79;teletype:index.html;wayback-cdx;wayback:snapshot-links,2024-12-31,2026-05-16,,page,"Wayback (WordPress, 13 снимков 2024-12-31…2025-03-31): https://web.archive.org/web/20250331043816/https://aleksishmanov.ru/"
+aleksishmanov.ru,/2024/12/31/,/2024/12/31/,wayback:snapshot-links,2024-12-31,2025-03-31,,rubric,нет (список записей WordPress; в Wayback не сохранено)
+aleksishmanov.ru,/author/kibarik/,/author/kibarik/,wayback:snapshot-links,2024-12-31,2025-03-31,,rubric,нет (список записей WordPress; в Wayback не сохранено)
+aleksishmanov.ru,/blog/,/blog/,wayback:snapshot-links,2024-12-31,2025-03-31,,rubric,нет (список записей WordPress; в Wayback не сохранено)
+aleksishmanov.ru,/category/%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5/,/category/исследование/,wayback:snapshot-links,2024-12-31,2025-03-31,,rubric,нет (список записей WordPress; в Wayback не сохранено)
+aleksishmanov.ru,/comments/feed/,/comments/feed/,wayback:snapshot-links,2024-12-31,2025-03-31,,feed,нет
+aleksishmanov.ru,/feed/,/feed/,wayback:snapshot-links,2024-12-31,2025-03-31,,feed,нет
+aleksishmanov.ru,/wp-content/uploads/2024/12/NoCode-архитектура.png,/wp-content/uploads/2024/12/NoCode-архитектура.png,wayback:snapshot-links,2024-12-31,2025-03-31,,asset,нет (в Wayback не сохранено)
+aleksishmanov.ru,/wp-content/uploads/2024/12/cropped-logo-180x180.png,/wp-content/uploads/2024/12/cropped-logo-180x180.png,wayback:snapshot-links,2024-12-31,2025-03-31,,asset,нет (в Wayback не сохранено)
+aleksishmanov.ru,/wp-content/uploads/2024/12/cropped-logo-192x192.png,/wp-content/uploads/2024/12/cropped-logo-192x192.png,wayback:snapshot-links,2024-12-31,2025-03-31,,asset,нет (в Wayback не сохранено)
+aleksishmanov.ru,/wp-content/uploads/2024/12/cropped-logo-32x32.png,/wp-content/uploads/2024/12/cropped-logo-32x32.png,wayback:snapshot-links,2024-12-31,2025-03-31,,asset,нет (в Wayback не сохранено)
+aleksishmanov.ru,/wp-content/uploads/2024/12/logo.png,/wp-content/uploads/2024/12/logo.png,wayback:snapshot-links,2024-12-31,2025-03-31,,asset,нет (в Wayback не сохранено)
+aleksishmanov.ru,/wp-includes/* ; /wp-content/plugins/*,/wp-includes/* ; /wp-content/plugins/*,wayback:snapshot-links,2024-12-31,2025-03-31,не проверялось (маска),asset,нет (служебные файлы WordPress)
+aleksishmanov.ru,/wp-json/* ; /xmlrpc.php,/wp-json/* ; /xmlrpc.php,wayback:snapshot-links,2024-12-31,2025-03-31,не проверялось (маска),asset,нет (API WordPress)
+www.aleksishmanov.ru,/,/,wayback-cdx,2024-12-31,2025-03-31,DNS не резолвится,page,"— (зеркало корня; в 2024–2025 отдавал 301 на корень, сейчас не резолвится)"
+blog.aleksishmanov.ru,/1000mrr-way,/1000mrr-way,blog-sitemap;teletype-article:1000mrr-way;teletype:index.json;teletype:urls.txt,2026-05-15,2026-05-16,,article,sources/blog-teletype/articles/1000mrr-way/article.md
+blog.aleksishmanov.ru,/19-distribution-channels,/19-distribution-channels,blog-sitemap;t.me/ai_pmf/87;t.me/ai_pmf/88;teletype-article:19-distribution-channels;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-07-19,2026-07-19,,article,sources/blog-teletype/articles/19-distribution-channels/article.md
+blog.aleksishmanov.ru,/Ju2LlW1vxzM,/Ju2LlW1vxzM,blog-sitemap;teletype-article:Ju2LlW1vxzM;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/Ju2LlW1vxzM/article.md
+blog.aleksishmanov.ru,/a-b-leaks,/a-b-leaks,blog-sitemap;teletype-article:a-b-leaks;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-02,2026-06-02,,article,sources/blog-teletype/articles/a-b-leaks/article.md
+blog.aleksishmanov.ru,/a-b-math-basics,/a-b-math-basics,blog-sitemap;t.me/ai_pmf/82;teletype-article:a-b-math-basics;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-06,2026-06-06,,article,sources/blog-teletype/articles/a-b-math-basics/article.md
+blog.aleksishmanov.ru,/ab-experiment-designs,/ab-experiment-designs,blog-sitemap;teletype-article:ab-experiment-designs;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/ab-experiment-designs/article.md
+blog.aleksishmanov.ru,/bold-technical-document-leak,/bold-technical-document-leak,blog-sitemap;teletype-article:bold-technical-document-leak;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-02,2026-06-02,,article,sources/blog-teletype/articles/bold-technical-document-leak/article.md
+blog.aleksishmanov.ru,/bullseye-framework,/bullseye-framework,blog-sitemap;t.me/ai_pmf/86;teletype-article:bullseye-framework;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-07-18,2026-07-18,,article,sources/blog-teletype/articles/bullseye-framework/article.md
+blog.aleksishmanov.ru,/bus-factor-leak,/bus-factor-leak,blog-sitemap;teletype-article:bus-factor-leak;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-02,2026-06-02,,article,sources/blog-teletype/articles/bus-factor-leak/article.md
+blog.aleksishmanov.ru,/community-led-growth,/community-led-growth,blog-sitemap;teletype-article:community-led-growth;teletype:index.json;teletype:urls.txt,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/community-led-growth/article.md
+blog.aleksishmanov.ru,/conjoint-analysis,/conjoint-analysis,blog-sitemap;teletype-article:conjoint-analysis;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/conjoint-analysis/article.md
+blog.aleksishmanov.ru,/empathy-map,/empathy-map,blog-sitemap;teletype-article:empathy-map;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-16,,article,sources/blog-teletype/articles/empathy-map/article.md
+blog.aleksishmanov.ru,/gabor-granger-method,/gabor-granger-method,blog-sitemap;teletype-article:gabor-granger-method;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/gabor-granger-method/article.md
+blog.aleksishmanov.ru,/guerilla-marketing,/guerilla-marketing,blog-sitemap;teletype-article:guerilla-marketing;teletype:index.json;teletype:urls.txt,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/guerilla-marketing/article.md
+blog.aleksishmanov.ru,/isikawa-diagram,/isikawa-diagram,blog-sitemap;teletype-article:isikawa-diagram;teletype:index.json;teletype:urls.txt,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/isikawa-diagram/article.md
+blog.aleksishmanov.ru,/lean-analytics,/lean-analytics,blog-sitemap;teletype-article:lean-analytics;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/lean-analytics/article.md
+blog.aleksishmanov.ru,/nsm-metric,/nsm-metric,blog-sitemap;teletype-article:nsm-metric;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/nsm-metric/article.md
+blog.aleksishmanov.ru,/pain-vs-customer_request,/pain-vs-customer_request,blog-sitemap;teletype-article:pain-vs-customer_request;teletype:index.json;teletype:urls.txt,2026-05-14,2026-05-14,,article,sources/blog-teletype/articles/pain-vs-customer_request/article.md
+blog.aleksishmanov.ru,/product-leaks-cold-start,/product-leaks-cold-start,blog-sitemap;teletype-article:product-leaks-cold-start;teletype:index.json;teletype:urls.txt,2025-12-11,2025-12-11,,article,sources/blog-teletype/articles/product-leaks-cold-start/article.md
+blog.aleksishmanov.ru,/product-leaks-feature-blast,/product-leaks-feature-blast,blog-sitemap;teletype-article:product-leaks-feature-blast;teletype:index.json;teletype:urls.txt,2025-12-15,2025-12-15,,article,sources/blog-teletype/articles/product-leaks-feature-blast/article.md
+blog.aleksishmanov.ru,/product-leaks-jtbd-blindness,/product-leaks-jtbd-blindness,blog-sitemap;teletype-article:product-leaks-jtbd-blindness;teletype:index.json;teletype:urls.txt,2025-12-27,2025-12-27,,article,sources/blog-teletype/articles/product-leaks-jtbd-blindness/article.md
+blog.aleksishmanov.ru,/product-vs-brand,/product-vs-brand,blog-sitemap;teletype-article:product-vs-brand;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-08,2026-06-08,,article,sources/blog-teletype/articles/product-vs-brand/article.md
+blog.aleksishmanov.ru,/products-metrics-tree,/products-metrics-tree,blog-sitemap;teletype-article:products-metrics-tree;teletype:index.json;teletype:urls.txt,2026-05-15,2026-05-15,,article,sources/blog-teletype/articles/products-metrics-tree/article.md
+blog.aleksishmanov.ru,/retention-metrics,/retention-metrics,blog-sitemap;teletype-article:retention-metrics;teletype:index.json;teletype:urls.txt,2026-05-15,2026-05-15,,article,sources/blog-teletype/articles/retention-metrics/article.md
+blog.aleksishmanov.ru,/solo-founder-saas-leads,/solo-founder-saas-leads,blog-sitemap;teletype-article:solo-founder-saas-leads;teletype:index.json;teletype:urls.txt,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/solo-founder-saas-leads/article.md
+blog.aleksishmanov.ru,/startup-growth-guideline,/startup-growth-guideline,blog-sitemap;teletype-article:startup-growth-guideline;teletype:index.json;teletype:urls.txt,2026-05-16,2026-05-16,,article,sources/blog-teletype/articles/startup-growth-guideline/article.md
+blog.aleksishmanov.ru,/startup-traffic,/startup-traffic,blog-sitemap;t.me/ai_pmf/83;teletype-article:startup-traffic;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-06-09,2026-06-09,,article,sources/blog-teletype/articles/startup-traffic/article.md
+blog.aleksishmanov.ru,/startup-vs-corporation,/startup-vs-corporation,blog-sitemap;t.me/ai_pmf/84;teletype-article:startup-vs-corporation;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-07-18,2026-07-18,,article,sources/blog-teletype/articles/startup-vs-corporation/article.md
+blog.aleksishmanov.ru,/van-westendorp,/van-westendorp,blog-sitemap;teletype-article:van-westendorp;teletype:index.json;teletype:urls.txt,2026-05-15,2026-05-16,,article,sources/blog-teletype/articles/van-westendorp/article.md
+blog.aleksishmanov.ru,/wedge-strategy,/wedge-strategy,blog-sitemap;t.me/ai_pmf/85;teletype-article:wedge-strategy;teletype:index.html;teletype:index.json;teletype:rss.xml;teletype:urls.txt,2026-07-18,2026-07-19,,article,sources/blog-teletype/articles/wedge-strategy/article.md
+blog.aleksishmanov.ru,/,/,aishmanov-landing;aleksishmanov-landing;blog-sitemap;prompts-site;t.me/ai_pmf/76;teletype-article:1000mrr-way;teletype-article:19-distribution-channels;teletype-article:Ju2LlW1vxzM;teletype-article:a-b-leaks;teletype-article:a-b-math-basics;teletype-article:ab-experiment-designs;teletype-article:bold-technical-document-leak;teletype-article:bullseye-framework;teletype-article:bus-factor-leak;teletype-article:community-led-growth;teletype-article:conjoint-analysis;teletype-article:empathy-map;teletype-article:gabor-granger-method;teletype-article:guerilla-marketing;teletype-article:isikawa-diagram;teletype-article:lean-analytics;teletype-article:nsm-metric;teletype-article:pain-vs-customer_request;teletype-article:product-leaks-cold-start;teletype-article:product-leaks-feature-blast;teletype-article:product-leaks-jtbd-blindness;teletype-article:product-vs-brand;teletype-article:products-metrics-tree;teletype-article:retention-metrics;teletype-article:solo-founder-saas-leads;teletype-article:startup-growth-guideline;teletype-article:startup-traffic;teletype-article:startup-vs-corporation;teletype-article:van-westendorp;teletype-article:wedge-strategy;teletype:index.html;teletype:rss.xml,2026-05-07,2026-05-07,,page,sources/blog-teletype/index.html
+blog.aleksishmanov.ru,/+acquisition-instruments,/+acquisition-instruments,teletype-article:19-distribution-channels;teletype-article:bullseye-framework;teletype-article:guerilla-marketing;teletype-article:product-vs-brand;teletype-article:startup-traffic;teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+activation-instruments,/+activation-instruments,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+data-driven-development,/+data-driven-development,teletype-article:a-b-leaks;teletype-article:a-b-math-basics;teletype-article:ab-experiment-designs;teletype-article:conjoint-analysis;teletype-article:lean-analytics;teletype-article:retention-metrics;teletype-article:van-westendorp;teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+fast-development,/+fast-development,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+product-management,/+product-management,teletype-article:bold-technical-document-leak;teletype-article:bus-factor-leak;teletype-article:isikawa-diagram;teletype-article:pain-vs-customer_request;teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+referral-instruments,/+referral-instruments,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+retention-instruments,/+retention-instruments,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+revenue-instuments,/+revenue-instuments,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/+topic26774,/+topic26774,teletype:index.html,,,,rubric,нет (лента рубрики Teletype)
+blog.aleksishmanov.ru,/content/sitemap.xml,/content/sitemap.xml,blog-robots,,,,other,—
+blog.aleksishmanov.ru,/data/atom,/data/atom,teletype:index.html,,,,feed,нет
+blog.aleksishmanov.ru,/data/rss,/data/rss,teletype:index.html,,,,feed,sources/blog-teletype/rss.xml
+blog.aleksishmanov.ru,/robots.txt,/robots.txt,blog-robots,,,,other,—
+slides.aleksishmanov.ru,/,/,aishmanov-landing;aleksishmanov-landing;slides-catalog;slides-catalog git,2026-09-11,2026-09-12,,page,sources/slides-catalog/index.html
+slides.aleksishmanov.ru,/*,/*,slides-catalog git,2026-09-11,2026-10-02,не проверялось (маска),asset,sources/slides-catalog/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/404.html,/404.html,slides-catalog git,2026-09-11,2026-09-12,,other,sources/slides-catalog/404.html
+slides.aleksishmanov.ru,/claude-desktop-zai-macos/,/claude-desktop-zai-macos/,slides-catalog;slides-catalog git,2026-09-17,2026-09-18,,page,sources/slides-catalog/claude-desktop-zai-macos/index.html
+slides.aleksishmanov.ru,/claude-desktop-zai-macos/assets/*,/claude-desktop-zai-macos/assets/*,slides-catalog git,2026-09-17,2026-09-17,не проверялось (маска),asset,sources/slides-catalog/claude-desktop-zai-macos/assets/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/claude-desktop-zai-macos/cover.png,/claude-desktop-zai-macos/cover.png,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,asset,sources/slides-catalog/claude-desktop-zai-macos/cover.png
+slides.aleksishmanov.ru,/claude-desktop-zai-macos/presentation.pdf,/claude-desktop-zai-macos/presentation.pdf,slides-catalog git (удалён),2026-09-17,2026-09-18,,asset,git history sources/slides-catalog (файл удалён)
+slides.aleksishmanov.ru,/components/*,/components/*,slides-catalog git,2026-09-17,2026-09-18,не проверялось (маска),asset,sources/slides-catalog/components/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/i/claude/,/i/claude/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/claude/index.html — короткая ссылка (QR) → /instructions/claude-code/
+slides.aleksishmanov.ru,/i/helper/,/i/helper/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/helper/index.html — короткая ссылка (QR) → /instructions/zai-helper/
+slides.aleksishmanov.ru,/i/key/,/i/key/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/key/index.html — короткая ссылка (QR) → /instructions/glm-api-key/
+slides.aleksishmanov.ru,/i/pay/,/i/pay/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/pay/index.html — короткая ссылка (QR) → /instructions/zai-payment-mts/
+slides.aleksishmanov.ru,/i/start/,/i/start/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/start/index.html — короткая ссылка (QR) → /instructions/claude-code-glm/
+slides.aleksishmanov.ru,/i/zai/,/i/zai/,slides-catalog git,2026-09-17,2026-09-17,,other,sources/slides-catalog/i/zai/index.html — короткая ссылка (QR) → /instructions/zai-registration/
+slides.aleksishmanov.ru,/instructions,/instructions,slides-catalog,,,,other,"— (вариант без слэша, ссылка из slides-catalog)"
+slides.aleksishmanov.ru,/instructions/,/instructions/,slides-catalog;slides-catalog git,2026-09-17,2026-09-18,,page,sources/slides-catalog/instructions/index.html
+slides.aleksishmanov.ru,/instructions/*,/instructions/*,slides-catalog git,2026-09-17,2026-09-18,не проверялось (маска),asset,sources/slides-catalog/instructions/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/instructions/claude-code-glm/,/instructions/claude-code-glm/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/claude-code-glm/index.html
+slides.aleksishmanov.ru,/instructions/claude-code/,/instructions/claude-code/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/claude-code/index.html
+slides.aleksishmanov.ru,/instructions/glm-api-key/,/instructions/glm-api-key/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/glm-api-key/index.html
+slides.aleksishmanov.ru,/instructions/qr/*,/instructions/qr/*,slides-catalog git,2026-09-17,2026-09-17,не проверялось (маска),asset,sources/slides-catalog/instructions/qr/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/instructions/zai-helper/,/instructions/zai-helper/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/zai-helper/index.html
+slides.aleksishmanov.ru,/instructions/zai-payment-mts/,/instructions/zai-payment-mts/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/zai-payment-mts/index.html
+slides.aleksishmanov.ru,/instructions/zai-registration/,/instructions/zai-registration/,slides-catalog;slides-catalog git,2026-09-17,2026-09-17,,page,sources/slides-catalog/instructions/zai-registration/index.html
+slides.aleksishmanov.ru,/og-cover.png,/og-cover.png,slides-catalog;slides-catalog git,2026-09-12,2026-09-12,,asset,sources/slides-catalog/og-cover.png
+slides.aleksishmanov.ru,/okr-quarter-planning/,/okr-quarter-planning/,slides-catalog;slides-catalog git,2026-09-29,2026-10-02,,page,sources/slides-catalog/okr-quarter-planning/index.html
+slides.aleksishmanov.ru,/okr-quarter-planning/cover.png,/okr-quarter-planning/cover.png,slides-catalog;slides-catalog git,2026-09-29,2026-10-02,,asset,sources/slides-catalog/okr-quarter-planning/cover.png
+slides.aleksishmanov.ru,/okr-quarter-planning/demo/fact.html,/okr-quarter-planning/demo/fact.html,slides-catalog git,2026-10-02,2026-10-02,,page,sources/slides-catalog/okr-quarter-planning/demo/fact.html
+slides.aleksishmanov.ru,/okr-quarter-planning/demo/plan.html,/okr-quarter-planning/demo/plan.html,slides-catalog git,2026-10-02,2026-10-02,,page,sources/slides-catalog/okr-quarter-planning/demo/plan.html
+slides.aleksishmanov.ru,/okr-quarter-planning/demo/teamplanner.html,/okr-quarter-planning/demo/teamplanner.html,slides-catalog git,2026-10-02,2026-10-02,,page,sources/slides-catalog/okr-quarter-planning/demo/teamplanner.html
+slides.aleksishmanov.ru,/okr-quarter-planning/img/*,/okr-quarter-planning/img/*,slides-catalog git;slides-catalog git (удалён),2026-10-02,2026-10-02,не проверялось (маска),asset,sources/slides-catalog/okr-quarter-planning/img/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/okr-quarter-planning/img/full/*,/okr-quarter-planning/img/full/*,slides-catalog git;slides-catalog git (удалён),2026-10-02,2026-10-02,не проверялось (маска),asset,sources/slides-catalog/okr-quarter-planning/img/full/ (часть файлов только в истории git)
+slides.aleksishmanov.ru,/po-workspace-bft-plugin/,/po-workspace-bft-plugin/,slides-catalog;slides-catalog git,2026-09-11,2026-09-12,,page,sources/slides-catalog/po-workspace-bft-plugin/index.html
+slides.aleksishmanov.ru,/po-workspace-bft-plugin/cover.png,/po-workspace-bft-plugin/cover.png,slides-catalog;slides-catalog git,2026-09-11,2026-09-11,,asset,sources/slides-catalog/po-workspace-bft-plugin/cover.png
+slides.aleksishmanov.ru,/po-workspace-bft-plugin/presentation.pdf,/po-workspace-bft-plugin/presentation.pdf,slides-catalog git,2026-09-11,2026-09-11,,asset,sources/slides-catalog/po-workspace-bft-plugin/presentation.pdf
+slides.aleksishmanov.ru,/robots.txt,/robots.txt,slides-catalog git (удалён),2026-09-12,2026-09-12,,other,git history sources/slides-catalog (файл удалён)
+slides.aleksishmanov.ru,/sprint-under-manager/,/sprint-under-manager/,slides-catalog;slides-catalog git,2026-09-15,2026-09-15,,page,sources/slides-catalog/sprint-under-manager/index.html
+slides.aleksishmanov.ru,/sprint-under-manager/cover.png,/sprint-under-manager/cover.png,slides-catalog;slides-catalog git,2026-09-15,2026-09-15,,asset,sources/slides-catalog/sprint-under-manager/cover.png
+slides.aleksishmanov.ru,/sprint-under-manager/presentation.pdf,/sprint-under-manager/presentation.pdf,slides-catalog git,2026-09-15,2026-09-15,,asset,sources/slides-catalog/sprint-under-manager/presentation.pdf
+prompts.aleksishmanov.ru,/,/,aishmanov-landing;aleksishmanov-landing;prompts-site;teletype:index.html,,,,page,sources/prompts-site/index.html
+prompts.aleksishmanov.ru,/_next/* ; /assets/* ; /favicon*.png ; /favicon.ico ; /apple-touch-icon.png,/_next/* ; /assets/* ; /favicon*.png ; /favicon.ico ; /apple-touch-icon.png,prompts-site,,,не проверялось (маска),asset,sources/prompts-site/
+prompts.aleksishmanov.ru,/prompts/,/prompts/,проверка,,,,other,— (страницы-списка нет в выгрузке)
+prompts.aleksishmanov.ru,/prompts/4p-poitioning-consultant/,/prompts/4p-poitioning-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/4p-poitioning-consultant.md
+prompts.aleksishmanov.ru,/prompts/aarrr-funnel/,/prompts/aarrr-funnel/,prompts-md;prompts-site,,,,page,sources/prompts-md/aarrr-funnel.md
+prompts.aleksishmanov.ru,/prompts/ab-experiment-consultant/,/prompts/ab-experiment-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/ab-experiment-consultant.md
+prompts.aleksishmanov.ru,/prompts/ai-intervyuer/,/prompts/ai-intervyuer/,prompts-md;prompts-site,,,,page,sources/prompts-md/ai-intervyuer.md
+prompts.aleksishmanov.ru,/prompts/ai-marketolog-consultant/,/prompts/ai-marketolog-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/ai-marketolog-consultant.md
+prompts.aleksishmanov.ru,/prompts/ai-stretegy-master/,/prompts/ai-stretegy-master/,prompts-md;prompts-site,,,,page,sources/prompts-md/ai-stretegy-master.md
+prompts.aleksishmanov.ru,/prompts/analiz-nishevyh-vozmozhnostej/,/prompts/analiz-nishevyh-vozmozhnostej/,prompts-md;prompts-site,,,,page,sources/prompts-md/analiz-nishevyh-vozmozhnostej.md
+prompts.aleksishmanov.ru,/prompts/analiz-reklamnyh-kreativov/,/prompts/analiz-reklamnyh-kreativov/,prompts-md;prompts-site,,,,page,sources/prompts-md/analiz-reklamnyh-kreativov.md
+prompts.aleksishmanov.ru,/prompts/article-1/,/prompts/article-1/,prompts-md;prompts-site,,,,page,sources/prompts-md/article-1.md
+prompts.aleksishmanov.ru,/prompts/article-2/,/prompts/article-2/,prompts-md;prompts-site,,,,page,sources/prompts-md/article-2.md
+prompts.aleksishmanov.ru,/prompts/article-4/,/prompts/article-4/,prompts-md;prompts-site,,,,page,sources/prompts-md/article-4.md
+prompts.aleksishmanov.ru,/prompts/article/,/prompts/article/,prompts-md;prompts-site,,,,page,sources/prompts-md/article.md
+prompts.aleksishmanov.ru,/prompts/bft-prompt/,/prompts/bft-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/bft-prompt.md
+prompts.aleksishmanov.ru,/prompts/competitors-analysis-prompt/,/prompts/competitors-analysis-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/competitors-analysis-prompt.md
+prompts.aleksishmanov.ru,/prompts/consumer-context-channels-prompt/,/prompts/consumer-context-channels-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/consumer-context-channels-prompt.md
+prompts.aleksishmanov.ru,/prompts/customer-context-prompt/,/prompts/customer-context-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/customer-context-prompt.md
+prompts.aleksishmanov.ru,/prompts/distribution-consultant/,/prompts/distribution-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/distribution-consultant.md
+prompts.aleksishmanov.ru,/prompts/epic-writer/,/prompts/epic-writer/,prompts-md;prompts-site,,,,page,sources/prompts-md/epic-writer.md
+prompts.aleksishmanov.ru,/prompts/featurecanvas-helper/,/prompts/featurecanvas-helper/,prompts-md;prompts-site,,,,page,sources/prompts-md/featurecanvas-helper.md
+prompts.aleksishmanov.ru,/prompts/fvp-product-unpacking/,/prompts/fvp-product-unpacking/,prompts-md;prompts-site,,,,page,sources/prompts-md/fvp-product-unpacking.md
+prompts.aleksishmanov.ru,/prompts/gantt-assistant/,/prompts/gantt-assistant/,prompts-md;prompts-site,,,,page,sources/prompts-md/gantt-assistant.md
+prompts.aleksishmanov.ru,/prompts/generatsiya-reklamnyh-kreativov/,/prompts/generatsiya-reklamnyh-kreativov/,prompts-md;prompts-site,,,,page,sources/prompts-md/generatsiya-reklamnyh-kreativov.md
+prompts.aleksishmanov.ru,/prompts/human-like-style/,/prompts/human-like-style/,prompts-md;prompts-site,,,,page,sources/prompts-md/human-like-style.md
+prompts.aleksishmanov.ru,/prompts/interaktivnaya-html-prezentaciya/,/prompts/interaktivnaya-html-prezentaciya/,prompts-md;prompts-site,,,,page,sources/prompts-md/interaktivnaya-html-prezentaciya.md
+prompts.aleksishmanov.ru,/prompts/issledovanie-i-proverka-faktov/,/prompts/issledovanie-i-proverka-faktov/,prompts-md;prompts-site,,,,page,sources/prompts-md/issledovanie-i-proverka-faktov.md
+prompts.aleksishmanov.ru,/prompts/it-rekruter/,/prompts/it-rekruter/,prompts-md;prompts-site,,,,page,sources/prompts-md/it-rekruter.md
+prompts.aleksishmanov.ru,/prompts/mbdi-advocate/,/prompts/mbdi-advocate/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbdi-advocate.md
+prompts.aleksishmanov.ru,/prompts/mbdi-executive/,/prompts/mbdi-executive/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbdi-executive.md
+prompts.aleksishmanov.ru,/prompts/mbdi-logician/,/prompts/mbdi-logician/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbdi-logician.md
+prompts.aleksishmanov.ru,/prompts/mbdi-mediator/,/prompts/mbdi-mediator/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbdi-mediator.md
+prompts.aleksishmanov.ru,/prompts/mbti-adventure/,/prompts/mbti-adventure/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-adventure.md
+prompts.aleksishmanov.ru,/prompts/mbti-architect/,/prompts/mbti-architect/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-architect.md
+prompts.aleksishmanov.ru,/prompts/mbti-campaigner/,/prompts/mbti-campaigner/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-campaigner.md
+prompts.aleksishmanov.ru,/prompts/mbti-commander/,/prompts/mbti-commander/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-commander.md
+prompts.aleksishmanov.ru,/prompts/mbti-consul/,/prompts/mbti-consul/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-consul.md
+prompts.aleksishmanov.ru,/prompts/mbti-debater/,/prompts/mbti-debater/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-debater.md
+prompts.aleksishmanov.ru,/prompts/mbti-defender/,/prompts/mbti-defender/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-defender.md
+prompts.aleksishmanov.ru,/prompts/mbti-enterpreneur/,/prompts/mbti-enterpreneur/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-enterpreneur.md
+prompts.aleksishmanov.ru,/prompts/mbti-entertrainer/,/prompts/mbti-entertrainer/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-entertrainer.md
+prompts.aleksishmanov.ru,/prompts/mbti-logistician/,/prompts/mbti-logistician/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-logistician.md
+prompts.aleksishmanov.ru,/prompts/mbti-protagonist/,/prompts/mbti-protagonist/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-protagonist.md
+prompts.aleksishmanov.ru,/prompts/mbti-virtuoso/,/prompts/mbti-virtuoso/,prompts-md;prompts-site,,,,page,sources/prompts-md/mbti-virtuoso.md
+prompts.aleksishmanov.ru,/prompts/mermaid-customer-context/,/prompts/mermaid-customer-context/,prompts-md;prompts-site,,,,page,sources/prompts-md/mermaid-customer-context.md
+prompts.aleksishmanov.ru,/prompts/nsm-consultant/,/prompts/nsm-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/nsm-consultant.md
+prompts.aleksishmanov.ru,/prompts/ost-consultant/,/prompts/ost-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/ost-consultant.md
+prompts.aleksishmanov.ru,/prompts/otslezhivanie-byudzhetov/,/prompts/otslezhivanie-byudzhetov/,prompts-md;prompts-site,,,,page,sources/prompts-md/otslezhivanie-byudzhetov.md
+prompts.aleksishmanov.ru,/prompts/outcome-driven-innovation-prompt/,/prompts/outcome-driven-innovation-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/outcome-driven-innovation-prompt.md
+prompts.aleksishmanov.ru,/prompts/partner-dlya-mozgovogo-shturma/,/prompts/partner-dlya-mozgovogo-shturma/,prompts-md;prompts-site,,,,page,sources/prompts-md/partner-dlya-mozgovogo-shturma.md
+prompts.aleksishmanov.ru,/prompts/prd-decompose/,/prompts/prd-decompose/,prompts-md;prompts-site,,,,page,sources/prompts-md/prd-decompose.md
+prompts.aleksishmanov.ru,/prompts/prd-generator/,/prompts/prd-generator/,prompts-md;prompts-site,,,,page,sources/prompts-md/prd-generator.md
+prompts.aleksishmanov.ru,/prompts/product-discovery-prompt/,/prompts/product-discovery-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/product-discovery-prompt.md
+prompts.aleksishmanov.ru,/prompts/project-manager/,/prompts/project-manager/,prompts-md;prompts-site,,,,page,sources/prompts-md/project-manager.md
+prompts.aleksishmanov.ru,/prompts/prompt-engineer/,/prompts/prompt-engineer/,prompts-md;prompts-site,,,,page,sources/prompts-md/prompt-engineer.md
+prompts.aleksishmanov.ru,/prompts/rat-prompt/,/prompts/rat-prompt/,prompts-md;prompts-site,,,,page,sources/prompts-md/rat-prompt.md
+prompts.aleksishmanov.ru,/prompts/resursnoe-planirovanie/,/prompts/resursnoe-planirovanie/,prompts-md;prompts-site,,,,page,sources/prompts-md/resursnoe-planirovanie.md
+prompts.aleksishmanov.ru,/prompts/rory-sutherland-marketing-interrogation/,/prompts/rory-sutherland-marketing-interrogation/,prompts-md;prompts-site,,,,page,sources/prompts-md/rory-sutherland-marketing-interrogation.md
+prompts.aleksishmanov.ru,/prompts/segmentation/,/prompts/segmentation/,prompts-md;prompts-site,,,,page,sources/prompts-md/segmentation.md
+prompts.aleksishmanov.ru,/prompts/seq-consultant/,/prompts/seq-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/seq-consultant.md
+prompts.aleksishmanov.ru,/prompts/six-thinking-hats/,/prompts/six-thinking-hats/,prompts-md;prompts-site,,,,page,sources/prompts-md/six-thinking-hats.md
+prompts.aleksishmanov.ru,/prompts/social-media-carousel-art-director/,/prompts/social-media-carousel-art-director/,prompts-md;prompts-site,,,,page,sources/prompts-md/social-media-carousel-art-director.md
+prompts.aleksishmanov.ru,/prompts/social-media-carousel/,/prompts/social-media-carousel/,prompts-md;prompts-site,,,,page,sources/prompts-md/social-media-carousel.md
+prompts.aleksishmanov.ru,/prompts/status-vstrecha/,/prompts/status-vstrecha/,prompts-md;prompts-site,,,,page,sources/prompts-md/status-vstrecha.md
+prompts.aleksishmanov.ru,/prompts/sysdesigner/,/prompts/sysdesigner/,prompts-md;prompts-site,,,,page,sources/prompts-md/sysdesigner.md
+prompts.aleksishmanov.ru,/prompts/tam-sam-som/,/prompts/tam-sam-som/,prompts-md;prompts-site,,,,page,sources/prompts-md/tam-sam-som.md
+prompts.aleksishmanov.ru,/prompts/threads-expert-content/,/prompts/threads-expert-content/,prompts-md;prompts-site,,,,page,sources/prompts-md/threads-expert-content.md
+prompts.aleksishmanov.ru,/prompts/unit-economics-comsultant/,/prompts/unit-economics-comsultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/unit-economics-comsultant.md
+prompts.aleksishmanov.ru,/prompts/uvp-consultant/,/prompts/uvp-consultant/,prompts-md;prompts-site,,,,page,sources/prompts-md/uvp-consultant.md
+prompts.aleksishmanov.ru,/prompts/vektor-pitch-mentor/,/prompts/vektor-pitch-mentor/,prompts-md;prompts-site,,,,page,sources/prompts-md/vektor-pitch-mentor.md
+prompts.aleksishmanov.ru,/prompts/vibe-coding-task/,/prompts/vibe-coding-task/,prompts-md;prompts-site,,,,page,sources/prompts-md/vibe-coding-task.md
+teletype.in,/@aleksishmanov/van-westendorp,/@aleksishmanov/van-westendorp,t.me/ai_pmf/2,,,302 → blog.aleksishmanov.ru/van-westendorp,article,не наш хост (301 настроить нельзя); sources/blog-teletype/articles/van-westendorp/article.md
+teletype.in,/@kibarik/product-leaks-feature-blast,/@kibarik/product-leaks-feature-blast,t.me/ai_pmf (посты 40-43),,,404,article,не наш хост (301 настроить нельзя); sources/blog-teletype/articles/product-leaks-feature-blast/article.md
+teletype.in,/@kibarik/product-leaks-jtbd-blindness,/@kibarik/product-leaks-jtbd-blindness,t.me/ai_pmf (посты 40-43),,,404,article,не наш хост (301 настроить нельзя); sources/blog-teletype/articles/product-leaks-jtbd-blindness/article.md
+teletype.in,/kibarik/product-leaks-cold-start,/kibarik/product-leaks-cold-start,t.me/ai_pmf (посты 40-43),,,404,article,не наш хост (301 настроить нельзя); sources/blog-teletype/articles/product-leaks-cold-start/article.md
+teletype.in,/@aleksishmanov,/@aleksishmanov,teletype,,,302 → blog.aleksishmanov.ru/,page,не наш хост (301 настроить нельзя); —
+teletype.in,/@kibarik/editor/product-leaks-cold-start,/@kibarik/editor/product-leaks-cold-start,t.me/ai_pmf,,,,other,не наш хост (301 настроить нельзя); sources/blog-teletype/articles/product-leaks-cold-start/article.md
+teletype.in,/rss/aleksishmanov,/rss/aleksishmanov,teletype:rss.xml,,,200,feed,не наш хост (301 настроить нельзя); —

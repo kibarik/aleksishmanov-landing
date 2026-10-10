@@ -10,3 +10,5 @@ tests/ref-scroll/
 tests/ref-assets/
 tests/shots/
 public/ref/
+dist-portal
+portal/.astro

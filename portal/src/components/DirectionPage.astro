@@ -1,0 +1,42 @@
+---
+// Страница направления: подборка всех материалов с этой меткой, по разделам.
+import Base from '../layouts/Base.astro';
+import Card from './Card.astro';
+import { byDirection } from '../lib/materials';
+import { DIRECTION_INFO, SECTIONS, SITE, type Direction, type CollectionName } from '../lib/site';
+import { graph, breadcrumbs } from '../lib/schema';
+
+const { direction } = Astro.props as { direction: Direction };
+const info = DIRECTION_INFO[direction];
+const all = await byDirection(direction);
+const order: CollectionName[] = ['cases', 'reviews', 'blog', 'slides', 'tools', 'prompts'];
+const LIMIT = 9;
+const blocks = order.map((c) => ({ c, items: all.filter((m) => m.collection === c) })).filter((b) => b.items.length);
+const other = (Object.keys(DIRECTION_INFO) as Direction[]).find((d) => d !== direction)!;
+---
+<Base title={info.title} description={`${info.lead} ${info.audience}.`}
+  jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: info.title, description: info.lead, url: `${SITE.url}${info.path}` })}>
+  <div class="wrap">
+    <p class="crumbs"><a href="/">Главная</a> / {info.title}</p>
+    <header class="page-head">
+      <p class="eyebrow">Направление · {info.audience}</p>
+      <h1>{info.title}</h1>
+      <p class="lead">{info.lead}</p>
+      <ul class="chips">
+        {blocks.map((b) => <li><a class="chip" href={`#${b.c}`}>{SECTIONS[b.c].title} · {b.items.length}</a></li>)}
+        <li><a class="chip" href={DIRECTION_INFO[other].path}>→ {DIRECTION_INFO[other].title}</a></li>
+      </ul>
+    </header>
+    {blocks.map((b) => (
+      <section id={b.c}>
+        <h2>{SECTIONS[b.c].title}</h2>
+        <ul class="grid">{b.items.slice(0, LIMIT).map((m) => <Card m={m} />)}</ul>
+        {b.items.length > LIMIT && <p><a class="btn btn--ghost" href={SECTIONS[b.c].path}>Все {SECTIONS[b.c].title.toLowerCase()} · {b.items.length}</a></p>}
+      </section>
+    ))}
+    <aside class="cta">
+      <p>{direction === 'startups' ? 'Запускаете продукт и хотите дойти до первых платящих быстрее?' : 'Внедряете ИИ в процессы команды и хотите сделать это без хаоса?'} Напишите — разберём вашу задачу.</p>
+      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+    </aside>
+  </div>
+</Base>

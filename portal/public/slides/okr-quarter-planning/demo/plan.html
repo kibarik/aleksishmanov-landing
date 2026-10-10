@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ПЛАН 2026Q4 — Витрина</title>
+<!-- Собрано okr-plan.py из scope-2026Q4.json. Правки — в JSON, страница пересобирается. -->
+<style>
+/* Страницы планирования квартала (ФАКТ, ПЛАН). Айдентика страниц PO: та же
+   таблица стилей, что у страницы ревью БФТ. Общая часть; своё у каждой
+   страницы — в fact.css и scope.css. Вёрстку не правят в HTML: она собирается
+   okr-plan.py из JSON. */
+
+:root{
+  --bg:#ffffff;
+  --fg:#000000;
+  --muted:#555555;
+  --faint:#888888;
+  --line:#000000;
+  --line-soft:#cccccc;
+  --mark:#f2f2f2;
+  --link:#0000ee;
+  --visited:#551a8b;
+  --drawer-w:min(340px, 86vw);
+}
+*{ box-sizing:border-box; }
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:15px/1.55 Georgia, "Times New Roman", serif;
+}
+code, pre, .mono{ font-family:"Courier New", Consolas, monospace; }
+a{ color:var(--link); }
+a:visited{ color:var(--visited); }
+
+.layout{ max-width:860px; margin:0 auto; padding:2rem 1.5rem 6rem; }
+main{ min-width:0; max-width:760px; margin:0 auto; }
+/* Слева отступ шире: вкладка «Исход» стоит у кромки и не должна закрывать заголовок. */
+.layout.wide{ max-width:100%; padding-left:2.8rem; padding-right:1.5rem; }
+.layout.wide main{ max-width:100%; }
+
+h1{ font-size:1.65rem; line-height:1.25; margin:0 0 .5rem; }
+h3{ font-size:1.02rem; margin:1.4rem 0 .6rem; }
+p{ margin:0 0 .9rem; }
+ol, ul{ margin:0 0 .9rem; padding-left:1.4rem; }
+li{ margin-bottom:.35rem; }
+
+blockquote.quote{
+  border:1px solid var(--line); padding:.7rem .9rem; margin:1rem 0 1.6rem;
+  font-size:.92rem; background:var(--mark);
+}
+mark.unc{ background:var(--mark); border:1px solid var(--line-soft); padding:.02em .35em; font-family:"Courier New",monospace; font-size:.85em; }
+
+table{ border-collapse:collapse; width:100%; margin:0 0 .8rem; font-size:.86rem; }
+th, td{ border:1px solid var(--line-soft); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+th{ background:var(--mark); font-family:"Courier New", monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.03em; }
+.table-wrap{ overflow-x:auto; }
+
+::-webkit-scrollbar{ height:8px; width:8px; }
+::-webkit-scrollbar-thumb{ background:var(--line-soft); border-radius:4px; }
+
+/* Левая рейка и выезжающая панель фильтра. */
+.rail{
+  position:fixed; left:0; top:1rem; z-index:57;
+  display:flex; flex-direction:column; gap:6px; align-items:flex-start;
+  transition:left .12s ease;
+}
+body.drawer-open .rail{ left:var(--drawer-w); }
+@media (prefers-reduced-motion:reduce){ .rail{ transition:none; } }
+.rail-tab{
+  writing-mode:vertical-rl; transform:rotate(180deg);
+  border:none; cursor:pointer; color:#fff; background:var(--fg);
+  font-family:"Courier New",monospace; font-size:.72rem; letter-spacing:.03em;
+  padding:.8rem .4rem;
+}
+.rail-tab:focus-visible{ outline:2px solid var(--link); outline-offset:2px; }
+
+.drawer{
+  display:none; position:fixed; left:0; top:0; bottom:0; width:var(--drawer-w); z-index:56;
+  background:var(--bg); border-right:1px solid var(--fg); box-shadow:3px 0 0 var(--line-soft);
+  padding:1rem; overflow-y:auto; font-family:"Courier New",monospace; font-size:.78rem;
+}
+.drawer.open{ display:block; }
+.drawer-head{ display:flex; align-items:center; justify-content:space-between; margin:0 0 .8rem; }
+.drawer h4{ margin:0; text-transform:uppercase; font-size:.8rem; letter-spacing:.04em; }
+.drawer-close{
+  background:none; border:1px solid var(--line-soft); color:var(--fg); cursor:pointer;
+  font-family:inherit; font-size:.9rem; line-height:1; padding:.1rem .5rem; border-radius:3px;
+}
+.drawer-close:hover{ border-color:var(--fg); }
+.st-item{ display:block; width:100%; text-align:left; font:inherit; font-size:.86rem;
+  background:none; border:0; border-bottom:1px solid var(--line-soft); padding:.5rem .2rem; cursor:pointer; }
+.st-item[data-active]{ font-weight:bold; }
+.st-item .n{ float:right; font-family:"Courier New",monospace; font-size:.72rem; color:var(--muted); }
+
+/* Шапка. */
+.head{ display:flex; align-items:baseline; gap:.8rem; flex-wrap:wrap; margin:0 0 1.4rem; }
+.head h1{ margin:0; }
+.head .meta{ font-family:"Courier New",monospace; font-size:.75rem; color:var(--muted); margin:0; }
+
+/* Таблица: строка — KR, клик открывает карточку. */
+table.pick{ table-layout:fixed; }
+table.pick td{ vertical-align:middle; }
+col.c-kr{ width:3.4rem; }
+col.c-pbv{ width:4.2rem; }
+tr.row{ cursor:pointer; }
+tr.row:hover td{ background:var(--mark); }
+tr.row[hidden]{ display:none; }
+td.kr{ font-family:"Courier New",monospace; font-weight:bold; white-space:nowrap; }
+tr.objrow td{ background:#dfe7f5; border-top:2px solid var(--line); font-size:.86rem; padding:.5rem .6rem; }
+table.pick th, table.pick td{ border-left:0; border-right:0; }
+
+/* Вес PBV: четыре ступени, приоритеты отделяются взглядом. Красный и зелёный
+   заняты смыслами «не задано» и «закрыт», поэтому оттенки приглушённые. */
+.pbvtag{ display:inline-block; padding:.05rem .35rem; border-radius:3px; font-weight:bold;
+  font-family:"Courier New",monospace; font-size:.78rem; }
+.pbvtag[data-tier="high"]{ background:#f3e3e0; color:#7c2d18; }
+.pbvtag[data-tier="mid"]{ background:#f7efd9; color:#7a5c12; }
+.pbvtag[data-tier="low"]{ background:#e7eef7; color:#2f4c73; }
+.pbvtag[data-tier="zero"]{ background:var(--mark); color:var(--faint); }
+.pbvtag[data-tier="none"]{ border:1px dashed #a33; color:#a33; font-weight:normal; }
+
+/* Шкала подзадач: деление на подзадачу заметки. Длинный список прокручивается
+   внутри ячейки, а не наползает на соседнюю колонку. */
+td.prog{ white-space:nowrap; }
+.segs{ display:inline-flex; gap:2px; vertical-align:middle; }
+td.prog .segs{ max-width:9rem; overflow-x:auto; scrollbar-width:thin; padding-bottom:2px; }
+td.prog .segs::-webkit-scrollbar{ height:4px; }
+td.prog .segs::-webkit-scrollbar-thumb{ background:var(--line-soft); }
+.seg{ display:block; flex:0 0 auto; width:.72rem; height:12px; border:1px solid var(--line-soft); }
+.seg.s-done{ background:#57bb8a; border-color:#3f9e70; }
+.seg.s-in-progress{ background:#ffd666; border-color:#d9a900; }
+.seg.s-blocked{ background:#e57373; border-color:#c62828; }
+.seg.s-todo{ background:var(--bg); }
+.segn{ font-family:"Courier New",monospace; font-size:.7rem; color:var(--muted);
+  margin-left:.5rem; vertical-align:middle; }
+.segn:first-child{ margin-left:0; color:var(--faint); }
+
+/* Малые таблицы. */
+table.mini{ width:auto; margin:0 0 .2rem; }
+table.mini td{ border:1px solid var(--line-soft); padding:.35rem .6rem; font-size:.84rem; }
+table.mini.head tr:first-child td{ background:var(--mark); font-size:.72rem; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--muted); }
+
+/* Карточка KR справа: только чтение. Правка — через комментарий агенту. */
+.scrim{ position:fixed; inset:0; background:rgba(0,0,0,.22); z-index:43; display:none; }
+body[data-side] .scrim{ display:block; }
+.side{
+  position:fixed; right:0; top:0; bottom:0; width:min(520px,94vw); z-index:46;
+  background:var(--bg); border-left:1px solid var(--fg); box-shadow:-3px 0 0 var(--line-soft);
+  padding:1.1rem 1.3rem 4.5rem; overflow-y:auto; display:none;
+}
+.side.open{ display:block; }
+.side-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:.8rem; margin:0 0 .3rem; }
+.side-head .kr-id{ font-family:"Courier New",monospace; font-size:.72rem; color:var(--faint);
+  text-transform:uppercase; letter-spacing:.05em; }
+.side-title{ margin:.1rem 0 .5rem; font-size:1.25rem; line-height:1.3; }
+.side .factline{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); margin:0 0 .3rem; }
+.side .segs{ flex-wrap:wrap; max-width:100%; }
+.side .seg{ width:.8rem; }
+#sideSegs{ margin:0 0 1rem; min-height:.2rem; }
+.note{ font-size:.95rem; line-height:1.6; }
+.note .b{ margin:0 0 .35rem; }
+.note .b[data-t="h"]{ font-size:1.02rem; font-weight:bold; margin:1.1rem 0 .4rem; }
+.note .b[data-t="li"]{ padding-left:1.1rem; position:relative; }
+.note .b[data-t="li"]::before{ content:"•"; position:absolute; left:.3rem; color:var(--muted); }
+.side .step{ display:flex; gap:.5rem; align-items:baseline; margin:0 0 .3rem; font-size:.86rem; }
+.side .role{ font-family:"Courier New",monospace; font-size:.7rem; color:var(--muted);
+  border:1px solid var(--line-soft); padding:.05rem .3rem; min-width:3.6rem; text-align:center; }
+.side .step .txt{ flex:1; }
+.side .badge{ font-family:"Courier New",monospace; font-size:.62rem; letter-spacing:.04em;
+  padding:.1rem .35rem; white-space:nowrap; background:var(--mark); color:var(--muted); }
+.side .badge[data-s="done"]{ background:#d8f0e1; color:#0a7a3d; }
+.side .badge[data-s="in-progress"]{ background:#fdeec2; color:#8a6100; }
+.side .badge[data-s="blocked"]{ background:#fbdcdc; color:#a11; }
+.hintline{ color:var(--faint); font-family:"Courier New",monospace; font-size:.68rem; margin:1.6rem 0 0; line-height:1.5; }
+
+/* Комментарии для ИИ-агента: пункт с комментарием помечен зелёной точкой. */
+.side [data-sec]{ border-radius:2px; }
+.side [data-sec]:hover{ background:var(--mark); }
+.side [data-commented]::after{ content:"●"; color:#1a7a1a; font-size:.6rem; margin-left:.35rem; vertical-align:middle; }
+.side .step[data-commented]::after{ order:3; }
+tr.row[data-commented] td.kr::before{ content:"●"; color:#1a7a1a; margin-right:.3rem; font-size:.7em; }
+
+.popover{
+  position:absolute; z-index:60; width:300px;
+  background:var(--bg); border:1px solid var(--fg); box-shadow:3px 3px 0 var(--line-soft);
+  padding:.6rem; font-family:"Courier New",monospace; font-size:.76rem;
+}
+.popover .pmeta{ font-size:.64rem; color:var(--faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem; }
+.popover .pquote{ color:var(--muted); font-size:.72rem; margin-bottom:.4rem; max-height:4.2em; overflow-y:auto;
+  border-left:2px solid var(--line-soft); padding-left:.5rem; }
+.popover .pex-item{ border-left:2px solid #1a7a1a; padding:.15rem .5rem; margin-bottom:.35rem; color:var(--muted); }
+.popover .pex-del{ background:none; border:none; color:var(--faint); text-decoration:underline; padding:0;
+  font-family:inherit; font-size:.68rem; cursor:pointer; }
+.popover textarea{ width:100%; min-height:70px; font:.76rem/1.4 "Courier New",monospace; padding:.4rem;
+  border:1px solid var(--line-soft); resize:vertical; }
+.popover .prow{ display:flex; gap:.4rem; margin-top:.4rem; }
+.popover button{ font-family:inherit; font-size:.72rem; border:1px solid var(--fg); background:var(--fg);
+  color:var(--bg); padding:.25rem .6rem; cursor:pointer; }
+.popover button.cancel{ background:var(--bg); color:var(--fg); }
+
+.promptbox{ position:fixed; top:1rem; right:1rem; z-index:50; display:flex; flex-direction:column;
+  align-items:flex-end; gap:.4rem; font-family:"Courier New",monospace; font-size:.75rem; }
+body[data-side] .promptbox{ right:calc(min(520px,94vw) + 1rem); }
+.promptbox > button{ background:var(--fg); color:var(--bg); border:1px solid var(--fg);
+  padding:.4rem .7rem; cursor:pointer; font-family:inherit; font-size:.78rem; }
+.panel{ display:none; width:360px; max-height:75vh; overflow-y:auto; background:var(--bg);
+  border:1px solid var(--fg); padding:.9rem; box-shadow:3px 3px 0 var(--line-soft); }
+.panel.open{ display:block; }
+.panel h4{ margin:0 0 .5rem; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+.panel .item{ border-bottom:1px solid var(--line-soft); padding:.4rem 0; }
+.panel .item .where{ color:var(--muted); font-size:.7rem; }
+.panel .item button{ font-size:.68rem; border:none; background:none; color:var(--muted); cursor:pointer;
+  text-decoration:underline; padding:0; }
+.panel .empty{ color:var(--faint); font-style:italic; }
+.panel textarea{ width:100%; min-height:140px; font:.72rem/1.4 "Courier New",monospace; padding:.5rem;
+  border:1px solid var(--line-soft); margin-top:.5rem; }
+.panel .row-btns{ display:flex; gap:.4rem; margin-top:.4rem; }
+.panel .row-btns button{ flex:1; border:1px solid var(--fg); background:var(--bg); color:var(--fg);
+  padding:.35rem; cursor:pointer; font-family:inherit; font-size:.72rem; }
+.panel .row-btns button.primary{ background:var(--fg); color:var(--bg); }
+
+/* Кнопка у выделенной зоны карточки. */
+.sel-btn{ position:absolute; z-index:61; font-family:"Courier New",monospace; font-size:.72rem;
+  border:1px solid var(--fg); background:var(--fg); color:var(--bg); padding:.25rem .6rem; cursor:pointer;
+  box-shadow:3px 3px 0 var(--line-soft); }
+.sel-btn[hidden]{ display:none; }
+/* Страница ПЛАН: колонки, ASIS/TOBE, новые и отменённые инициативы. */
+col.c-team{ width:7rem; }
+col.c-name{ width:15rem; }
+col.c-asis{ width:auto; }
+col.c-tobe{ width:auto; }
+col.c-prog{ width:11rem; }
+
+td.team{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); }
+/* ASIS — что есть сейчас, TOBE — к чему идём за квартал. Разный вес намеренно:
+   глаз ищет целевое состояние, текущее читается вторым. */
+td.asis{ color:var(--muted); font-size:.82rem; background:var(--mark); }
+td.tobe{ font-size:.84rem; }
+b.new{ color:#1a7a1a; }
+
+tr.row[data-cancelled] td{ color:var(--faint); }
+tr.row[data-cancelled] td.name .txt{ text-decoration:line-through; }
+span.cancel{ display:inline-block; margin-left:.4rem; font-family:"Courier New",monospace; font-size:.62rem;
+  letter-spacing:.04em; border:1px dashed var(--faint); padding:0 .3rem; }
+.drawer .ext{ color:var(--faint); font-size:.68rem; }
+
+details.brief{ margin:0 0 1.4rem; border:1px solid var(--line-soft); padding:.6rem .9rem; }
+details.brief > summary{ cursor:pointer; font-family:"Courier New",monospace; font-size:.8rem; }
+details.brief p{ margin:.6rem 0 0; font-size:.92rem; color:var(--muted); }
+
+.ask-block{ border:1px solid var(--line); background:var(--mark); padding:.6rem .9rem; margin:1.4rem 0; font-size:.9rem; }
+.ask-block h4{ margin:0 0 .4rem; font-size:.85rem; }
+.ask-block ol{ margin:0; padding-left:1.3rem; }
+
+/* «Берём в квартал»: не взятая остаётся в скоупе кандидатом — приглушена, но не зачёркнута. */
+col.c-inq{ width:6.5rem; }
+td.inq{ font-family:"Courier New",monospace; font-size:.74rem; white-space:nowrap; }
+span.inq[data-v="yes"]{ color:#1a7a1a; font-weight:700; }
+span.inq[data-v="no"]{ color:var(--faint); }
+span.inq[data-v="undecided"]{ background:var(--mark); border:1px dashed var(--line); padding:0 .35rem; }
+tr.row[data-out] td{ color:var(--faint); }
+
+/* Тип инициативы: Run — поддержать, Change — развить, Disrupt — создать новое. */
+.crd{ display:inline-block; font-family:"Courier New",monospace; font-size:.66rem; letter-spacing:.03em;
+  padding:0 .35rem; margin-right:.35rem; border:1px solid var(--line-soft); vertical-align:1px; }
+.crd[data-v="run"]{ background:#eef1f5; color:#44536a; }
+.crd[data-v="change"]{ background:#e6f2ea; color:#1f6b3a; }
+.crd[data-v="disrupt"]{ background:#f6e8f7; color:#7a2d85; }
+</style>
+</head>
+<body>
+<div class="rail"><button class="rail-tab" id="stTab" type="button">Команда: <span id="stNow">все</span></button></div><div class="drawer" id="stDrawer"><div class="drawer-head"><h4>Команды</h4><button class="drawer-close" type="button">×</button></div><button class="st-item" type="button" data-value="" data-name="все" data-active>Все команды<span class="n">5</span></button>
+<button class="st-item" type="button" data-value="front" data-name="Витрина Web">Витрина Web<span class="n">3</span></button>
+<button class="st-item" type="button" data-value="back" data-name="Витрина Backend">Витрина Backend<span class="n">5</span></button>
+<button class="st-item" type="button" data-value="partner" data-name="Биллинг партнёра">Биллинг партнёра <span class="ext">внешняя</span><span class="n">1</span></button></div>
+<div class="layout wide"><main>
+<div class="head"><h1>ПЛАН 2026Q4 — Витрина</h1><p class="meta">декомпозиция по этапам · PO: Иванова Анна · принято · обновлено 2026-10-03</p></div>
+<blockquote class="quote">Доводим биллинг партнёра, переносим поиск на новую платформу и запускаем семейную подписку.<br>Целей 2 + 1 поддержка · инициатив 5, в квартал 4 · с PBV ≥ 7: 2 · с PBV 9: 1 · из прошлого квартала 2 · отменено 1.<br>Тип: Change 1 · Run 2 · Disrupt 1.<br>Retro: retro-2026Q3.json — продолжается 2 KR, в плане 2, не берём 0, не решено 0.<br>PBV: <span class="pbvtag" data-tier="high">8–9</span> высокий · <span class="pbvtag" data-tier="mid">4–7</span> средний · <span class="pbvtag" data-tier="low">1–3</span> низкий. <b class="new">+</b> — новая инициатива, без продолжения из прошлого квартала.</blockquote>
+<details class="brief"><summary>Исходный рассказ PO</summary><p>Хочу в Q4 наконец закрыть биллинг с партнёром, это висит с прошлого квартала. Поиск тоже надо увезти на новую платформу, иначе держим старый каталог ради него. И главное новое — семейная подписка, маркетинг ждёт к декабрю.</p></details>
+<a id="obj-1"></a><div class="table-wrap"><table class="pick"><colgroup><col class="c-kr"><col class="c-team"><col class="c-name"><col class="c-asis"><col class="c-tobe"><col class="c-pbv"><col class="c-inq"><col class="c-prog"></colgroup><thead><tr><th>KR</th><th>Команды</th><th>Название</th><th>ASIS</th><th>TOBE</th><th>PBV</th><th>В квартал</th><th>Подзадачи</th></tr></thead><tbody><tr class="objrow"><td colspan="8"><b>OBJ 1 — Продавать подписку без ручных операций</b> · Ручная сверка с партнёром занимает 2 дня в месяц и даёт расхождения в отчётности.</td></tr><tr class="row" data-kr="1.1" data-tags="back partner"><td class="kr">1.1</td><td class="team">Витрина Backend<br>Биллинг партнёра</td><td class="name"><span class="crd" data-v="change">Change</span> <span class="txt">Биллинг партнёра минуя ручную сверку</span></td><td class="asis">Выгрузка → Excel → ручная сверка</td><td class="tobe">Сверка с партнёром идёт автоматически каждый день, ручная сверка отключена</td><td class="pbv"><span class="pbvtag" data-tier="high">8</span></td><td class="inq"><span class="inq" data-v="yes">✓ да</span></td><td class="prog"><span class="segs"><i class="seg s-done" title="SA · Сценарии интеграционных тестов с партнёром · DONE"></i><i class="seg s-todo" title="BE · Доработка обработки ошибок API · TODO"></i><i class="seg s-todo" title="BE · [EXT] Стенд партнёра для тестов · TODO"></i><i class="seg s-todo" title="PO · Приёмка и отключение ручной сверки · TODO"></i></span><span class="segn">1&thinsp;/&thinsp;4</span></td></tr><tr class="row" data-kr="1.2" data-tags="front back"><td class="kr">1.2 <b class="new">+</b></td><td class="team">Витрина Web<br>Витрина Backend</td><td class="name"><span class="crd" data-v="disrupt">Disrupt</span> <span class="txt">Семейная подписка на витрине</span></td><td class="asis">—</td><td class="tobe">Пользователь покупает семейную подписку и добавляет до 4 участников. Коммитмент перед маркетингом на декабрь.</td><td class="pbv"><span class="pbvtag" data-tier="high">9</span></td><td class="inq"><span class="inq" data-v="yes">✓ да</span></td><td class="prog"><span class="segs"><i class="seg s-todo" title="PO · Требования и тарифы с маркетингом · TODO"></i><i class="seg s-todo" title="ADR · Модель участников подписки · TODO"></i><i class="seg s-todo" title="SA · Декомпозиция и контракты API · TODO"></i><i class="seg s-todo" title="BE · Покупка и управление участниками · TODO"></i><i class="seg s-todo" title="FE · Экран семьи и покупка · TODO"></i></span><span class="segn">0&thinsp;/&thinsp;5</span></td></tr><tr class="row" data-kr="1.3" data-tags="front back" data-out><td class="kr">1.3 <b class="new">+</b></td><td class="team">Витрина Web<br>Витрина Backend</td><td class="name"><span class="txt">Промокоды на подписку</span></td><td class="asis">—</td><td class="tobe">Маркетинг выпускает промокоды на первый месяц подписки без участия разработки</td><td class="pbv"><span class="pbvtag" data-tier="mid">4</span></td><td class="inq"><span class="inq" data-v="no">нет</span></td><td class="prog"><span class="segn">—</span></td></tr></tbody></table></div>
+<a id="obj-2"></a><div class="table-wrap"><table class="pick"><colgroup><col class="c-kr"><col class="c-team"><col class="c-name"><col class="c-asis"><col class="c-tobe"><col class="c-pbv"><col class="c-inq"><col class="c-prog"></colgroup><thead><tr><th>KR</th><th>Команды</th><th>Название</th><th>ASIS</th><th>TOBE</th><th>PBV</th><th>В квартал</th><th>Подзадачи</th></tr></thead><tbody><tr class="objrow"><td colspan="8"><b>OBJ 2 — Отключить старый каталог</b> · Старый каталог держим только ради поиска, это двойная поддержка.</td></tr><tr class="row" data-kr="2.1" data-tags="back"><td class="kr">2.1</td><td class="team">Витрина Backend</td><td class="name"><span class="crd" data-v="run">Run</span> <span class="txt">[RESEARCH] Поиск на новой платформе</span></td><td class="asis">—</td><td class="tobe">Согласованный план переноса поиска с оценкой и датой</td><td class="pbv"><span class="pbvtag" data-tier="mid">6</span></td><td class="inq"><span class="inq" data-v="yes">✓ да</span></td><td class="prog"><span class="segs"><i class="seg s-todo" title="ADR · Выбор поискового движка · TODO"></i><i class="seg s-todo" title="SA · План переноса и оценка · TODO"></i></span><span class="segn">0&thinsp;/&thinsp;2</span></td></tr><tr class="row" data-kr="2.2" data-tags="back" data-cancelled><td class="kr">2.2 <b class="new">+</b></td><td class="team">Витрина Backend</td><td class="name"><span class="txt">[POC] Рекомендации в карточке товара</span><span class=cancel>отменено</span></td><td class="asis">—</td><td class="tobe">PoC рекомендаций на 10 % трафика</td><td class="pbv"><span class="pbvtag" data-tier="low">3</span></td><td class="inq">—</td><td class="prog"><span class="segn">—</span></td></tr></tbody></table></div>
+<a id="obj-3"></a><div class="table-wrap"><table class="pick"><colgroup><col class="c-kr"><col class="c-team"><col class="c-name"><col class="c-asis"><col class="c-tobe"><col class="c-pbv"><col class="c-inq"><col class="c-prog"></colgroup><thead><tr><th>KR</th><th>Команды</th><th>Название</th><th>ASIS</th><th>TOBE</th><th>PBV</th><th>В квартал</th><th>Подзадачи</th></tr></thead><tbody><tr class="objrow"><td colspan="8"><b>OBJ 3 — Поддержка витрины</b></td></tr><tr class="row" data-kr="3.1" data-tags="front back"><td class="kr">3.1</td><td class="team">Витрина Web<br>Витрина Backend</td><td class="name"><span class="crd" data-v="run">Run</span> <span class="txt">[ACTIVITY] Инциденты и баги витрины</span></td><td class="asis">—</td><td class="tobe">Инциденты закрываются в SLA</td><td class="pbv"><span class="pbvtag" data-tier="mid">5</span></td><td class="inq"><span class="inq" data-v="yes">✓ да</span></td><td class="prog"><span class="segn">—</span></td></tr></tbody></table></div>
+</main></div>
+<div class="promptbox"><button type="button" id="commentsBtn">Комментарии: 0</button><div class="panel" id="commentsPanel"><h4>Комментарии для ИИ-агента</h4><div id="commentsList"></div><textarea id="commentsPrompt" readonly></textarea><div class="row-btns"><button type="button" class="primary" id="commentsCopy">Скопировать для агента</button><button type="button" id="commentsSave">Скачать файлом</button><button type="button" id="commentsClear">Очистить</button></div></div></div>
+<div class="scrim" id="scrim"></div><div class="side" id="side"><div class="side-head"><span class="kr-id" id="sideKr"></span><button class="drawer-close" id="sideClose" type="button">×</button></div><h3 class="side-title" id="sideTitle"></h3><p class="factline" id="sideState"></p><div id="sideSegs"></div><div class="note" id="sideNote"></div><p class="hintline">Правый клик по пункту или выделенной мышью зоне — комментарий для ИИ-агента: дописать риск, поправить готовность или следующие действия. Сама страница ничего не меняет.</p></div>
+<script type="application/json" id="page-data">{"file": "scope-2026Q4.json", "cards": {"1.1": {"head": "1.1 · OBJ 1 — Продавать подписку без ручных операций", "title": "Биллинг партнёра минуя ручную сверку", "line": "в квартал · Change · PBV 8 · Витрина Backend, Биллинг партнёра · продолжение KR 1.2 из 2026Q3", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Образ результата"}, {"t": "p", "v": "Сверка с партнёром идёт автоматически каждый день, ручная сверка отключена"}, {"t": "h", "v": "Было → стало"}, {"t": "p", "v": "БЫЛО: Выгрузка → Excel → ручная сверка"}, {"t": "p", "v": "СТАЛО: API партнёра → автосверка → отчёт"}, {"t": "h", "v": "Описание"}, {"t": "p", "v": "Доделка с Q3: наша часть готова на 60%, остались интеграционные тесты и раскатка."}, {"t": "h", "v": "Этапы"}, {"t": "step", "role": "SA", "v": "Сценарии интеграционных тестов с партнёром", "s": "DONE"}, {"t": "step", "role": "BE", "v": "Доработка обработки ошибок API", "s": "TODO"}, {"t": "step", "role": "BE", "v": "[EXT] Стенд партнёра для тестов", "s": "TODO"}, {"t": "step", "role": "PO", "v": "Приёмка и отключение ручной сверки", "s": "TODO"}, {"t": "h", "v": "Условия"}, {"t": "li", "v": "Стенд партнёра доступен с октября"}, {"t": "h", "v": "Риски"}, {"t": "li", "v": "Партнёр сдвигает стенд — тесты уходят на ноябрь"}, {"t": "h", "v": "Зависимости"}, {"t": "li", "v": "Команда биллинга партнёра"}]}, "1.2": {"head": "1.2 · OBJ 1 — Продавать подписку без ручных операций", "title": "Семейная подписка на витрине", "line": "в квартал · Disrupt · PBV 9 · Витрина Web, Витрина Backend · новая", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Образ результата"}, {"t": "p", "v": "Пользователь покупает семейную подписку и добавляет до 4 участников. Коммитмент перед маркетингом на декабрь."}, {"t": "h", "v": "Описание"}, {"t": "p", "v": "Новый продукт. Нужна модель участников и экран управления семьёй."}, {"t": "h", "v": "Этапы"}, {"t": "step", "role": "PO", "v": "Требования и тарифы с маркетингом", "s": "TODO"}, {"t": "step", "role": "ADR", "v": "Модель участников подписки", "s": "TODO"}, {"t": "step", "role": "SA", "v": "Декомпозиция и контракты API", "s": "TODO"}, {"t": "step", "role": "BE", "v": "Покупка и управление участниками", "s": "TODO"}, {"t": "step", "role": "FE", "v": "Экран семьи и покупка", "s": "TODO"}, {"t": "h", "v": "Условия"}, {"t": "li", "v": "Тарифы утверждены до 20.10"}, {"t": "h", "v": "Риски"}, {"t": "li", "v": "Тарифы согласуются дольше — старт разработки сдвигается"}]}, "1.3": {"head": "1.3 · OBJ 1 — Продавать подписку без ручных операций", "title": "Промокоды на подписку", "line": "не в квартал · PBV 4 · Витрина Web, Витрина Backend · новая", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Образ результата"}, {"t": "p", "v": "Маркетинг выпускает промокоды на первый месяц подписки без участия разработки"}, {"t": "h", "v": "Открыто"}, {"t": "li", "v": "Вернуться в Q1 2027, если после семейной подписки останется ёмкость"}]}, "2.1": {"head": "2.1 · OBJ 2 — Отключить старый каталог", "title": "[RESEARCH] Поиск на новой платформе", "line": "в квартал · Run · PBV 6 · Витрина Backend · продолжение KR 2.1 из 2026Q3", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Образ результата"}, {"t": "p", "v": "Согласованный план переноса поиска с оценкой и датой"}, {"t": "h", "v": "Описание"}, {"t": "p", "v": "Продолжение миграции каталога. Сначала выбираем движок."}, {"t": "h", "v": "Этапы"}, {"t": "step", "role": "ADR", "v": "Выбор поискового движка", "s": "TODO"}, {"t": "step", "role": "SA", "v": "План переноса и оценка", "s": "TODO"}, {"t": "h", "v": "Неопределённости"}, {"t": "li", "v": "Выдержит ли новый движок пиковую нагрузку"}]}, "2.2": {"head": "2.2 · OBJ 2 — Отключить старый каталог", "title": "[POC] Рекомендации в карточке товара", "line": "отменено · PBV 3 · Витрина Backend · новая", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Отменено"}, {"t": "p", "v": "Снято на выравнивании 02.10: нет ёмкости после биллинга"}, {"t": "h", "v": "Образ результата"}, {"t": "p", "v": "PoC рекомендаций на 10 % трафика"}]}, "3.1": {"head": "3.1 · OBJ 3 — Поддержка витрины", "title": "[ACTIVITY] Инциденты и баги витрины", "line": "в квартал · Run · PBV 5 · Витрина Web, Витрина Backend · новая", "segs": [], "segsCount": "", "blocks": [{"t": "h", "v": "Образ результата"}, {"t": "p", "v": "Инциденты закрываются в SLA"}]}}}</script>
+<script>/* Страницы планирования (ФАКТ, ПЛАН): фильтр, карточка KR и комментарии для
+   ИИ-агента. Страница ничего не правит сама: правый клик по пункту карточки
+   оставляет комментарий, комментарии уходят агенту кнопкой «Скопировать для
+   агента» или файлом — агент правит JSON и пересобирает страницу. */
+(function(){
+  var PAGE = JSON.parse(document.getElementById("page-data").textContent);
+  var CARDS = PAGE.cards;
+  var KEY = "okr-comments:" + PAGE.file;
+
+  function el(tag, cls, text){
+    var node = document.createElement(tag);
+    if(cls) node.className = cls;
+    if(text !== undefined) node.textContent = text;
+    return node;
+  }
+  function slug(status){ return String(status || "").toLowerCase().replace(/\s+/g, "-"); }
+
+  /* — комментарии: localStorage, только на этой машине — */
+  var comments = [];
+  try { comments = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(e){ comments = []; }
+  function persist(){
+    try { localStorage.setItem(KEY, JSON.stringify(comments)); } catch(e){}
+    renderComments();
+  }
+
+  /* — фильтр в левой рейке — */
+  var tab = document.getElementById("stTab");
+  var drawer = document.getElementById("stDrawer");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("tr.row"));
+  var items = Array.prototype.slice.call(drawer.querySelectorAll(".st-item"));
+  function apply(value){
+    rows.forEach(function(r){
+      r.hidden = !!value && (r.getAttribute("data-tags") || "").split(" ").indexOf(value) < 0;
+    });
+    document.querySelectorAll("table.pick").forEach(function(t){
+      t.closest(".table-wrap").hidden = !t.querySelectorAll("tr.row:not([hidden])").length;
+    });
+    items.forEach(function(b){
+      if(b.getAttribute("data-value") === value) b.setAttribute("data-active", "");
+      else b.removeAttribute("data-active");
+    });
+    var active = items.filter(function(b){ return b.hasAttribute("data-active"); })[0];
+    document.getElementById("stNow").textContent = value ? active.getAttribute("data-name") : "все";
+  }
+  function toggle(){
+    drawer.classList.toggle("open");
+    document.body.classList.toggle("drawer-open", drawer.classList.contains("open"));
+  }
+  tab.addEventListener("click", toggle);
+  drawer.querySelector(".drawer-close").addEventListener("click", toggle);
+  items.forEach(function(b){
+    b.addEventListener("click", function(){ apply(b.getAttribute("data-value")); toggle(); });
+  });
+
+  /* — карточка KR: только чтение, всё уже посчитано okr-plan.py — */
+  var side = document.getElementById("side");
+  var note = document.getElementById("sideNote");
+  var openId = null;
+
+  function segsNode(list, count){
+    var wrap = el("span");
+    if(!list || !list.length) return wrap;
+    var box = el("span", "segs");
+    list.forEach(function(s){
+      var seg = el("i", "seg s-" + slug(s.status));
+      seg.title = s.role + " · " + s.step + " · " + s.status;
+      box.appendChild(seg);
+    });
+    wrap.appendChild(box);
+    wrap.appendChild(el("span", "segn", count));
+    return wrap;
+  }
+  function blockNode(b, section){
+    var node;
+    if(b.t === "step"){
+      node = el("div", "step");
+      node.appendChild(el("span", "role", b.role));
+      node.appendChild(el("span", "txt", b.v));
+      if(b.s){
+        var badge = el("span", "badge", b.s);
+        badge.setAttribute("data-s", slug(b.s));
+        node.appendChild(badge);
+      }
+    } else {
+      node = el("div", "b", b.v);
+      node.setAttribute("data-t", b.t);
+    }
+    node.setAttribute("data-sec", b.t === "h" ? b.v : section);
+    node.setAttribute("data-quote", b.t === "step" ? b.role + " · " + b.v : b.v);
+    return node;
+  }
+  function open(id){
+    var card = CARDS[id];
+    if(!card) return;
+    openId = id;
+    document.getElementById("sideKr").textContent = card.head;
+    var title = document.getElementById("sideTitle");
+    title.textContent = card.title;
+    title.setAttribute("data-sec", "Название");
+    title.setAttribute("data-quote", card.title);
+    var line = document.getElementById("sideState");
+    line.textContent = card.line;
+    line.setAttribute("data-sec", "Статус");
+    line.setAttribute("data-quote", card.line);
+    var segs = document.getElementById("sideSegs");
+    segs.innerHTML = "";
+    segs.appendChild(segsNode(card.segs, card.segsCount));
+    note.innerHTML = "";
+    var section = "";
+    card.blocks.forEach(function(b){
+      if(b.t === "h") section = b.v;
+      note.appendChild(blockNode(b, section));
+    });
+    markCommented();
+    side.classList.add("open");
+    document.body.setAttribute("data-side", "");
+  }
+  function close(){
+    openId = null;
+    hidePopover();
+    side.classList.remove("open");
+    document.body.removeAttribute("data-side");
+  }
+  document.getElementById("sideClose").addEventListener("click", close);
+  document.getElementById("scrim").addEventListener("click", close);
+  rows.forEach(function(r){
+    r.addEventListener("click", function(){ open(r.getAttribute("data-kr")); });
+  });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ selBtn.hidden = true; if(pop) hidePopover(); else close(); } });
+
+  /* — правый клик: комментарий к пункту — */
+  var pop = null;
+  function hidePopover(){ if(pop){ pop.remove(); pop = null; } }
+  /* Выделенная мышью зона карточки: цитата — сам текст, разделы — все задетые. */
+  function selectionTarget(){
+    var sel = window.getSelection();
+    if(!openId || !sel.rangeCount || sel.isCollapsed) return null;
+    var quote = sel.toString().replace(/\s+/g, " ").trim();
+    if(!quote || !side.contains(sel.getRangeAt(0).commonAncestorContainer)) return null;
+    var hit = Array.prototype.filter.call(side.querySelectorAll("[data-sec]"), function(n){
+      return sel.containsNode(n, true);
+    });
+    var sections = [];
+    hit.forEach(function(n){
+      var sec = n.getAttribute("data-sec");
+      if(sections.indexOf(sec) < 0) sections.push(sec);
+    });
+    return {kr: openId, section: sections.join(" / ") || "Выделение",
+            quote: quote.length > 400 ? quote.slice(0, 400) + "…" : quote,
+            blocks: hit.map(function(n){ return n.getAttribute("data-quote"); })};
+  }
+  function targetOf(e){
+    var picked = selectionTarget();
+    if(picked) return picked;
+    var node = e.target.closest("[data-sec]");
+    if(node && side.contains(node) && openId) return {kr: openId, section: node.getAttribute("data-sec"), quote: node.getAttribute("data-quote")};
+    var row = e.target.closest("tr.row");
+    if(row) return {kr: row.getAttribute("data-kr"), section: "KR целиком", quote: CARDS[row.getAttribute("data-kr")].title};
+    return null;
+  }
+  function sameTarget(c, t){ return c.kr === t.kr && c.section === t.section && c.quote === t.quote; }
+  function showPopover(t, x, y){
+    hidePopover();
+    pop = el("div", "popover");
+    pop.appendChild(el("div", "pmeta", "Комментарий для ИИ-агента · KR " + t.kr + " · " + t.section));
+    if(t.quote && t.quote !== t.section) pop.appendChild(el("div", "pquote", t.quote));
+    var existing = comments.filter(function(c){ return sameTarget(c, t); });
+    existing.forEach(function(c){
+      var item = el("div", "pex-item", c.text);
+      var del = el("button", "pex-del", "удалить");
+      del.type = "button";
+      del.addEventListener("click", function(){
+        comments = comments.filter(function(x){ return x !== c; });
+        persist();
+        showPopover(t, x, y);
+      });
+      item.appendChild(el("br"));
+      item.appendChild(del);
+      pop.appendChild(item);
+    });
+    var area = el("textarea");
+    area.placeholder = "Что поправить: дописать риск, другая готовность, другое следующее действие…";
+    pop.appendChild(area);
+    var row = el("div", "prow");
+    var ok = el("button", "", "Оставить");
+    ok.type = "button";
+    var cancel = el("button", "cancel", "Отмена");
+    cancel.type = "button";
+    row.appendChild(ok);
+    row.appendChild(cancel);
+    pop.appendChild(row);
+    ok.addEventListener("click", function(){
+      var text = area.value.trim();
+      if(!text) return;
+      var c = {kr: t.kr, section: t.section, quote: t.quote, text: text, at: new Date().toISOString()};
+      if(t.blocks) c.blocks = t.blocks;
+      comments.push(c);
+      persist();
+      hidePopover();
+    });
+    cancel.addEventListener("click", hidePopover);
+    area.addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) ok.click(); });
+    document.body.appendChild(pop);
+    var w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(x, window.scrollX + document.documentElement.clientWidth - w - 8)) + "px";
+    pop.style.top = Math.max(8, Math.min(y, window.scrollY + document.documentElement.clientHeight - h - 8)) + "px";
+    area.focus();
+  }
+  document.addEventListener("contextmenu", function(e){
+    var t = targetOf(e);
+    if(!t) return;
+    e.preventDefault();
+    showPopover(t, e.pageX, e.pageY);
+  });
+  /* Кнопка у выделения — для тех, кому правый клик неудобен. */
+  var selBtn = el("button", "sel-btn", "Комментировать выделенное");
+  selBtn.type = "button";
+  selBtn.hidden = true;
+  document.body.appendChild(selBtn);
+  var selPicked = null;
+  document.addEventListener("mousedown", function(e){
+    if(pop && !pop.contains(e.target)) hidePopover();
+    if(e.target !== selBtn) selBtn.hidden = true;
+  });
+  side.addEventListener("mouseup", function(e){
+    setTimeout(function(){
+      selPicked = selectionTarget();
+      if(!selPicked || pop){ selBtn.hidden = true; return; }
+      selBtn.hidden = false;
+      selBtn.style.left = Math.max(8, Math.min(e.pageX, window.scrollX + document.documentElement.clientWidth - selBtn.offsetWidth - 8)) + "px";
+      selBtn.style.top = (e.pageY + 12) + "px";
+    }, 0);
+  });
+  selBtn.addEventListener("mousedown", function(e){ e.preventDefault(); });
+  selBtn.addEventListener("click", function(){
+    var t = selPicked;
+    selBtn.hidden = true;
+    if(t) showPopover(t, parseInt(selBtn.style.left, 10), parseInt(selBtn.style.top, 10));
+  });
+
+  /* — отметки и панель комментариев — */
+  function markCommented(){
+    rows.forEach(function(r){
+      var id = r.getAttribute("data-kr");
+      if(comments.some(function(c){ return c.kr === id; })) r.setAttribute("data-commented", "");
+      else r.removeAttribute("data-commented");
+    });
+    if(!openId) return;
+    side.querySelectorAll("[data-sec]").forEach(function(node){
+      var t = {kr: openId, section: node.getAttribute("data-sec"), quote: node.getAttribute("data-quote")};
+      if(comments.some(function(c){
+        return sameTarget(c, t) || (c.kr === openId && c.blocks && c.blocks.indexOf(t.quote) >= 0);
+      })) node.setAttribute("data-commented", "");
+      else node.removeAttribute("data-commented");
+    });
+  }
+  function agentPrompt(){
+    var lines = ["Комментарии PO к " + PAGE.file + " — поправь JSON по каждому пункту:", ""];
+    comments.forEach(function(c, n){
+      var quote = c.quote && c.quote !== c.section ? " — «" + c.quote + "»" : "";
+      lines.push((n + 1) + ". KR " + c.kr + " · " + c.section + quote + ": " + c.text);
+    });
+    lines.push("", "После правок прогони okr-plan.py lint и render и отчитайся по каждому пункту.");
+    return lines.join("\n");
+  }
+  var btn = document.getElementById("commentsBtn");
+  var panel = document.getElementById("commentsPanel");
+  function renderComments(){
+    btn.textContent = "Комментарии: " + comments.length;
+    var list = document.getElementById("commentsList");
+    list.innerHTML = "";
+    if(!comments.length){
+      list.appendChild(el("p", "empty", "Пока нет. Правый клик по пункту карточки или строке таблицы, или выделите зону в карточке — комментарий для ИИ-агента."));
+    }
+    comments.forEach(function(c){
+      var item = el("div", "item");
+      item.appendChild(el("div", "where", "KR " + c.kr + " · " + c.section));
+      item.appendChild(el("div", "", c.text));
+      var del = el("button", "", "удалить");
+      del.type = "button";
+      del.addEventListener("click", function(){ comments = comments.filter(function(x){ return x !== c; }); persist(); });
+      item.appendChild(del);
+      list.appendChild(item);
+    });
+    document.getElementById("commentsPrompt").value = comments.length ? agentPrompt() : "";
+    markCommented();
+  }
+  btn.addEventListener("click", function(){ panel.classList.toggle("open"); });
+  document.getElementById("commentsCopy").addEventListener("click", function(){
+    var area = document.getElementById("commentsPrompt");
+    area.select();
+    if(navigator.clipboard) navigator.clipboard.writeText(area.value);
+    else document.execCommand("copy");
+  });
+  document.getElementById("commentsSave").addEventListener("click", function(){
+    var a = el("a");
+    var body = JSON.stringify({file: PAGE.file, comments: comments}, null, 2) + "\n";
+    a.href = URL.createObjectURL(new Blob([body], {type: "application/json"}));
+    a.download = PAGE.file.replace(/\.json$/, "") + ".comments.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+  document.getElementById("commentsClear").addEventListener("click", function(){
+    if(!comments.length || !window.confirm("Удалить все комментарии на этой странице?")) return;
+    comments = [];
+    persist();
+  });
+  renderComments();
+})();
+</script>
+</body>
+</html>

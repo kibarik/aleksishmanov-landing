@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# ИИ-поисковики и ассистенты: сайт открыт, карта для них — /llms.txt
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: YandexAdditional
+Allow: /
+
+Sitemap: https://aleksishmanov.ru/sitemap-index.xml

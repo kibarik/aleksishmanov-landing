@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import { SECTIONS, NAV } from '../lib/site';
+---
+<Base title="Страница не найдена" description="Такой страницы нет. Все материалы — в разделах сайта." noindex>
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">Ошибка 404</p>
+      <h1>Такой страницы нет</h1>
+      <p class="lead">Возможно, материал переехал: раньше статьи жили на Teletype, в Telegram и на поддоменах. Всё собрано здесь:</p>
+      <ul class="chips">
+        <li><a class="chip" href="/">Главная</a></li>
+        {NAV.map((k) => <li><a class="chip" href={SECTIONS[k].path}>{SECTIONS[k].title}</a></li>)}
+      </ul>
+    </header>
+  </div>
+</Base>

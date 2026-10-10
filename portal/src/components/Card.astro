@@ -1,0 +1,22 @@
+---
+import { urlFor, formatDate, type Material } from '../lib/materials';
+import { SECTIONS, DIRECTION_INFO } from '../lib/site';
+interface Props { m: Material; showType?: boolean }
+const { m, showType = false } = Astro.props;
+const href = urlFor(m);
+---
+<li class="card">
+  <a class="card__link" href={href}>
+    {m.data.cover && <div class="card__cover"><img src={m.data.cover} alt="" loading="lazy" decoding="async" /></div>}
+    <div class="card__body">
+      <p class="card__meta">
+        {showType && <span>{SECTIONS[m.collection].one}</span>}
+        {m.data.category && <span>{m.data.category}</span>}
+        <time datetime={m.data.date.toISOString()}>{formatDate(m.data.date)}</time>
+      </p>
+      <h3 class="card__title">{m.data.title}</h3>
+      <p class="card__desc">{m.data.description}</p>
+      <p class="card__meta">{m.data.directions.map((d) => <span class="chip chip--dir">{DIRECTION_INFO[d].short}</span>)}</p>
+    </div>
+  </a>
+</li>

@@ -19,6 +19,21 @@ npm run build
 - `src/scene.js` — сцена: выбор фигуры (`?part=back|front`), зеркалирование, нормализация роста, свет, камера.
 - Пересжать модель: `npx @gltf-transform/cli optimize in.glb public/models/character.glb --compress draco --simplify false`
 
+## Портал
+
+Всё, кроме главной, — Astro-портал в `portal/` (ADR 0002). Материалы — Markdown в `portal/src/content/`.
+
+```bash
+npm run dev:portal      # http://localhost:4321/blog/ — страницы портала
+npm run build           # лендинг + портал → dist/ (так собирает Timeweb)
+node scripts/serve-dist.mjs   # dist/ на :4174 с поведением Timeweb (404.html, 308 на слэш)
+npm run test:unit       # правила импорта и редиректа старых доменов
+npm run test:portal     # сборка + E2E портала по сценарию приёмки
+npm run import          # перенести материалы из ../sources (снимок tools/fetch_sources.py)
+```
+
+Старые домены и адреса переезжают без 301 (хостинг их не умеет) — ADR 0003.
+
 ## Проверка прода
 
 ```bash

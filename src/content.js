@@ -8,13 +8,24 @@
 /** Личка в Telegram: сюда ведут и «Написать», и Ask Ishmanov AI, пока бота нет. */
 const TELEGRAM_DM = 'https://t.me/kibarik';
 
-/** Ресурсы: внешние площадки проектов. Ключи используются карточками и футером. */
+/** Ресурсы: площадки проектов. Презентации и промты переехали на сайт (портал, portal/), остальное — Telegram и Threads. */
 const RESOURCES = {
   corporateAi: { label: 'Telegram: PO-нейробаза', href: 'https://t.me/corporate_ai' },
-  slides: { label: 'Презентации', href: 'https://slides.aleksishmanov.ru' },
-  aiPmf: { label: 'Telegram: PMF-стратегии', href: 'https://t.me/ai_pmf' },
+  slides: { label: 'Презентации', href: '/slides/' },
+  aiPmf: { label: 'Telegram: Aleks for PMF', href: 'https://t.me/ai_pmf' },
   threads: { label: 'Threads', href: 'https://www.threads.com/@ishmanov_aleks' },
-  prompts: { label: 'Промты', href: 'https://prompts.aleksishmanov.ru' },
+  prompts: { label: 'Промты', href: '/prompts/' },
+};
+
+/** Разделы портала: меню и карточки направлений ведут сюда. */
+const PAGES = {
+  blog: { label: 'Блог', href: '/blog/' },
+  reviews: { label: 'Разборы', href: '/reviews/' },
+  tools: { label: 'Инструменты', href: '/tools/' },
+  prompts: RESOURCES.prompts,
+  slides: RESOURCES.slides,
+  cases: { label: 'Кейсы', href: '/cases/' },
+  about: { label: 'Обо мне', href: '/about/' },
 };
 
 export const content = {
@@ -28,7 +39,7 @@ export const content = {
   /** Тёмная секция сразу после сцены: кто это и чем занимается. */
   intro: {
     lead: 'Строю платформы с 2016 года: backend, B2B-продукты, команды. С 2024 — ML и LLM в продукте.',
-    name: 'Меня зовут Алекс Ишманов.',
+    name: 'Меня зовут Алексей Ишманов.',
     role: 'Product Owner · AI/ML-платформы',
   },
 
@@ -49,44 +60,39 @@ export const content = {
   /** «Написать»: главный призыв к действию. */
   contact: { title: 'Написать', label: 'Написать в Telegram', href: TELEGRAM_DM },
 
-  /** Карточки проектов в порядке показа; direction — направление (см. CONTEXT.md). */
+  /**
+   * Карточки направлений (CONTEXT.md, «Направление»): два направления сайта, ссылки — в разделы портала.
+   * direction здесь — аудитория направления, title — само направление.
+   */
   projects: {
-    title: 'Актуальные проекты',
+    title: 'Направления',
     items: [
       {
-        id: 'neurobase',
-        direction: 'Руководителям',
-        title: 'PO-нейробаза',
-        essence: 'ИИ-навыки руководителей',
-        topics: ['Построение AI-систем', 'Внедрение AI-навыков', 'Интересные лайфхаки'],
-        links: [RESOURCES.corporateAi, RESOURCES.slides],
+        id: 'startups',
+        direction: 'Основателям и продактам',
+        title: 'Запуск технологических продуктов',
+        essence: 'Как довести сложный продукт до первых платящих за недели, а не за годы: стратегии, каналы, эксперименты, метрики.',
+        topics: ['Продуктовые стратегии', 'Каналы роста', 'Эксперименты и метрики'],
+        links: [{ label: 'Все материалы направления', href: '/startups/' }, PAGES.blog, RESOURCES.aiPmf],
       },
       {
-        id: 'pmf',
-        direction: 'Фаундерам',
-        title: 'PMF-стратегии',
-        essence: 'Как находить и монетизировать проблемы, за решение которых люди готовы платить?',
-        topics: ['Продуктовые стратегии', 'Обзоры рынков, идей и решений', 'Инструменты и ответы'],
-        links: [RESOURCES.aiPmf, RESOURCES.threads],
-      },
-      {
-        id: 'prompts',
-        direction: 'Специалистам',
-        title: 'Промты',
-        essence: 'Подборка готовых prompt-шаблонов для продуктовой аналитики, исследований и операционных процессов',
-        topics: ['Продуктовые фреймворки', 'Аналитика и документация', 'Product Discovery'],
-        links: [RESOURCES.prompts],
+        id: 'ai-in-business',
+        direction: 'Руководителям, CPO и CTO',
+        title: 'ИИ в корпоративных процессах',
+        essence: 'Как внедрять ИИ-системы и ИИ-навыки в работу команд и руководителей: агенты, безопасность, инструменты, промты.',
+        topics: ['ИИ-агенты для руководителей', 'Безопасность AI-кода', 'Промты и инструменты'],
+        links: [{ label: 'Все материалы направления', href: '/ai-in-business/' }, PAGES.reviews, PAGES.slides, PAGES.prompts, RESOURCES.corporateAi],
       },
     ],
   },
 
-  /** Меню: якоря по секциям (короткие подписи) и заголовок блока ресурсов внизу. */
+  /** Меню: якоря по секциям главной и разделы сайта внизу (resources). */
   menu: {
     title: 'Меню',
-    resourcesTitle: 'Мои ресурсы',
+    resourcesTitle: 'Разделы сайта',
     anchors: [
       { label: 'Обо мне', href: '#about' },
-      { label: 'Проекты', href: '#projects' },
+      { label: 'Направления', href: '#projects' },
       { label: 'Написать', href: '#contact' },
     ],
   },
@@ -116,5 +122,5 @@ export const content = {
       { title: 'Ресурсы', links: [RESOURCES.slides, RESOURCES.threads] },
     ],
   },
-  resources: [RESOURCES.corporateAi, RESOURCES.aiPmf, RESOURCES.threads, RESOURCES.prompts, RESOURCES.slides],
+  resources: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.prompts, PAGES.slides, PAGES.cases, PAGES.about],
 };

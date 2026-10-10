@@ -19,11 +19,12 @@ test('desktop: мета-теги на русском и превью, цели �
   await page.goto('/');
 
   // мета-теги: русский заголовок, описание и Open Graph с фолбэк-кадром
-  await expect(page).toHaveTitle(/Алекс Ишманов/);
+  await expect(page).toHaveTitle(/Алексей Ишманов/);
   const meta = async (sel) => page.locator(sel).getAttribute('content');
-  expect(await meta('meta[name="description"]')).toContain(content.offer);
-  expect(await meta('meta[property="og:title"]')).toContain('Алекс Ишманов');
-  expect(await meta('meta[property="og:description"]')).toContain(content.offer);
+  // описание — позиционирование портала (CONTEXT.md, «Позиционирование»), а не прежний оффер лоадера
+  expect(await meta('meta[name="description"]')).toContain('Запускаю сложные технологические продукты');
+  expect(await meta('meta[property="og:title"]')).toContain('Алексей Ишманов');
+  expect(await meta('meta[property="og:description"]')).toContain('Запускаю сложные технологические продукты');
   expect(await meta('meta[property="og:image"]')).toMatch(/white-desktop\.webp/);
   expect(await meta('meta[property="og:type"]')).toBe('website');
   expect(await meta('meta[property="og:locale"]')).toBe('ru_RU');

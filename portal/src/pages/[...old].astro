@@ -1,0 +1,49 @@
+---
+// Страницы-переадресации со старых адресов. Хостинг не отдаёт 301 (ADR 0003), поэтому каждая старая
+// ссылка получает страницу с мгновенным meta refresh и canonical на новый адрес — поисковики
+// считают это постоянным переездом. Старые домены приводит сюда скрипт shared/host-redirect.js.
+import { listAll, urlFor } from '../lib/materials';
+import { SITE } from '../lib/site';
+
+export async function getStaticPaths() {
+  const all = await listAll();
+  const map = new Map<string, string>();
+  const add = (from: string, to: string) => { const p = from.replace(/^\/+|\/+$/g, ''); if (p && !map.has(p)) map.set(p, to); };
+  const bySource = (u: string) => all.find((m) => m.data.source_url === u || m.data.also_in.includes(u));
+
+  // блог Teletype: blog.aleksishmanov.ru/<slug> (и такие же ссылки на корне домена)
+  for (const m of all) for (const u of m.data.old_urls) {
+    const url = new URL(u);
+    if (url.hostname.endsWith('aleksishmanov.ru')) add(url.pathname, urlFor(m));
+  }
+  // презентации: slides.aleksishmanov.ru/<id>/ и служебные страницы каталога
+  for (const m of all.filter((x) => x.collection === 'slides')) add(m.id, urlFor(m));
+  for (const p of ['instructions', 'i/claude', 'i/pay', 'i/start', 'i/key', 'i/helper', 'i/zai']) add(p, `/slides/${p}/`);
+  // старый сайт на WordPress (до 2026-05): тексты не сохранились, ведём на анонсы из Telegram
+  const sgr = bySource('https://t.me/corporate_ai/33') || bySource('https://t.me/ai_pmf/105');
+  add('sgr-автоулучшение-schema-guided-reasoning', sgr ? urlFor(sgr) : '/ai-in-business/');
+  const nocode = bySource('https://t.me/corporate_ai/22');
+  add('corporate-nocode', nocode ? urlFor(nocode) : '/ai-in-business/');
+  // рубрики и ленты Teletype
+  for (const r of ['acquisition-instruments', 'activation-instruments', 'data-driven-development', 'fast-development', 'product-management', 'referral-instruments', 'retention-instruments', 'revenue-instuments', 'topic26774']) add(`+${r}`, '/blog/');
+  add('data/rss', '/rss.xml');
+  add('data/atom', '/rss.xml');
+
+  return [...map].map(([old, to]) => ({ params: { old }, props: { to } }));
+}
+const target = new URL((Astro.props as { to: string }).to, SITE.url).toString();
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Материал переехал — {SITE.name}</title>
+  <meta http-equiv="refresh" content={`0; url=${target}`} />
+  <link rel="canonical" href={target} />
+  <meta name="robots" content="noindex, follow" />
+  <script is:inline define:vars={{ target }}>location.replace(target + location.search + location.hash);</script>
+</head>
+<body>
+  <p>Материал переехал: <a href={target}>{target}</a></p>
+</body>
+</html>

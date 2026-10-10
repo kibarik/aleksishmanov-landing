@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TEAMPLANNER 2026Q4 — Витрина</title>
+<!-- Собрано okr-plan.py из teamplanner-2026Q4.json. Правки — в JSON, страница пересобирается. -->
+<style>
+/* Страницы планирования квартала (ФАКТ, ПЛАН). Айдентика страниц PO: та же
+   таблица стилей, что у страницы ревью БФТ. Общая часть; своё у каждой
+   страницы — в fact.css и scope.css. Вёрстку не правят в HTML: она собирается
+   okr-plan.py из JSON. */
+
+:root{
+  --bg:#ffffff;
+  --fg:#000000;
+  --muted:#555555;
+  --faint:#888888;
+  --line:#000000;
+  --line-soft:#cccccc;
+  --mark:#f2f2f2;
+  --link:#0000ee;
+  --visited:#551a8b;
+  --drawer-w:min(340px, 86vw);
+}
+*{ box-sizing:border-box; }
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:15px/1.55 Georgia, "Times New Roman", serif;
+}
+code, pre, .mono{ font-family:"Courier New", Consolas, monospace; }
+a{ color:var(--link); }
+a:visited{ color:var(--visited); }
+
+.layout{ max-width:860px; margin:0 auto; padding:2rem 1.5rem 6rem; }
+main{ min-width:0; max-width:760px; margin:0 auto; }
+/* Слева отступ шире: вкладка «Исход» стоит у кромки и не должна закрывать заголовок. */
+.layout.wide{ max-width:100%; padding-left:2.8rem; padding-right:1.5rem; }
+.layout.wide main{ max-width:100%; }
+
+h1{ font-size:1.65rem; line-height:1.25; margin:0 0 .5rem; }
+h3{ font-size:1.02rem; margin:1.4rem 0 .6rem; }
+p{ margin:0 0 .9rem; }
+ol, ul{ margin:0 0 .9rem; padding-left:1.4rem; }
+li{ margin-bottom:.35rem; }
+
+blockquote.quote{
+  border:1px solid var(--line); padding:.7rem .9rem; margin:1rem 0 1.6rem;
+  font-size:.92rem; background:var(--mark);
+}
+mark.unc{ background:var(--mark); border:1px solid var(--line-soft); padding:.02em .35em; font-family:"Courier New",monospace; font-size:.85em; }
+
+table{ border-collapse:collapse; width:100%; margin:0 0 .8rem; font-size:.86rem; }
+th, td{ border:1px solid var(--line-soft); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+th{ background:var(--mark); font-family:"Courier New", monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.03em; }
+.table-wrap{ overflow-x:auto; }
+
+::-webkit-scrollbar{ height:8px; width:8px; }
+::-webkit-scrollbar-thumb{ background:var(--line-soft); border-radius:4px; }
+
+/* Левая рейка и выезжающая панель фильтра. */
+.rail{
+  position:fixed; left:0; top:1rem; z-index:57;
+  display:flex; flex-direction:column; gap:6px; align-items:flex-start;
+  transition:left .12s ease;
+}
+body.drawer-open .rail{ left:var(--drawer-w); }
+@media (prefers-reduced-motion:reduce){ .rail{ transition:none; } }
+.rail-tab{
+  writing-mode:vertical-rl; transform:rotate(180deg);
+  border:none; cursor:pointer; color:#fff; background:var(--fg);
+  font-family:"Courier New",monospace; font-size:.72rem; letter-spacing:.03em;
+  padding:.8rem .4rem;
+}
+.rail-tab:focus-visible{ outline:2px solid var(--link); outline-offset:2px; }
+
+.drawer{
+  display:none; position:fixed; left:0; top:0; bottom:0; width:var(--drawer-w); z-index:56;
+  background:var(--bg); border-right:1px solid var(--fg); box-shadow:3px 0 0 var(--line-soft);
+  padding:1rem; overflow-y:auto; font-family:"Courier New",monospace; font-size:.78rem;
+}
+.drawer.open{ display:block; }
+.drawer-head{ display:flex; align-items:center; justify-content:space-between; margin:0 0 .8rem; }
+.drawer h4{ margin:0; text-transform:uppercase; font-size:.8rem; letter-spacing:.04em; }
+.drawer-close{
+  background:none; border:1px solid var(--line-soft); color:var(--fg); cursor:pointer;
+  font-family:inherit; font-size:.9rem; line-height:1; padding:.1rem .5rem; border-radius:3px;
+}
+.drawer-close:hover{ border-color:var(--fg); }
+.st-item{ display:block; width:100%; text-align:left; font:inherit; font-size:.86rem;
+  background:none; border:0; border-bottom:1px solid var(--line-soft); padding:.5rem .2rem; cursor:pointer; }
+.st-item[data-active]{ font-weight:bold; }
+.st-item .n{ float:right; font-family:"Courier New",monospace; font-size:.72rem; color:var(--muted); }
+
+/* Шапка. */
+.head{ display:flex; align-items:baseline; gap:.8rem; flex-wrap:wrap; margin:0 0 1.4rem; }
+.head h1{ margin:0; }
+.head .meta{ font-family:"Courier New",monospace; font-size:.75rem; color:var(--muted); margin:0; }
+
+/* Таблица: строка — KR, клик открывает карточку. */
+table.pick{ table-layout:fixed; }
+table.pick td{ vertical-align:middle; }
+col.c-kr{ width:3.4rem; }
+col.c-pbv{ width:4.2rem; }
+tr.row{ cursor:pointer; }
+tr.row:hover td{ background:var(--mark); }
+tr.row[hidden]{ display:none; }
+td.kr{ font-family:"Courier New",monospace; font-weight:bold; white-space:nowrap; }
+tr.objrow td{ background:#dfe7f5; border-top:2px solid var(--line); font-size:.86rem; padding:.5rem .6rem; }
+table.pick th, table.pick td{ border-left:0; border-right:0; }
+
+/* Вес PBV: четыре ступени, приоритеты отделяются взглядом. Красный и зелёный
+   заняты смыслами «не задано» и «закрыт», поэтому оттенки приглушённые. */
+.pbvtag{ display:inline-block; padding:.05rem .35rem; border-radius:3px; font-weight:bold;
+  font-family:"Courier New",monospace; font-size:.78rem; }
+.pbvtag[data-tier="high"]{ background:#f3e3e0; color:#7c2d18; }
+.pbvtag[data-tier="mid"]{ background:#f7efd9; color:#7a5c12; }
+.pbvtag[data-tier="low"]{ background:#e7eef7; color:#2f4c73; }
+.pbvtag[data-tier="zero"]{ background:var(--mark); color:var(--faint); }
+.pbvtag[data-tier="none"]{ border:1px dashed #a33; color:#a33; font-weight:normal; }
+
+/* Шкала подзадач: деление на подзадачу заметки. Длинный список прокручивается
+   внутри ячейки, а не наползает на соседнюю колонку. */
+td.prog{ white-space:nowrap; }
+.segs{ display:inline-flex; gap:2px; vertical-align:middle; }
+td.prog .segs{ max-width:9rem; overflow-x:auto; scrollbar-width:thin; padding-bottom:2px; }
+td.prog .segs::-webkit-scrollbar{ height:4px; }
+td.prog .segs::-webkit-scrollbar-thumb{ background:var(--line-soft); }
+.seg{ display:block; flex:0 0 auto; width:.72rem; height:12px; border:1px solid var(--line-soft); }
+.seg.s-done{ background:#57bb8a; border-color:#3f9e70; }
+.seg.s-in-progress{ background:#ffd666; border-color:#d9a900; }
+.seg.s-blocked{ background:#e57373; border-color:#c62828; }
+.seg.s-todo{ background:var(--bg); }
+.segn{ font-family:"Courier New",monospace; font-size:.7rem; color:var(--muted);
+  margin-left:.5rem; vertical-align:middle; }
+.segn:first-child{ margin-left:0; color:var(--faint); }
+
+/* Малые таблицы. */
+table.mini{ width:auto; margin:0 0 .2rem; }
+table.mini td{ border:1px solid var(--line-soft); padding:.35rem .6rem; font-size:.84rem; }
+table.mini.head tr:first-child td{ background:var(--mark); font-size:.72rem; text-transform:uppercase;
+  letter-spacing:.04em; color:var(--muted); }
+
+/* Карточка KR справа: только чтение. Правка — через комментарий агенту. */
+.scrim{ position:fixed; inset:0; background:rgba(0,0,0,.22); z-index:43; display:none; }
+body[data-side] .scrim{ display:block; }
+.side{
+  position:fixed; right:0; top:0; bottom:0; width:min(520px,94vw); z-index:46;
+  background:var(--bg); border-left:1px solid var(--fg); box-shadow:-3px 0 0 var(--line-soft);
+  padding:1.1rem 1.3rem 4.5rem; overflow-y:auto; display:none;
+}
+.side.open{ display:block; }
+.side-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:.8rem; margin:0 0 .3rem; }
+.side-head .kr-id{ font-family:"Courier New",monospace; font-size:.72rem; color:var(--faint);
+  text-transform:uppercase; letter-spacing:.05em; }
+.side-title{ margin:.1rem 0 .5rem; font-size:1.25rem; line-height:1.3; }
+.side .factline{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); margin:0 0 .3rem; }
+.side .segs{ flex-wrap:wrap; max-width:100%; }
+.side .seg{ width:.8rem; }
+#sideSegs{ margin:0 0 1rem; min-height:.2rem; }
+.note{ font-size:.95rem; line-height:1.6; }
+.note .b{ margin:0 0 .35rem; }
+.note .b[data-t="h"]{ font-size:1.02rem; font-weight:bold; margin:1.1rem 0 .4rem; }
+.note .b[data-t="li"]{ padding-left:1.1rem; position:relative; }
+.note .b[data-t="li"]::before{ content:"•"; position:absolute; left:.3rem; color:var(--muted); }
+.side .step{ display:flex; gap:.5rem; align-items:baseline; margin:0 0 .3rem; font-size:.86rem; }
+.side .role{ font-family:"Courier New",monospace; font-size:.7rem; color:var(--muted);
+  border:1px solid var(--line-soft); padding:.05rem .3rem; min-width:3.6rem; text-align:center; }
+.side .step .txt{ flex:1; }
+.side .badge{ font-family:"Courier New",monospace; font-size:.62rem; letter-spacing:.04em;
+  padding:.1rem .35rem; white-space:nowrap; background:var(--mark); color:var(--muted); }
+.side .badge[data-s="done"]{ background:#d8f0e1; color:#0a7a3d; }
+.side .badge[data-s="in-progress"]{ background:#fdeec2; color:#8a6100; }
+.side .badge[data-s="blocked"]{ background:#fbdcdc; color:#a11; }
+.hintline{ color:var(--faint); font-family:"Courier New",monospace; font-size:.68rem; margin:1.6rem 0 0; line-height:1.5; }
+
+/* Комментарии для ИИ-агента: пункт с комментарием помечен зелёной точкой. */
+.side [data-sec]{ border-radius:2px; }
+.side [data-sec]:hover{ background:var(--mark); }
+.side [data-commented]::after{ content:"●"; color:#1a7a1a; font-size:.6rem; margin-left:.35rem; vertical-align:middle; }
+.side .step[data-commented]::after{ order:3; }
+tr.row[data-commented] td.kr::before{ content:"●"; color:#1a7a1a; margin-right:.3rem; font-size:.7em; }
+
+.popover{
+  position:absolute; z-index:60; width:300px;
+  background:var(--bg); border:1px solid var(--fg); box-shadow:3px 3px 0 var(--line-soft);
+  padding:.6rem; font-family:"Courier New",monospace; font-size:.76rem;
+}
+.popover .pmeta{ font-size:.64rem; color:var(--faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem; }
+.popover .pquote{ color:var(--muted); font-size:.72rem; margin-bottom:.4rem; max-height:4.2em; overflow-y:auto;
+  border-left:2px solid var(--line-soft); padding-left:.5rem; }
+.popover .pex-item{ border-left:2px solid #1a7a1a; padding:.15rem .5rem; margin-bottom:.35rem; color:var(--muted); }
+.popover .pex-del{ background:none; border:none; color:var(--faint); text-decoration:underline; padding:0;
+  font-family:inherit; font-size:.68rem; cursor:pointer; }
+.popover textarea{ width:100%; min-height:70px; font:.76rem/1.4 "Courier New",monospace; padding:.4rem;
+  border:1px solid var(--line-soft); resize:vertical; }
+.popover .prow{ display:flex; gap:.4rem; margin-top:.4rem; }
+.popover button{ font-family:inherit; font-size:.72rem; border:1px solid var(--fg); background:var(--fg);
+  color:var(--bg); padding:.25rem .6rem; cursor:pointer; }
+.popover button.cancel{ background:var(--bg); color:var(--fg); }
+
+.promptbox{ position:fixed; top:1rem; right:1rem; z-index:50; display:flex; flex-direction:column;
+  align-items:flex-end; gap:.4rem; font-family:"Courier New",monospace; font-size:.75rem; }
+body[data-side] .promptbox{ right:calc(min(520px,94vw) + 1rem); }
+.promptbox > button{ background:var(--fg); color:var(--bg); border:1px solid var(--fg);
+  padding:.4rem .7rem; cursor:pointer; font-family:inherit; font-size:.78rem; }
+.panel{ display:none; width:360px; max-height:75vh; overflow-y:auto; background:var(--bg);
+  border:1px solid var(--fg); padding:.9rem; box-shadow:3px 3px 0 var(--line-soft); }
+.panel.open{ display:block; }
+.panel h4{ margin:0 0 .5rem; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+.panel .item{ border-bottom:1px solid var(--line-soft); padding:.4rem 0; }
+.panel .item .where{ color:var(--muted); font-size:.7rem; }
+.panel .item button{ font-size:.68rem; border:none; background:none; color:var(--muted); cursor:pointer;
+  text-decoration:underline; padding:0; }
+.panel .empty{ color:var(--faint); font-style:italic; }
+.panel textarea{ width:100%; min-height:140px; font:.72rem/1.4 "Courier New",monospace; padding:.5rem;
+  border:1px solid var(--line-soft); margin-top:.5rem; }
+.panel .row-btns{ display:flex; gap:.4rem; margin-top:.4rem; }
+.panel .row-btns button{ flex:1; border:1px solid var(--fg); background:var(--bg); color:var(--fg);
+  padding:.35rem; cursor:pointer; font-family:inherit; font-size:.72rem; }
+.panel .row-btns button.primary{ background:var(--fg); color:var(--bg); }
+
+/* Кнопка у выделенной зоны карточки. */
+.sel-btn{ position:absolute; z-index:61; font-family:"Courier New",monospace; font-size:.72rem;
+  border:1px solid var(--fg); background:var(--fg); color:var(--bg); padding:.25rem .6rem; cursor:pointer;
+  box-shadow:3px 3px 0 var(--line-soft); }
+.sel-btn[hidden]{ display:none; }
+/* Страница TEAMPLANNER: во всю ширину экрана, одна цель на экран (цели — в левой
+   выезжающей панели, как фильтр на ФАКТ и ПЛАН), KR раскрываются в подзадачи.
+   Подзадача — строка «тип · название · исполнитель». Подсветка скупая:
+   сиреневая черта — внешний ресурс, розовая — роли нет в команде,
+   красная рамка — исполнитель не выбран. */
+.tp-top{ display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:baseline; justify-content:space-between; margin:0 0 1rem; }
+.tp-act button{ font-family:"Courier New",monospace; font-size:.78rem; padding:.3rem .7rem;
+  border:1px solid var(--line-soft); background:var(--bg); cursor:pointer; }
+.tp-act{ display:flex; gap:.3rem; }
+#tpObjs .st-item{ line-height:1.4; }
+/* Панель шире, чем на ФАКТ и ПЛАН: в ней ещё и состав команды. */
+:root{ --drawer-w:min(460px, 92vw); }
+.rail-tab.on{ background:var(--link); }
+.drawer-hint{ font-size:.72rem; color:var(--muted); margin:0 0 .8rem; }
+.person{ display:grid; grid-template-columns:minmax(0,1fr) 4.6rem minmax(0,1.3fr) 1.4rem; gap:.3rem; align-items:center; margin:0 0 .3rem; }
+.person input, .person select{ font:inherit; font-size:.8rem; padding:.25rem .3rem; border:1px solid var(--line-soft); background:var(--bg); min-width:0; width:100%; }
+.person select{ font-weight:bold; }
+.drawer button.add{ margin:.3rem 0 0; }
+.tp-act button.primary{ border-color:var(--fg); }
+.tp-dirty{ font-family:"Courier New",monospace; font-size:.72rem; color:var(--muted); margin:-.6rem 0 1rem; }
+.tp-dirty button{ font:inherit; border:0; background:none; text-decoration:underline; cursor:pointer; color:var(--muted); padding:0; }
+
+h2.obj{ font-size:1.2rem; margin:0; }
+
+details.kr{ border-top:1px solid var(--line-soft); }
+details.kr:last-of-type{ border-bottom:1px solid var(--line-soft); }
+details.kr > summary{ list-style:none; cursor:pointer; display:flex; gap:.7rem; align-items:baseline; padding:.75rem .2rem; }
+details.kr > summary::-webkit-details-marker{ display:none; }
+details.kr > summary::before{ content:"▸"; font-size:.75rem; color:var(--muted); }
+details.kr[open] > summary::before{ content:"▾"; }
+details.kr > summary:hover{ background:var(--mark); }
+.kr-id{ font-family:"Courier New",monospace; font-weight:bold; }
+.kr-title{ flex:1; min-width:0; }
+.kr-count{ font-family:"Courier New",monospace; font-size:.72rem; color:var(--muted); white-space:nowrap; }
+.kr-count b{ color:#a33; font-weight:normal; }
+button.more{ font-family:"Courier New",monospace; font-size:.72rem; border:1px solid var(--line-soft); background:var(--bg);
+  padding:.1rem .5rem; cursor:pointer; white-space:nowrap; }
+button.more:hover{ border-color:var(--fg); }
+button.more[data-has]{ border-color:var(--fg); font-weight:bold; }
+
+/* «Детальнее» — свободная заметка KR. */
+.rt-bar{ display:flex; flex-wrap:wrap; gap:.25rem; margin:.4rem 0 .5rem; }
+.rt-bar button{ font-family:"Courier New",monospace; font-size:.74rem; border:1px solid var(--line-soft); background:var(--bg);
+  padding:.15rem .45rem; cursor:pointer; }
+.rt-bar button:hover{ border-color:var(--fg); }
+.rt{ min-height:60vh; border:1px solid var(--line-soft); padding:.6rem .8rem; font-size:.95rem; line-height:1.55; outline:none; }
+.rt:focus{ border-color:var(--fg); }
+.rt h3, .kr-details h3{ font-size:1rem; margin:.9rem 0 .3rem; }
+.rt h3:first-child, .kr-details h3:first-child{ margin-top:0; }
+.rt p, .kr-details p{ margin:0 0 .4rem; }
+.kr-details{ margin:0 0 .6rem 1.3rem; font-size:.9rem; color:var(--muted); }
+
+.steps{ padding:0 0 .2rem 1.3rem; }
+.step{ display:grid; grid-template-columns:7rem minmax(0,1fr) 3.2rem minmax(12rem,22%) 1.8rem; gap:.4rem; align-items:center;
+  padding:.25rem 0 .25rem .5rem; border-left:3px solid transparent; }
+.step[data-ext]{ border-left-color:#b9a6dc; }
+.step[data-norole]{ border-left-color:#e8a3aa; }
+.step select, .step input{ font:inherit; font-size:.88rem; padding:.3rem .35rem; border:1px solid var(--line-soft); background:var(--bg); min-width:0; width:100%; }
+.step select.type{ font-family:"Courier New",monospace; font-weight:bold; font-size:.8rem; }
+.step .who-box{ display:block; min-width:0; }
+.step[data-unassigned] input.who{ border-color:#c62828; }
+.step[data-norole] input.who::placeholder{ color:#a33; }
+.step input.who.miss{ border-color:#c62828; background:#fbe3e5; }
+.step .who.ext{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); }
+button.del{ font:inherit; border:0; background:none; cursor:pointer; color:var(--faint); font-size:1.1rem; }
+button.del:hover{ color:#a33; }
+button.add{ font-family:"Courier New",monospace; font-size:.76rem; margin:.3rem 0 .9rem 1.8rem; border:0; background:none;
+  color:var(--link); cursor:pointer; padding:0; }
+
+/* Без JS: та же структура, только чтение. */
+ul.tp-static{ list-style:none; padding-left:1.3rem; font-size:.88rem; }
+ul.tp-static .t{ font-family:"Courier New",monospace; font-weight:bold; display:inline-block; min-width:5.5rem; }
+
+@media (max-width:640px){
+  .step{ grid-template-columns:6rem minmax(0,1fr) 3.6rem 1.8rem; }
+  .step .who-box, .step .who.ext{ grid-column:2 / 4; }
+  .steps{ padding-left:.4rem; }
+}
+@media print{ .tp-act, .tp-dirty, button.add, button.del{ display:none; } }
+
+/* Тип инициативы: Run — поддержать, Change — развить, Disrupt — создать новое. */
+.crd{ display:inline-block; font-family:"Courier New",monospace; font-size:.66rem; letter-spacing:.03em;
+  padding:0 .35rem; margin-right:.35rem; border:1px solid var(--line-soft); vertical-align:1px; }
+.crd[data-v="run"]{ background:#eef1f5; color:#44536a; }
+.crd[data-v="change"]{ background:#e6f2ea; color:#1f6b3a; }
+.crd[data-v="disrupt"]{ background:#f6e8f7; color:#7a2d85; }
+
+/* Верхнеуровневая строка KR — как на странице согласования JIRA: тип эпика,
+   PBV, число подзадач, что требует решения. */
+.tp-sum{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); margin:-.4rem 0 1rem; }
+h3.tp-band{ background:#dfe7f5; border-top:2px solid var(--line); margin:1.4rem 0 0; padding:.4rem .6rem; font-size:.9rem; }
+details.kr > summary{ flex-wrap:wrap; }
+.et{ display:inline-block; font-family:"Courier New",monospace; font-size:.64rem; letter-spacing:.03em; padding:0 .35rem;
+  border:1px solid var(--line-soft); }
+.et[data-v="enabler"]{ background:#e7eef7; color:#2f4c73; }
+.et[data-v="epic"]{ background:#f2f2f2; color:#555; }
+.kr-meta{ font-family:"Courier New",monospace; font-size:.72rem; color:var(--muted); white-space:nowrap; }
+.flag{ display:inline-block; font-family:"Courier New",monospace; font-size:.66rem; background:#fbe3e5; color:#a33; padding:0 .35rem; }
+.kr-type{ font-family:"Courier New",monospace; font-size:.74rem; color:var(--muted); padding:.1rem 0 .4rem 1.8rem; }
+.kr-type select{ font:inherit; font-size:.74rem; padding:.15rem .3rem; border:1px solid var(--line-soft); background:var(--bg); margin-left:.4rem; }
+.tp-act{ flex-wrap:wrap; }
+@media (max-width:640px){ .kr-type{ padding-left:.4rem; } }
+.jk{ font-family:"Courier New",monospace; font-size:.7rem; color:#2f4c73; }
+
+/* Оценка подзадачи в днях — узкое поле между названием и исполнителем. */
+.step input.days{ font-family:"Courier New",monospace; font-size:.8rem; text-align:center; }
+.kr-type button.kr-del{ font:inherit; font-size:.7rem; border:0; background:none; color:var(--faint); cursor:pointer;
+  padding:0; margin-left:1rem; text-decoration:underline; }
+.kr-type button.kr-del:hover{ color:#a33; }
+button.add-kr{ display:block; margin:.6rem 0 1rem .2rem; }
+
+/* Комментарии для ИИ-агента — «корзина» в правом нижнем углу: кнопка с числом
+   заметок, по клику — короткий список. Нет заметок — корзины нет. */
+details.kr[data-commented] > summary .kr-id::after{ content:"●"; color:#1a7a1a; font-size:.6rem; margin-left:.3rem; vertical-align:middle; }
+.step[data-commented]{ box-shadow:inset -3px 0 0 #1a7a1a; }
+.basket{ position:fixed; right:1rem; bottom:1rem; z-index:40; display:flex; flex-direction:column; align-items:flex-end; gap:.4rem;
+  font-family:"Courier New",monospace; font-size:.74rem; }
+.basket[hidden], .basket-box[hidden]{ display:none; }
+.basket-btn{ font:inherit; font-size:.76rem; background:var(--fg); color:var(--bg); border:1px solid var(--fg); padding:.35rem .7rem; cursor:pointer; }
+.basket-btn span{ font-weight:bold; }
+.basket-box{ order:-1; width:min(340px, calc(100vw - 2rem)); max-height:60vh; overflow-y:auto; background:var(--bg);
+  border:1px solid var(--fg); box-shadow:3px 3px 0 var(--line-soft); padding:.6rem .7rem; }
+.basket-box .item{ border-bottom:1px solid var(--line-soft); padding:.35rem 0; line-height:1.4; }
+.basket-box .item .where{ color:var(--muted); font-size:.66rem; }
+.basket-box .item .quote{ color:var(--muted); font-size:.68rem; }
+.basket-box .item button{ font:inherit; font-size:.64rem; border:0; background:none; color:var(--faint); text-decoration:underline; cursor:pointer; padding:0; }
+.basket-act{ display:flex; gap:.3rem; margin-top:.5rem; }
+.basket-act button{ font:inherit; font-size:.7rem; border:1px solid var(--fg); background:var(--bg); color:var(--fg); padding:.25rem .45rem; cursor:pointer; }
+.basket-act button.primary{ background:var(--fg); color:var(--bg); flex:1; }
+@media print{ .basket{ display:none; } }
+/* Узкий экран: название KR — на всю строку, бейджи и счётчики переносятся под него. */
+@media (max-width:640px){
+  details.kr > summary .kr-title{ flex:1 1 calc(100% - 6rem); }
+  .kr-type select{ max-width:100%; }
+}
+</style>
+</head>
+<body>
+<div class="rail"><button class="rail-tab" id="tpTab" type="button" data-drawer="tpDrawer">Цели</button><button class="rail-tab" id="tpTeamTab" type="button" data-drawer="tpTeamDrawer">Команда</button></div><div class="drawer" id="tpDrawer"><div class="drawer-head"><h4>Цели</h4><button class="drawer-close" type="button">×</button></div><div id="tpObjs"></div></div><div class="drawer" id="tpTeamDrawer"><div class="drawer-head"><h4>Команда</h4><button class="drawer-close" type="button">×</button></div><p class="drawer-hint">Команда · тип · ФИО. Из этого состава выбирают исполнителей подзадач.</p><div id="tpPeople"></div><datalist id="tpTeamNames"></datalist></div>
+<div class="layout wide"><main>
+<div class="tp-top"><h2 class="obj" id="tpObj"></h2><div class="tp-act"><button type="button" id="bTsv">Копировать в Sheets</button><button type="button" class="primary" id="bJson">Скачать JSON</button></div></div>
+<p class="tp-sum" id="tpSum"></p>
+<p class="tp-dirty" id="tpDirty" hidden>Есть правки в этом браузере — «Скачать JSON» и отдайте файл агенту. <button type="button" id="bReset">Сбросить</button></p>
+<p class="tp-dirty" id="tpStale" hidden>В этом браузере есть правки к прошлой версии файла — к этой они не применены. <button type="button" id="bStaleGet">Скачать их</button> · <button type="button" id="bStaleDrop">Отбросить</button></p>
+<div id="tp"><h2 class="obj">OBJ 1 — Продавать подписку без ручных операций</h2>
+<details class="kr" open><summary><span class="kr-id">1.1</span><span class="et" data-v="enabler">ENABLER</span><span class="kr-title"><span class="crd" data-v="change">Change</span> Биллинг партнёра минуя ручную сверку</span></summary><ul class="tp-static"><li><span class="t">SA</span> Сценарии интеграционных тестов с партнёром — Смирнова Елена · 3 дн</li><li><span class="t">BE</span> Доработка обработки ошибок API — Петров Сергей · 8 дн</li><li><span class="t">EXT[BE]</span> Стенд партнёра для тестов — внешний ресурс: Биллинг партнёра</li><li><span class="t">QA</span> Интеграционные тесты с партнёром — Морозов Игорь · 4 дн</li><li><span class="t">RM</span> Отключение ручной сверки — нет роли в команде · 1 дн</li><li><span class="t">PO</span> Приёмка с финансами — Иванова Анна · 1 дн</li></ul></details>
+<details class="kr" open><summary><span class="kr-id">1.2</span><span class="et" data-v="enabler">ENABLER</span><span class="kr-title"><span class="crd" data-v="disrupt">Disrupt</span> Семейная подписка на витрине</span></summary><ul class="tp-static"><li><span class="t">PO</span> Требования и тарифы с маркетингом — Иванова Анна · 3 дн</li><li><span class="t">ADR</span> Модель участников подписки — Волков Павел · 2 дн</li><li><span class="t">SA</span> Декомпозиция и контракты API — Смирнова Елена · 4 дн</li><li><span class="t">BE</span> Покупка и управление участниками — Кузнецов Артём · 10 дн</li><li><span class="t">FE</span> Экран семьи и покупка — Лебедев Олег · 8 дн</li><li><span class="t">QA</span> Регресс покупки и приглашений — исполнитель не выбран</li><li><span class="t">DOPS</span> Фича-флаг и мониторинг покупок — нет роли в команде</li><li><span class="t">RM</span> Раскатка на всех пользователей — Петров Сергей</li></ul></details>
+<h2 class="obj">OBJ 2 — Отключить старый каталог</h2>
+<details class="kr" open><summary><span class="kr-id">2.1</span><span class="et" data-v="enabler">ENABLER</span><span class="kr-title"><span class="crd" data-v="run">Run</span> [RESEARCH] Поиск на новой платформе</span></summary><ul class="tp-static"><li><span class="t">PO</span> Сбор БФТ-требований — Иванова Анна · 5 дн</li></ul></details>
+<h2 class="obj">OBJ 3 — Поддержка витрины</h2>
+<details class="kr" open><summary><span class="kr-id">3.1</span><span class="et" data-v="epic">ЭПИК</span><span class="kr-title"><span class="crd" data-v="run">Run</span> [ACTIVITY] Инциденты и баги витрины</span></summary><ul class="tp-static"><li><span class="t">BE</span> Дежурство по инцидентам — Кузнецов Артём</li></ul></details></div>
+</main></div>
+<div class="basket" id="tpNotes" hidden><button type="button" class="basket-btn" id="tpNotesBtn" title="Комментарии для ИИ-агента: правый клик по цели, KR или подзадаче">Заметки <span id="tpNotesN">0</span></button><div class="basket-box" id="tpNotesBox" hidden><div id="tpNotesList"></div><div class="basket-act"><button type="button" class="primary" id="tpNotesCopy">Скопировать для агента</button><button type="button" id="tpNotesSave">Файлом</button><button type="button" id="tpNotesClear">Очистить</button></div></div></div>
+<div class="scrim" id="scrim"></div><div class="side" id="side"><div class="side-head"><span class="kr-id" id="sideKr"></span><button class="drawer-close" id="sideClose" type="button">×</button></div><h3 class="side-title" id="sideTitle"></h3><div class="rt-bar" id="rtBar"><button type="button" data-cmd="formatBlock" data-arg="h3">Заголовок</button><button type="button" data-cmd="formatBlock" data-arg="p">Текст</button><button type="button" data-cmd="bold"><b>Ж</b></button><button type="button" data-cmd="italic"><i>К</i></button><button type="button" data-cmd="insertUnorderedList">• список</button><button type="button" data-cmd="insertOrderedList">1. список</button></div><div class="rt" id="rt" contenteditable="true" role="textbox" aria-multiline="true"></div><p class="hintline">Мнения, ожидания, границы и всё, что поможет спланировать. Сохраняется в этом браузере; в документ — через «Скачать JSON».</p></div>
+<script type="application/json" id="page-data">{"file": "teamplanner-2026Q4.json", "doc": {"kind": "teamplanner", "quarter": "2026Q4", "team": "Витрина", "po": "Иванова Анна", "jira_project": "VIT", "status": "черновик", "updated": "2026-10-06", "scope": {"file": "scope-2026Q4.json"}, "roles": ["PO", "ADR", "SA", "BA", "BE", "FE", "QA", "DOPS", "RM"], "teams": [{"id": "front", "name": "Витрина Web", "people": [{"name": "Иванова Анна", "role": "PO"}, {"name": "Лебедев Олег", "role": "FE"}, {"name": "Соколова Дарья", "role": "FE"}, {"name": "Морозов Игорь", "role": "QA"}]}, {"id": "back", "name": "Витрина Backend", "people": [{"name": "Иванова Анна", "role": "PO"}, {"name": "Смирнова Елена", "role": "SA"}, {"name": "Петров Сергей", "role": "BE"}, {"name": "Кузнецов Артём", "role": "BE"}, {"name": "Волков Павел", "role": "ADR"}, {"name": "Морозов Игорь", "role": "QA"}]}, {"id": "partner", "name": "Биллинг партнёра", "external": true, "people": []}], "objectives": [{"id": "1", "title": "Продавать подписку без ручных операций", "krs": [{"id": "1.1", "title": "Биллинг партнёра минуя ручную сверку", "pbv": 8, "tag": "", "category": "Change", "epic": "enabler", "teams": ["back", "partner"], "owner": "Иванова Анна", "result": "Сверка с партнёром идёт автоматически каждый день, ручная сверка отключена", "comment": "Блокер прошлого квартала: стенд партнёра. Весь квартал.", "steps": [{"role": "SA", "title": "Сценарии интеграционных тестов с партнёром", "ext": "", "who": "Смирнова Елена", "start": "2026-10-01", "end": "2026-10-09", "status": "DONE", "days": 3, "result": "Сценарии согласованы с партнёром", "action": "Созвон с аналитиком партнёра, сценарии в Confluence", "comment": ""}, {"role": "BE", "title": "Доработка обработки ошибок API", "ext": "", "who": "Петров Сергей", "start": "2026-10-05", "end": "2026-10-23", "status": "IN PROGRESS", "result": "", "action": "", "comment": "", "progress": 40, "days": 8}, {"role": "BE", "title": "Стенд партнёра для тестов", "ext": "partner", "who": "", "start": "2026-10-01", "end": "2026-10-16", "status": "BLOCKED", "result": "", "action": "", "comment": "Партнёр обещал стенд к 16.10"}, {"role": "QA", "title": "Интеграционные тесты с партнёром", "ext": "", "who": "Морозов Игорь", "start": "2026-10-19", "end": "2026-11-06", "status": "TODO", "result": "", "action": "", "comment": "", "days": 4}, {"role": "RM", "title": "Отключение ручной сверки", "ext": "", "who": "", "start": "2026-11-09", "end": "2026-11-13", "status": "TODO", "result": "Ручная сверка выключена, отчёт идёт из автосверки", "action": "", "comment": "", "days": 1}, {"role": "PO", "title": "Приёмка с финансами", "ext": "", "who": "Иванова Анна", "start": "2026-11-16", "end": "2026-11-20", "status": "TODO", "result": "", "action": "", "comment": "", "days": 1}]}, {"id": "1.2", "title": "Семейная подписка на витрине", "pbv": 9, "tag": "", "category": "Disrupt", "epic": "enabler", "teams": ["front", "back"], "owner": "Иванова Анна", "result": "Пользователь покупает семейную подписку и добавляет до 4 участников. Коммитмент перед маркетингом на декабрь.", "comment": "Коммитмент перед маркетингом на декабрь.", "steps": [{"role": "PO", "title": "Требования и тарифы с маркетингом", "ext": "", "who": "Иванова Анна", "start": "2026-10-01", "end": "2026-10-20", "status": "IN PROGRESS", "result": "Утверждённые тарифы и лимит участников", "action": "Две встречи с маркетингом, решение в протоколе", "comment": "", "days": 3}, {"role": "ADR", "title": "Модель участников подписки", "ext": "", "who": "Волков Павел", "start": "2026-10-12", "end": "2026-10-23", "status": "TODO", "result": "", "action": "", "comment": "", "days": 2}, {"role": "SA", "title": "Декомпозиция и контракты API", "ext": "", "who": "Смирнова Елена", "start": "2026-10-19", "end": "2026-10-30", "status": "TODO", "result": "", "action": "", "comment": "", "days": 4}, {"role": "BE", "title": "Покупка и управление участниками", "ext": "", "who": "Кузнецов Артём", "start": "2026-11-02", "end": "2026-11-27", "status": "TODO", "result": "", "action": "", "comment": "", "days": 10}, {"role": "FE", "title": "Экран семьи и покупка", "ext": "", "who": "Лебедев Олег", "start": "2026-11-02", "end": "2026-11-27", "status": "TODO", "result": "", "action": "", "comment": "", "days": 8}, {"role": "QA", "title": "Регресс покупки и приглашений", "ext": "", "who": "", "start": "2026-11-30", "end": "2026-12-11", "status": "TODO", "result": "", "action": "", "comment": ""}, {"role": "DOPS", "title": "Фича-флаг и мониторинг покупок", "ext": "", "who": "", "start": "2026-11-23", "end": "2026-11-27", "status": "TODO", "result": "", "action": "", "comment": "DevOps в команде нет — просить у платформы"}, {"role": "RM", "title": "Раскатка на всех пользователей", "ext": "", "who": "Петров Сергей", "start": "2026-12-14", "end": "2026-12-18", "status": "TODO", "result": "", "action": "", "comment": ""}]}]}, {"id": "2", "title": "Отключить старый каталог", "krs": [{"id": "2.1", "title": "Поиск на новой платформе", "pbv": 6, "tag": "RESEARCH", "category": "Run", "epic": "enabler", "teams": ["back"], "owner": "Иванова Анна", "result": "Согласованный план переноса поиска с оценкой и датой", "comment": "", "steps": [{"role": "PO", "title": "Сбор БФТ-требований", "ext": "", "who": "Иванова Анна", "start": "2026-10-05", "end": "2026-10-16", "status": "TODO", "days": 5, "result": "БФТ на поиск согласован с маркетингом", "action": "", "comment": ""}]}]}, {"id": "3", "title": "Поддержка витрины", "krs": [{"id": "3.1", "title": "Инциденты и баги витрины", "pbv": 5, "tag": "ACTIVITY", "category": "Run", "epic": "epic", "teams": ["front", "back"], "owner": "Иванова Анна", "result": "Инциденты закрываются в SLA", "comment": "Поддержка, фоновая нагрузка. Весь квартал.", "steps": [{"role": "BE", "title": "Дежурство по инцидентам", "ext": "", "who": "Кузнецов Артём", "start": "2026-10-01", "end": "2026-12-25", "status": "IN PROGRESS", "result": "", "action": "", "comment": "", "progress": 30}]}]}]}, "roles": ["PO", "ADR", "SA", "BA", "BE", "FE", "QA", "DOPS", "RM"], "statuses": {"TODO": "Не начата", "IN PROGRESS": "В процессе", "BLOCKED": "Заблокирована", "DONE": "Готово"}}</script>
+<script>/* Редактор TEAMPLANNER. Один экран — одна цель (OBJ), цели переключаются в
+   левой выезжающей панели, KR раскрываются в список подзадач. В той же панели —
+   состав команды (команда · тип · ФИО): из него выбирают исполнителей. У подзадачи
+   правятся тип, название, оценка в днях и исполнитель; подзадачи и KR можно
+   добавить и удалить. Правый клик по цели, KR или подзадаче — комментарий для
+   ИИ-агента; заметки копятся в «корзине» в правом нижнем углу. Правки живут в localStorage этого браузера, пока их не
+   выгрузят кнопкой «Скачать JSON». Правила «нет роли в команде» и строки для
+   таблицы считаются так же, как в okr-plan.py — меняешь там, меняй и здесь. */
+(function(){
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("page-data").textContent);
+  var ROLES = DATA.roles, ST = DATA.statuses;
+  var KEY = "okr-tp:" + DATA.file;
+  /* Черновик браузера привязан к содержимому файла (хэш всего JSON): агент поправил
+     файл и пересобрал страницу — старый черновик к новой версии не применяется. */
+  function hash(str){
+    var h = 2166136261;
+    for(var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(16);
+  }
+  var BASE = hash(JSON.stringify(DATA.doc));
+  var COLUMNS = ["Название", "Комментарий", "Роль", "Исполнитель", "Начало", "Конец",
+                 "Статус", "Прогресс, %", "Образ результата", "Образ действия", "Оценка, дн"];
+
+  function clone(x){ return JSON.parse(JSON.stringify(x)); }
+  function esc(v){
+    return String(v == null ? "" : v).replace(/[&<>"]/g, function(c){
+      return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c];
+    });
+  }
+  /* Правки к прошлой версии файла не применяются и не теряются молча: уходят в
+     отдельный ключ и ждут, пока их скачают или отбросят. */
+  var OLD = KEY + ":old", stale = null;
+  function stored(){
+    var current = null;
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if(s && s.base === BASE) current = s.doc;
+      else if(s && s.doc){ localStorage.setItem(OLD, JSON.stringify(s.doc)); localStorage.removeItem(KEY); }
+      stale = JSON.parse(localStorage.getItem(OLD) || "null");
+    } catch(e){}
+    return current;
+  }
+  var doc = stored(), dirty = !!doc;
+  if(!doc) doc = clone(DATA.doc);
+  function save(){
+    dirty = true;
+    try { localStorage.setItem(KEY, JSON.stringify({base: BASE, doc: doc})); } catch(e){}
+  }
+
+  /* ---------- производные: как в okr-plan.py ---------- */
+  function teamMap(){ var m = {}; (doc.teams || []).forEach(function(t){ m[t.id] = t; }); return m; }
+  function people(teamIds){
+    var out = [];
+    (doc.teams || []).forEach(function(t){
+      if(t.external || (teamIds && teamIds.indexOf(t.id) < 0)) return;
+      (t.people || []).forEach(function(p){ out.push({name: p.name, role: p.role, team: t.id}); });
+    });
+    return out;
+  }
+  function state(kr, s){
+    if(s.ext || s.who) return {ext: s.ext || "", unassigned: false, norole: false};
+    var norole = people(kr.teams || []).map(function(p){ return p.role; }).indexOf(s.role) < 0;
+    return {ext: "", unassigned: !norole, norole: norole};
+  }
+  function stepPct(s){ return typeof s.progress === "number" ? s.progress : (s.status === "DONE" ? 100 : 0); }
+  function krPct(kr){
+    var st = kr.steps || [];
+    return st.length ? Math.floor(st.reduce(function(a, s){ return a + stepPct(s); }, 0) / st.length + 0.5) : null;
+  }
+  function krStatus(kr){
+    var st = (kr.steps || []).map(function(s){ return s.status || "TODO"; });
+    if(st.length && st.every(function(x){ return x === "DONE"; })) return "DONE";
+    if(st.indexOf("BLOCKED") >= 0) return "BLOCKED";
+    if(st.some(function(x){ return x === "IN PROGRESS" || x === "DONE"; })) return "IN PROGRESS";
+    return "TODO";
+  }
+  function krDates(kr){
+    var s = (kr.steps || []).map(function(x){ return x.start; }).filter(Boolean).sort();
+    var e = (kr.steps || []).map(function(x){ return x.end; }).filter(Boolean).sort();
+    return [s[0] || "", e.length ? e[e.length - 1] : ""];
+  }
+  /* Оценка в днях: обычное число от 0; сумма у KR — как kr_days / num_text в okr-plan.py. */
+  function isDays(v){ return typeof v === "number" && isFinite(v) && v >= 0; }
+  function krDays(kr){
+    var d = (kr.steps || []).filter(function(s){ return isDays(s.days); });
+    return d.length ? Math.round(d.reduce(function(a, s){ return a + s.days; }, 0) * 100) / 100 : null;
+  }
+  function numText(v){ return String(Math.round(v * 100) / 100); }
+  function roleText(s){ return s.ext ? "EXT[" + s.role + "]" : (s.role || ""); }
+  function whoText(kr, s){
+    var st = state(kr, s);
+    if(st.ext){ var t = teamMap()[st.ext]; return "внешний ресурс: " + (t ? t.name : st.ext); }
+    if(s.who) return s.who;
+    return st.norole ? "нет роли в команде" : "";
+  }
+  /* Заметка KR («Детальнее»): только эти теги, без атрибутов — как RICH_TAGS в okr-plan.py. */
+  var RICH = {H3: "h3", P: "p", DIV: "p", B: "b", STRONG: "strong", I: "i", EM: "em", UL: "ul", OL: "ol", LI: "li", BR: "br"};
+  var DROP = {SCRIPT: 1, STYLE: 1, TEMPLATE: 1, IFRAME: 1, OBJECT: 1};
+  var BLOCKS = {H3: 1, P: 1, UL: 1, OL: 1, LI: 1, DIV: 1};
+  function richClean(node){
+    var out = "";
+    node.childNodes.forEach(function(n){
+      if(n.nodeType === 3){ out += esc(n.data); return; }
+      if(n.nodeType !== 1 || DROP[n.tagName]) return;
+      var tag = RICH[n.tagName];
+      if(tag === "br"){ out += "<br>"; return; }
+      out += tag ? "<" + tag + ">" + richClean(n) + "</" + tag + ">" : richClean(n);
+    });
+    return out;
+  }
+  function parse(html){ var t = document.createElement("template"); t.innerHTML = html || ""; return t.content; }
+  /* Простым текстом для таблицы — то же правило, что rich_text в okr-plan.py. */
+  function richText(html){
+    var out = "";
+    (function walk(node){
+      node.childNodes.forEach(function(n){
+        if(n.nodeType === 3){ out += n.data; return; }
+        if(n.nodeType !== 1 || DROP[n.tagName]) return;
+        if(n.tagName === "BR"){ out += "\n"; return; }
+        out += n.tagName === "LI" ? "\n- " : BLOCKS[n.tagName] ? "\n" : "";
+        walk(n);
+        if(BLOCKS[n.tagName]) out += "\n";
+      });
+    })(parse(html));
+    return out.split("\n").map(function(l){ return l.trim(); }).filter(Boolean).join("\n");
+  }
+  var TEMPLATE = "<h3>Образ действия</h3><p><br></p><h3>Образ результата</h3><p><br></p><h3>Дополнительно</h3><p><br></p>";
+
+  function tableRows(){
+    var rows = [];
+    (doc.objectives || []).forEach(function(o){
+      rows.push({"Название": "OBJ " + o.id + " — " + o.title});
+      (o.krs || []).forEach(function(kr){
+        var d = krDates(kr), pct = krPct(kr);
+        rows.push({"Название": "KR " + kr.id + " " + (kr.tag ? "[" + kr.tag + "] " : "") + kr.title + " (общий прогресс)",
+                   "Комментарий": [kr.result, kr.comment, richText(kr.details)].filter(Boolean).join("\n"),
+                   "Исполнитель": kr.owner || "", "Начало": d[0], "Конец": d[1],
+                   "Статус": ST[krStatus(kr)], "Прогресс, %": pct == null ? "" : pct,
+                   "Оценка, дн": krDays(kr) == null ? "" : numText(krDays(kr))});
+        (kr.steps || []).forEach(function(s){
+          rows.push({"Название": (s.title || "") + " (" + roleText(s) + ")", "Комментарий": s.comment || "",
+                     "Роль": roleText(s), "Исполнитель": whoText(kr, s), "Начало": s.start || "", "Конец": s.end || "",
+                     "Статус": ST[s.status || "TODO"] || "", "Прогресс, %": stepPct(s),
+                     "Образ результата": s.result || "", "Образ действия": s.action || "",
+                     "Оценка, дн": isDays(s.days) ? numText(s.days) : ""});
+        });
+      });
+    });
+    return rows;
+  }
+
+  /* ---------- разметка ---------- */
+  function option(value, label, current){
+    return '<option value="' + esc(value) + '"' + (value === current ? " selected" : "") + ">" + esc(label) + "</option>";
+  }
+  /* Тип: своя роль или EXT[роль] — та же работа силами смежной команды. */
+  function typeSelect(kr, s, k){
+    var own = ROLES.map(function(r){ return option(r, r, s.ext ? "" : s.role); }).join("");
+    /* EXT — только если в документе есть смежная команда (external): иначе этапу не на кого уйти. */
+    var hasExt = (doc.teams || []).some(function(t){ return t.external; }) || s.ext;
+    var ext = hasExt ? ROLES.map(function(r){ return option("EXT:" + r, "EXT[" + r + "]", s.ext ? "EXT:" + s.role : ""); }).join("") : "";
+    return '<select class="type" data-k="' + k + 'type" aria-label="Тип">' + own
+      + (ext ? '<optgroup label="Внешний ресурс">' + ext + "</optgroup>" : "") + "</select>";
+  }
+  /* Исполнитель — поле с подсказками «[ТИП] ФИО» из всего состава: сначала люди с
+     типом подзадачи, дальше по порядку типов и по имени. Человек из двух команд —
+     один раз. Можно начать печатать часть имени или типа. */
+  function candidates(kr, s){
+    var seen = {}, list = people(null).filter(function(p){
+      if(!p.name || seen[p.name]) return false;
+      seen[p.name] = 1;
+      return true;
+    });
+    function rank(p){ var i = ROLES.indexOf(p.role); return (p.role === s.role ? -1 : i < 0 ? ROLES.length : i); }
+    return list.sort(function(a, b){ return rank(a) - rank(b) || a.name.localeCompare(b.name, "ru"); });
+  }
+  function label(p){ return "[" + (p.role || "?") + "] " + p.name; }
+  function whoInput(kr, s, k){
+    var list = candidates(kr, s), me = list.filter(function(p){ return p.name === s.who; })[0];
+    var value = s.who ? (me ? label(me) : s.who + " (нет в составе)") : "";
+    var id = "dl-" + k.replace(/[^\w]/g, "-");
+    return '<input class="who" data-k="' + k + 'who" list="' + id + '" value="' + esc(value) + '" placeholder="'
+      + (state(kr, s).norole ? "нет роли в команде" : "исполнитель") + '" autocomplete="off" aria-label="Исполнитель">'
+      + '<datalist id="' + id + '">' + list.map(function(p){ return '<option value="' + esc(label(p)) + '">'; }).join("") + "</datalist>";
+  }
+  /* Текст из поля → имя: точное «[ТИП] ФИО» или ФИО, иначе единственное совпадение
+     по части строки. Не нашли или нашли несколько — null. */
+  function resolveWho(kr, s, text){
+    var q = text.trim().toLowerCase(), list = candidates(kr, s);
+    if(!q) return "";
+    var exact = list.filter(function(p){ return label(p).toLowerCase() === q || p.name.toLowerCase() === q; });
+    if(exact.length) return exact[0].name;
+    var part = list.filter(function(p){ return label(p).toLowerCase().indexOf(q) >= 0; });
+    return part.length === 1 ? part[0].name : null;
+  }
+  function stepRow(kr, s, i){
+    var st = state(kr, s), k = kr.id + "|" + i + "|";
+    var flag = st.ext ? " data-ext" : st.norole ? " data-norole" : st.unassigned ? " data-unassigned" : "";
+    return '<div class="step"' + flag + ' data-kr="' + esc(kr.id) + '" data-i="' + i + '">' + typeSelect(kr, s, k)
+      + '<input class="title" data-k="' + k + 'title" value="' + esc(s.title) + '" aria-label="Название">'
+      + '<input class="days" data-k="' + k + 'days" inputmode="decimal" autocomplete="off" value="'
+      + (isDays(s.days) ? esc(numText(s.days)) : "") + '" placeholder="дн" title="Оценка, дней" aria-label="Оценка, дней">'
+      + (st.ext ? '<span class="who ext">' + esc(whoText(kr, s)) + "</span>" : '<span class="who-box">' + whoInput(kr, s, k) + "</span>")
+      + '<button type="button" class="del" data-act="del" data-kr="' + esc(kr.id) + '" data-i="' + i + '" aria-label="Удалить подзадачу">×</button></div>';
+  }
+  /* Эпик в JIRA: enabler — инициатива, закрывается БФТ; epic — бессрочный (ACTIVITY,
+     поддержка). Не задан — по тегу, как в okr-plan.py (epic_of). */
+  function epicOf(kr){ return kr.epic || (kr.tag === "ACTIVITY" ? "epic" : "enabler"); }
+  function tier(p){ return p == null ? "none" : p >= 8 ? "high" : p >= 4 ? "mid" : p >= 1 ? "low" : "zero"; }
+  function problems(kr){
+    var steps = kr.steps || [];
+    var open = steps.filter(function(s){ var st = state(kr, s); return st.unassigned || st.norole; }).length;
+    var out = [];
+    if(!steps.length) out.push("нет подзадач");
+    if(open) out.push("без исполнителя " + open);
+    return out;
+  }
+  function krBlock(kr){
+    var n = (kr.steps || []).length, epic = epicOf(kr);
+    return '<details class="kr" data-kr="' + esc(kr.id) + '"' + (opened[kr.id] ? " open" : "") + ">"
+      + '<summary><span class="kr-id">' + esc(kr.id) + "</span>"
+      + '<span class="et" data-v="' + epic + '">' + (epic === "epic" ? "ЭПИК" : "ENABLER") + "</span>"
+      + '<span class="kr-title">'
+      + (["Change", "Run", "Disrupt"].indexOf(kr.category) >= 0 ? '<span class="crd" data-v="' + kr.category.toLowerCase() + '">' + kr.category + "</span> " : "")
+      + (kr.tag ? "[" + esc(kr.tag) + "] " : "") + esc(kr.title) + "</span>"
+      + '<span class="kr-meta"><span class="pbvtag" data-tier="' + tier(kr.pbv) + '">' + (kr.pbv == null ? "—" : esc(kr.pbv)) + "</span>"
+      + " подзадач " + n + (krDays(kr) == null ? "" : " · " + numText(krDays(kr)) + " дн") + (kr.jira_key ? ' <span class="jk">' + esc(kr.jira_key) + "</span>" : "") + "</span>"
+      + problems(kr).map(function(p){ return '<span class="flag">' + esc(p) + "</span>"; }).join("")
+      + '<button type="button" class="more"' + (richText(kr.details) ? " data-has" : "") + ' data-act="more" data-kr="'
+      + esc(kr.id) + '">Детальнее</button></summary>'
+      + '<div class="kr-type">Тип в JIRA <select data-k="' + esc(kr.id) + '|kr|epic">'
+      + option("enabler", "Эпик-enabler — инициатива, закрывается БФТ", epic)
+      + option("epic", "Эпик — бессрочный: поддержка, ACTIVITY", epic) + "</select>"
+      + '<button type="button" class="kr-del" data-act="delkr" data-kr="' + esc(kr.id) + '">удалить KR</button></div>'
+      + '<div class="steps">' + (kr.steps || []).map(function(s, i){ return stepRow(kr, s, i); }).join("") + "</div>"
+      + '<button type="button" class="add" data-act="add" data-kr="' + esc(kr.id) + '">+ подзадача</button></details>';
+  }
+
+  var objs = doc.objectives || [];
+  /* cur — индекс цели; -1 — все цели одним списком. */
+  var cur = 0, opened = {};
+  function fromHash(){
+    var m = location.hash.match(/obj=([^&]+)/);
+    if(m && m[1] === "all") cur = -1;
+    else if(m) objs.forEach(function(o, i){ if(String(o.id) === decodeURIComponent(m[1])) cur = i; });
+  }
+  fromHash();
+  window.addEventListener("hashchange", function(){ fromHash(); render(); });
+  /* ---------- состав команды: строки «команда · тип · ФИО» ---------- */
+  var roster;
+  function initRoster(){
+    roster = [];
+    (doc.teams || []).forEach(function(t){
+      if(t.external) return;
+      (t.people || []).forEach(function(p){ roster.push({id: t.id, team: t.name || "", role: p.role || "", name: p.name || ""}); });
+    });
+  }
+  initRoster();
+  /* Строки состава → doc.teams. Команда ищется по названию; новое название — новая
+     команда. Пустые новые команды без KR убираются, внешние команды не трогаются. */
+  function syncTeams(){
+    var original = DATA.doc.teams || [], used = {};
+    (doc.objectives || []).forEach(function(o){ (o.krs || []).forEach(function(k){
+      (k.teams || []).forEach(function(t){ used[t] = 1; });
+      (k.steps || []).forEach(function(s){ if(s.ext) used[s.ext] = 1; });
+    }); });
+    var own = (doc.teams || []).filter(function(t){ return !t.external; });
+    own.forEach(function(t){ t.people = []; });
+    var ext = (doc.teams || []).filter(function(t){ return t.external; });
+    roster.forEach(function(r){
+      var name = r.name.trim(), team = r.team.trim();
+      if(!name) return;
+      /* Строка помнит свою команду: название не меняли — та же команда, даже если
+         оно пустое или повторяется у другой. Поменяли — ищем по названию или заводим. */
+      var mine = own.filter(function(x){ return x.id === r.id; })[0];
+      var t = mine && (mine.name || "") === team ? mine : team ? own.filter(function(x){ return x.name === team; })[0] : null;
+      if(!t){
+        if(!team) return;
+        var n = 1, ids = own.concat(ext).map(function(x){ return x.id; });
+        while(ids.indexOf("team-" + n) >= 0) n++;
+        t = {id: "team-" + n, name: team, people: []};
+        own.push(t);
+      }
+      r.id = t.id;
+      t.people.push({name: name, role: r.role});
+    });
+    own = own.filter(function(t){
+      return t.people.length || used[t.id] || original.some(function(o){ return o.id === t.id; });
+    });
+    doc.teams = own.concat(ext);
+  }
+  var peopleBox = document.getElementById("tpPeople");
+  /* Подсказки названий команд. Строки состава при этом не перерисовываются —
+     иначе пропадёт поле, в котором человек сейчас печатает. */
+  function renderTeamNames(){
+    var names = {};
+    (doc.teams || []).forEach(function(t){ if(!t.external && t.name) names[t.name] = 1; });
+    document.getElementById("tpTeamNames").innerHTML = Object.keys(names).map(function(n){ return option(n, n, ""); }).join("");
+  }
+  function renderPeople(){
+    renderTeamNames();
+    peopleBox.innerHTML = roster.map(function(r, i){
+      var roles = ROLES.map(function(x){ return option(x, x, r.role); }).join("")
+        + (r.role && ROLES.indexOf(r.role) < 0 ? option(r.role, r.role, r.role) : "");
+      return '<div class="person"><input data-p="' + i + '|team" value="' + esc(r.team) + '" placeholder="Команда" list="tpTeamNames" aria-label="Команда">'
+        + '<select data-p="' + i + '|role" aria-label="Тип">' + roles + "</select>"
+        + '<input data-p="' + i + '|name" value="' + esc(r.name) + '" placeholder="ФИО" aria-label="ФИО">'
+        + '<button type="button" class="del" data-pdel="' + i + '" aria-label="Удалить участника">×</button></div>';
+    }).join("") + '<button type="button" class="add" id="tpAddPerson">+ участник</button>';
+  }
+  peopleBox.addEventListener("change", function(e){
+    var k = e.target.getAttribute("data-p");
+    if(!k) return;
+    var p = k.split("|");
+    roster[+p[0]][p[1]] = e.target.value;
+    syncTeams(); save(); render(); renderTeamNames();
+  });
+  peopleBox.addEventListener("click", function(e){
+    if(e.target.id === "tpAddPerson"){
+      var last = roster[roster.length - 1];
+      roster.push({id: last ? last.id : "", team: last ? last.team : "", role: ROLES[0], name: ""});
+      renderPeople();
+      var inputs = peopleBox.querySelectorAll('input[data-p$="|name"]');
+      inputs[inputs.length - 1].focus();
+    } else if(e.target.hasAttribute("data-pdel")){
+      roster.splice(+e.target.getAttribute("data-pdel"), 1);
+      syncTeams(); save(); renderPeople(); render();
+    }
+  });
+
+  var tp = document.getElementById("tp"), list = document.getElementById("tpObjs");
+  var tab = document.getElementById("tpTab");
+  var drawers = [].slice.call(document.querySelectorAll(".drawer"));
+  var tabs = [].slice.call(document.querySelectorAll(".rail-tab"));
+
+  function render(){
+    var active = document.activeElement, key = active && active.getAttribute && active.getAttribute("data-k");
+    var all = [].concat.apply([], objs.map(function(o){ return o.krs || []; }));
+    list.innerHTML = '<button type="button" class="st-item" data-obj="-1"' + (cur === -1 ? " data-active" : "") + ">"
+      + 'Все цели<span class="n">' + all.length + " KR</span></button>"
+      + objs.map(function(o, i){
+        return '<button type="button" class="st-item" data-obj="' + i + '"' + (i === cur ? " data-active" : "") + ">"
+          + "OBJ " + esc(o.id) + " — " + esc(o.title) + '<span class="n">' + (o.krs || []).length + " KR</span></button>";
+      }).join("");
+    var o = objs[cur], shown = o ? (o.krs || []) : all;
+    tab.textContent = o ? "OBJ " + o.id + " из " + objs.length : "Все цели";
+    document.getElementById("tpObj").textContent = o ? "OBJ " + o.id + " — " + o.title : "Все цели";
+    function addKrBtn(x){ return '<button type="button" class="add add-kr" data-act="addkr" data-obj="' + esc(x.id) + '">+ KR</button>'; }
+    tp.innerHTML = o ? shown.map(krBlock).join("") + addKrBtn(o) : objs.map(function(x){
+      return '<h3 class="tp-band" data-objid="' + esc(x.id) + '">OBJ ' + esc(x.id) + " — " + esc(x.title) + "</h3>"
+        + (x.krs || []).map(krBlock).join("") + addKrBtn(x);
+    }).join("");
+    var steps = shown.reduce(function(a, k){ return a + (k.steps || []).length; }, 0);
+    var epics = shown.filter(function(k){ return epicOf(k) === "epic"; }).length;
+    var need = shown.filter(function(k){ return problems(k).length; }).length;
+    document.getElementById("tpSum").textContent = "KR " + shown.length + " (enabler " + (shown.length - epics)
+      + ", бессрочных " + epics + ") · подзадач " + steps + (need ? " · требуют решения " + need : "");
+    if(key){ var el = tp.querySelector('[data-k="' + key + '"]'); if(el) el.focus(); }
+    document.getElementById("tpDirty").hidden = !dirty;
+    document.getElementById("tpStale").hidden = !stale;
+    if(comments) markCommented();
+  }
+  /* Новый KR: название спрашиваем сразу, id — следующий номер в цели, команды — как у
+     первого KR цели (иначе все свои), подзадач нет. Он не из Scope — lint предупредит,
+     агент сверит со Scope. */
+  function addKr(objId){
+    var o = objs.filter(function(x){ return String(x.id) === objId; })[0];
+    var title = o && window.prompt("Название нового KR", "");
+    if(!title || !title.trim()) return;
+    title = title.trim();
+    o.krs = o.krs || [];
+    var n = 0;
+    o.krs.forEach(function(k){ var m = String(k.id).split("."); n = Math.max(n, +m[m.length - 1] || 0); });
+    var id = o.id + "." + (n + 1);
+    while(findKr(id)) id = o.id + "." + (++n + 1);
+    var teams = o.krs[0] && o.krs[0].teams ? o.krs[0].teams.slice()
+      : (doc.teams || []).filter(function(t){ return !t.external; }).map(function(t){ return t.id; });
+    o.krs.push({id: id, title: title, tag: "", category: "", epic: "", teams: teams,
+                owner: doc.po || "", result: "", comment: "", steps: []});
+    opened[id] = true;
+    save(); render();
+  }
+  function delKr(id){
+    var kr = findKr(id);
+    if(!kr || !confirm("Удалить KR " + id + " «" + (kr.title || "") + "» вместе с подзадачами?")) return;
+    objs.forEach(function(o){ o.krs = (o.krs || []).filter(function(k){ return k !== kr; }); });
+    if(sideKr === kr) closeSide();
+    save(); render();
+  }
+  function findKr(id){
+    var hit = null;
+    objs.forEach(function(o){ (o.krs || []).forEach(function(k){ if(k.id === id) hit = k; }); });
+    return hit;
+  }
+
+  /* Две панели слева — «Цели» и «Команда»; открыта не больше одной. */
+  function setDrawer(id){
+    drawers.forEach(function(d){ d.classList.toggle("open", d.id === id); });
+    tabs.forEach(function(t){ t.classList.toggle("on", t.getAttribute("data-drawer") === id); });
+    document.body.classList.toggle("drawer-open", !!id);
+  }
+  tabs.forEach(function(t){
+    t.onclick = function(){
+      var id = t.getAttribute("data-drawer");
+      setDrawer(document.getElementById(id).classList.contains("open") ? null : id);
+    };
+  });
+  drawers.forEach(function(d){ d.querySelector(".drawer-close").onclick = function(){ setDrawer(null); }; });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") setDrawer(null); });
+  document.addEventListener("click", function(e){
+    if(!e.target.isConnected || !document.body.classList.contains("drawer-open")) return;
+    if(!drawers.some(function(d){ return d.contains(e.target); }) && tabs.indexOf(e.target) < 0) setDrawer(null);
+  });
+  list.addEventListener("click", function(e){
+    var b = e.target.closest("[data-obj]");
+    if(!b) return;
+    cur = +b.getAttribute("data-obj");
+    /* Во встроенной странице (iframe srcdoc, превью) адрес менять нельзя — цель
+       всё равно переключается, просто не запоминается в ссылке. */
+    try { history.replaceState(null, "", "#obj=" + (cur < 0 ? "all" : encodeURIComponent(objs[cur].id))); } catch(e){}
+    setDrawer(null);
+    render();
+    window.scrollTo(0, 0);
+  });
+  tp.addEventListener("change", function(e){
+    var k = e.target.getAttribute("data-k");
+    if(!k) return;
+    var p = k.split("|"), kr = findKr(p[0]), v = e.target.value;
+    if(kr && p[1] === "kr"){ kr[p[2]] = v; save(); setTimeout(render, 0); return; }
+    var s = kr && kr.steps[+p[1]];
+    if(!s) return;
+    if(p[2] === "type"){
+      if(v.indexOf("EXT:") === 0){
+        var ext = (doc.teams || []).filter(function(t){ return t.external; });
+        var mine = ext.filter(function(t){ return (kr.teams || []).indexOf(t.id) >= 0; });
+        s.role = v.slice(4); s.ext = (mine[0] || ext[0] || {id: ""}).id; s.who = "";
+      } else { s.role = v; s.ext = ""; }
+    } else if(p[2] === "title"){
+      s.title = v.trim() || kr.title;
+    } else if(p[2] === "days"){
+      /* «2,5» и «2.5» — одно и то же; не число — оценка снимается. */
+      var d = Number(String(v).trim().replace(",", "."));
+      if(!String(v).trim() || !isFinite(d) || d < 0) delete s.days; else s.days = Math.round(d * 100) / 100;
+    } else if(p[2] === "who"){
+      var who = resolveWho(kr, s, v);
+      if(who === null){
+        var el = e.target;
+        el.classList.add("miss");
+        setTimeout(function(){ render(); }, 900);
+        return;
+      }
+      s.who = who;
+    } else {
+      s[p[2]] = v;
+    }
+    save();
+    setTimeout(render, 0);
+  });
+  tp.addEventListener("focusin", function(e){
+    if(e.target.classList && e.target.classList.contains("who") && e.target.select) e.target.select();
+  });
+  tp.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && e.target.classList && e.target.classList.contains("who")) e.target.blur();
+  });
+  tp.addEventListener("click", function(e){
+    var b = e.target.closest("[data-act]");
+    if(!b) return;
+    if(b.getAttribute("data-act") === "addkr"){ addKr(b.getAttribute("data-obj")); return; }
+    if(b.getAttribute("data-act") === "delkr"){ delKr(b.getAttribute("data-kr")); return; }
+    var kr = findKr(b.getAttribute("data-kr")), i = +b.getAttribute("data-i");
+    if(!kr) return;
+    if(b.getAttribute("data-act") === "more"){
+      e.preventDefault();
+      openSide(kr);
+    } else if(b.getAttribute("data-act") === "add"){
+      kr.steps = kr.steps || [];
+      kr.steps.push({role: ROLES[0], title: kr.title, ext: "", who: "", start: "", end: "", status: "TODO",
+                     result: "", action: "", comment: ""});
+      save(); render();
+      var el = tp.querySelector('[data-k="' + kr.id + "|" + (kr.steps.length - 1) + '|type"]');
+      if(el) el.focus();
+    } else if(confirm("Удалить подзадачу «" + (kr.steps[i].title || "") + "»?")){
+      kr.steps.splice(i, 1); save(); render();
+    }
+  });
+  tp.addEventListener("toggle", function(e){
+    if(e.target.matches && e.target.matches("details.kr")) opened[e.target.getAttribute("data-kr")] = e.target.open;
+  }, true);
+
+  /* ---------- «Детальнее»: свободная заметка KR в правой панели ---------- */
+  var side = document.getElementById("side"), rt = document.getElementById("rt"), sideKr = null;
+  function openSide(kr){
+    sideKr = kr;
+    document.getElementById("sideKr").textContent = "KR " + kr.id;
+    document.getElementById("sideTitle").textContent = kr.title;
+    rt.innerHTML = kr.details == null ? TEMPLATE : richClean(parse(kr.details));
+    side.classList.add("open");
+    document.body.setAttribute("data-side", "");
+    rt.focus();
+  }
+  function closeSide(){
+    if(!side.classList.contains("open")) return;
+    side.classList.remove("open");
+    document.body.removeAttribute("data-side");
+    sideKr = null;
+    render();
+  }
+  rt.addEventListener("input", function(){
+    if(!sideKr) return;
+    sideKr.details = richText(rt.innerHTML) ? richClean(rt) : "";
+    save();
+  });
+  rt.addEventListener("paste", function(e){
+    var html = e.clipboardData && e.clipboardData.getData("text/html");
+    if(!html) return;
+    e.preventDefault();
+    document.execCommand("insertHTML", false, richClean(parse(html)));
+  });
+  document.getElementById("rtBar").addEventListener("mousedown", function(e){ e.preventDefault(); });
+  document.getElementById("rtBar").addEventListener("click", function(e){
+    var b = e.target.closest("[data-cmd]");
+    if(!b) return;
+    document.execCommand(b.getAttribute("data-cmd"), false, b.getAttribute("data-arg"));
+    rt.focus();
+  });
+  document.getElementById("sideClose").onclick = closeSide;
+  document.getElementById("scrim").onclick = closeSide;
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeSide(); });
+
+
+  /* ---------- выгрузка ---------- */
+  document.getElementById("bJson").onclick = function(){
+    var out = clone(doc);
+    out.updated = new Date().toISOString().slice(0, 10);
+    if(out.status === "принято") out.status = "черновик";
+    download(out, DATA.file);
+  };
+  document.getElementById("bTsv").onclick = function(){
+    var b = this;
+    function cell(v){ v = String(v == null ? "" : v); return /[\t\n"]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+    var text = [COLUMNS.join("\t")].concat(tableRows().map(function(r){
+      return COLUMNS.map(function(c){ return cell(r[c]); }).join("\t");
+    })).join("\n");
+    function done(){ b.textContent = "Скопировано"; setTimeout(function(){ b.textContent = "Копировать в Sheets"; }, 1500); }
+    function fallback(){
+      var t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); done(); } catch(e){} t.remove();
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  };
+  function download(obj, name){
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 2) + "\n"], {type: "application/json"}));
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  document.getElementById("bStaleGet").onclick = function(){
+    if(stale) download(stale, DATA.file.replace(/\.json$/, "") + ".old-edits.json");
+  };
+  document.getElementById("bStaleDrop").onclick = function(){
+    if(!confirm("Отбросить правки к прошлой версии файла?")) return;
+    try { localStorage.removeItem(OLD); } catch(e){}
+    stale = null; render();
+  };
+  document.getElementById("bReset").onclick = function(){
+    if(!confirm("Сбросить правки из браузера и вернуть данные файла?")) return;
+    try { localStorage.removeItem(KEY); } catch(e){}
+    doc = clone(DATA.doc); objs = doc.objectives || []; dirty = false; initRoster(); renderPeople(); render();
+  };
+
+  /* ---------- комментарии для ИИ-агента: правый клик, «корзина» заметок в углу ----------
+     Как на ФАКТ и ПЛАН: страница сама ничего не правит по комментарию — он уходит
+     агенту текстом или файлом <имя>.comments.json. Shift + правый клик — обычное
+     меню браузера (вставить в поле и т. п.). */
+  var CKEY = "okr-comments:" + DATA.file, comments = [];
+  try { comments = JSON.parse(localStorage.getItem(CKEY) || "[]"); } catch(e){ comments = []; }
+  if(!Array.isArray(comments)) comments = [];
+  var notesBox = document.getElementById("tpNotes"), pop = null;
+  function persistComments(){
+    try { localStorage.setItem(CKEY, JSON.stringify(comments)); } catch(e){}
+    renderNotes();
+  }
+  function stepQuote(s){ return "[" + roleText(s) + "] " + (s.title || ""); }
+  function krQuote(kr){ return (kr.tag ? "[" + kr.tag + "] " : "") + (kr.title || ""); }
+  function targetOf(node){
+    var step = node.closest(".step[data-kr]");
+    if(step){
+      var kr = findKr(step.getAttribute("data-kr")), s = kr && kr.steps[+step.getAttribute("data-i")];
+      if(s) return {kr: kr.id, section: "Подзадача", quote: stepQuote(s)};
+    }
+    var box = node.closest("details.kr");
+    if(box){
+      var k = findKr(box.getAttribute("data-kr"));
+      if(k) return {kr: k.id, section: "KR целиком", quote: krQuote(k)};
+    }
+    var band = node.closest("[data-objid]");
+    var o = band ? objs.filter(function(x){ return String(x.id) === band.getAttribute("data-objid"); })[0] : objs[cur];
+    if(o && (band || node.closest("#tpObj"))) return {kr: "", section: "OBJ " + o.id, quote: o.title};
+    return null;
+  }
+  function same(c, t){ return c.kr === t.kr && c.section === t.section && c.quote === t.quote; }
+  function where(c){ return (c.kr ? "KR " + c.kr + " · " : "") + c.section; }
+  function hidePop(){ if(pop){ pop.remove(); pop = null; } }
+  function node(tag, cls, txt){ var n = document.createElement(tag); if(cls) n.className = cls; if(txt != null) n.textContent = txt; return n; }
+  function showPop(t, x, y){
+    hidePop();
+    pop = node("div", "popover");
+    pop.appendChild(node("div", "pmeta", "Комментарий для ИИ-агента · " + where(t)));
+    if(t.quote) pop.appendChild(node("div", "pquote", t.quote));
+    comments.filter(function(c){ return same(c, t); }).forEach(function(c){
+      var item = node("div", "pex-item", c.text), del = node("button", "pex-del", "удалить");
+      del.type = "button";
+      del.onclick = function(){ comments = comments.filter(function(z){ return z !== c; }); persistComments(); showPop(t, x, y); };
+      item.appendChild(node("br")); item.appendChild(del); pop.appendChild(item);
+    });
+    var area = node("textarea");
+    area.placeholder = "Что поправить: другой исполнитель, лишняя подзадача, срок, вопрос…";
+    pop.appendChild(area);
+    var row = node("div", "prow"), ok = node("button", "", "Оставить"), cancel = node("button", "cancel", "Отмена");
+    ok.type = cancel.type = "button";
+    row.appendChild(ok); row.appendChild(cancel); pop.appendChild(row);
+    ok.onclick = function(){
+      var txt = area.value.trim();
+      if(!txt) return;
+      comments.push({kr: t.kr, section: t.section, quote: t.quote, text: txt, at: new Date().toISOString()});
+      persistComments(); hidePop();
+    };
+    cancel.onclick = hidePop;
+    area.addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) ok.click(); });
+    document.body.appendChild(pop);
+    var w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(x, window.scrollX + document.documentElement.clientWidth - w - 8)) + "px";
+    pop.style.top = Math.max(8, Math.min(y, window.scrollY + document.documentElement.clientHeight - h - 8)) + "px";
+    area.focus();
+  }
+  document.querySelector("main").addEventListener("contextmenu", function(e){
+    if(e.shiftKey) return;
+    var t = targetOf(e.target);
+    if(!t) return;
+    e.preventDefault();
+    showPop(t, e.pageX, e.pageY);
+  });
+  document.addEventListener("mousedown", function(e){ if(pop && !pop.contains(e.target)) hidePop(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") hidePop(); });
+  function markCommented(){
+    tp.querySelectorAll("details.kr").forEach(function(d){
+      var id = d.getAttribute("data-kr");
+      d.toggleAttribute("data-commented", comments.some(function(c){ return c.kr === id && c.section === "KR целиком"; }));
+    });
+    tp.querySelectorAll(".step[data-kr]").forEach(function(n){
+      var kr = findKr(n.getAttribute("data-kr")), s = kr && kr.steps[+n.getAttribute("data-i")];
+      n.toggleAttribute("data-commented", !!s && comments.some(function(c){
+        return c.kr === kr.id && c.section === "Подзадача" && c.quote === stepQuote(s);
+      }));
+    });
+  }
+  function agentPrompt(){
+    var lines = ["Комментарии к " + DATA.file + " — поправь JSON по каждому пункту:", ""];
+    comments.forEach(function(c, n){
+      lines.push((n + 1) + ". " + where(c) + (c.quote ? " — «" + c.quote + "»" : "") + ": " + c.text);
+    });
+    if(dirty) lines.push("", "На странице есть правки — PO пришлёт и файл из «Скачать JSON»: сначала положи его.");
+    lines.push("", "После правок прогони okr-plan.py lint и render и отчитайся по каждому пункту.");
+    return lines.join("\n");
+  }
+  var basketBox = document.getElementById("tpNotesBox");
+  document.getElementById("tpNotesBtn").onclick = function(){ basketBox.hidden = !basketBox.hidden; };
+  document.addEventListener("mousedown", function(e){ if(!notesBox.contains(e.target) && !(pop && pop.contains(e.target))) basketBox.hidden = true; });
+  function renderNotes(){
+    notesBox.hidden = !comments.length;
+    if(!comments.length) basketBox.hidden = true;
+    document.getElementById("tpNotesN").textContent = comments.length;
+    var list = document.getElementById("tpNotesList");
+    list.innerHTML = "";
+    comments.forEach(function(c){
+      var item = node("div", "item");
+      item.appendChild(node("div", "where", where(c)));
+      if(c.quote) item.appendChild(node("div", "quote", c.quote));
+      item.appendChild(node("div", "", c.text));
+      var del = node("button", "", "удалить");
+      del.type = "button";
+      del.onclick = function(){ comments = comments.filter(function(z){ return z !== c; }); persistComments(); };
+      item.appendChild(del);
+      list.appendChild(item);
+    });
+    markCommented();
+  }
+  document.getElementById("tpNotesCopy").onclick = function(){
+    var b = this, txt = agentPrompt();
+    function done(){ b.textContent = "Скопировано"; setTimeout(function(){ b.textContent = "Скопировать для агента"; }, 1500); }
+    function fallback(){
+      var t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); done(); } catch(e){} t.remove();
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback);
+    else fallback();
+  };
+  document.getElementById("tpNotesSave").onclick = function(){
+    download({file: DATA.file, comments: comments}, DATA.file.replace(/\.json$/, "") + ".comments.json");
+  };
+  document.getElementById("tpNotesClear").onclick = function(){
+    if(!comments.length || !confirm("Удалить все комментарии на этой странице?")) return;
+    comments = []; persistComments();
+  };
+
+  renderPeople();
+  render();
+  renderNotes();
+})();
+</script>
+<script>var k=document.querySelector('details.kr');if(k)k.setAttribute('open','')</script></body>
+</html>

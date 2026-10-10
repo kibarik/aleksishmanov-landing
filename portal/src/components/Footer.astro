@@ -1,0 +1,30 @@
+---
+import { SITE, SECTIONS, NAV, DIRECTION_INFO, PROFILES } from '../lib/site';
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="site-footer__grid">
+      <div>
+        <p class="site-footer__lead">{SITE.positioning}.</p>
+        <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+      </div>
+      <nav aria-label="Направления">
+        <h2>Направления</h2>
+        <ul>
+          {Object.values(DIRECTION_INFO).map((d) => <li><a href={d.path}>{d.title}</a></li>)}
+          <li><a href="/about/">Обо мне</a></li>
+          <li><a href="/call/">Созвониться</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Разделы в подвале">
+        <h2>Разделы</h2>
+        <ul>{NAV.map((k) => <li><a href={SECTIONS[k].path}>{SECTIONS[k].title}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Профили">
+        <h2>Профили</h2>
+        <ul>{PROFILES.map((p) => <li><a href={p.href} target="_blank" rel="noopener me">{p.label}</a></li>)}</ul>
+      </nav>
+    </div>
+    <p class="site-footer__copy">© {new Date().getFullYear()} {SITE.name} · <a href="/rss.xml">RSS</a> · <a href="/llms.txt">llms.txt</a></p>
+  </div>
+</footer>

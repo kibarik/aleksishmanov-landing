@@ -204,7 +204,9 @@ export async function expectSectionsMatchContent(page, content) {
     await expect(links).toHaveCount(p.links.length);
     for (const [j, l] of p.links.entries()) {
       await expect(links.nth(j)).toHaveAttribute('href', l.href);
-      await expect(links.nth(j)).toHaveAttribute('target', '_blank');
+      // внешние площадки — в новой вкладке, страницы сайта — в той же
+      if (/^https?:/.test(l.href)) await expect(links.nth(j)).toHaveAttribute('target', '_blank');
+      else await expect(links.nth(j)).not.toHaveAttribute('target', '_blank');
       await expect(links.nth(j)).toContainText(l.label);
     }
   }

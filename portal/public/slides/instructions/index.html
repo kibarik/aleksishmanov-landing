@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Инструкции практикума</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="docs-header"><a class="brand" href="../">slides.aleksishmanov.ru</a><span class="step">Практикум</span></header>
+  <main class="catalog-page">
+    <h1>Инструкции</h1>
+    <p>Шесть последовательных шагов от установки Claude Code до первого запроса к GLM.</p>
+    <div class="all-guides" id="guides"></div>
+  </main>
+  <script src="guide-data.js"></script>
+  <script>document.querySelector('#guides').innerHTML=Object.entries(GUIDES).map(([id,g])=>`<a class="guide-link" href="${id}/"><strong>${g.number}. ${g.title}</strong><span>${g.lead}</span></a>`).join('')</script>
+</body>
+</html>

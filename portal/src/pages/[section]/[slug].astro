@@ -1,0 +1,69 @@
+---
+// Страница материала. Презентации сюда не входят: это готовые HTML-страницы в public/slides/.
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { render } from 'astro:content';
+import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
+import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
+import { graph, article, breadcrumbs } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const all = (await Promise.all(PAGED.map(list))).flat();
+  return all.map((m) => ({ params: { section: m.collection, slug: m.id }, props: { m } }));
+}
+const { m } = Astro.props as { m: Material };
+const info = SECTIONS[m.collection];
+const { Content } = await render(m);
+const url = `${SITE.url}${urlFor(m)}`;
+const minutes = readingTime(m.body);
+const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
+  .filter((x) => x.id !== m.id && x.data.directions.some((d) => m.data.directions.includes(d)))
+  .slice(0, 3);
+const sourceLabel = SOURCE_LABEL[m.data.source];
+---
+<Base title={m.data.title} description={m.data.description} type="article" image={m.data.cover} current={m.collection}
+  jsonld={graph(article({ title: m.data.title, description: m.data.description, url, date: m.data.date, image: m.data.cover, section: info.title }),
+    breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }, { name: m.data.title, url: urlFor(m) }]))}>
+  <link slot="head" rel="alternate" type="text/markdown" href={`${info.path}${m.id}.md`} />
+  <article class="article">
+    <p class="crumbs"><a href="/">Главная</a> / <a href={info.path}>{info.title}</a></p>
+    <header class="article__head">
+      <p class="eyebrow">{info.one}{m.data.category && ` · ${m.data.category}`}</p>
+      <h1>{m.data.title}</h1>
+      <p class="article__meta">
+        <span>{SITE.name}</span>
+        <time datetime={m.data.date.toISOString()}>{formatDate(m.data.date)}</time>
+        {m.collection !== 'prompts' && <span>{minutes} мин чтения</span>}
+        {m.data.directions.map((d) => <a class="chip chip--dir" href={DIRECTION_INFO[d].path}>{DIRECTION_INFO[d].short}</a>)}
+      </p>
+    </header>
+    {m.collection === 'prompts' && <button class="btn btn--ghost copy-btn" type="button" data-copy>Скопировать промт</button>}
+    {m.data.repo && <p><a class="btn" href={m.data.repo} target="_blank" rel="noopener">Репозиторий ↗</a></p>}
+    <div class="prose"><Content /></div>
+    {(sourceLabel || m.data.also_in.length > 0) && (
+      <p class="note">
+        {sourceLabel && m.data.source_url && <>Впервые опубликовано: <a href={m.data.source_url} target="_blank" rel="noopener">{sourceLabel}</a>. </>}
+        {m.data.also_in.length > 0 && <>Обсуждения: {m.data.also_in.map((u, i) => <>{i > 0 && ', '}<a href={u} target="_blank" rel="noopener">{u.replace(/^https:\/\//, '')}</a></>)}.</>}
+      </p>
+    )}
+    <aside class="cta">
+      <p>Нужна помощь с запуском продукта или внедрением ИИ в команде? Напишите — разберём вашу задачу.</p>
+      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+    </aside>
+  </article>
+  {related.length > 0 && (
+    <section class="wrap">
+      <h2>Читать дальше</h2>
+      <ul class="grid">{related.map((r) => <Card m={r} showType />)}</ul>
+    </section>
+  )}
+  {m.collection === 'prompts' && (
+    <script>
+      const btn = document.querySelector<HTMLButtonElement>('[data-copy]');
+      btn?.addEventListener('click', async () => {
+        const code = document.querySelector('.prose pre code')?.textContent || '';
+        try { await navigator.clipboard.writeText(code); btn.textContent = 'Скопировано'; } catch { btn.textContent = 'Не удалось — выделите текст вручную'; }
+      });
+    </script>
+  )}
+</Base>

@@ -1,0 +1,48 @@
+---
+// Список раздела: блог, разборы, инструменты, промты, презентации, кейсы.
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { list } from '../../lib/materials';
+import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../../lib/site';
+import { graph, breadcrumbs } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return (Object.keys(SECTIONS) as CollectionName[]).map((section) => ({ params: { section } }));
+}
+const section = Astro.params.section as CollectionName;
+const info = SECTIONS[section];
+const items = await list(section);
+// промты — по разделам каталога, как было на prompts.aleksishmanov.ru
+const groups = section === 'prompts'
+  ? [...new Set(items.map((m) => m.data.category || 'Другое'))].map((c) => ({ title: c, items: items.filter((m) => (m.data.category || 'Другое') === c) }))
+  : [{ title: '', items }];
+const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-');
+---
+<Base title={`${info.title}: ${SITE.short}`} description={`${info.lead} ${items.length ? `Материалов: ${items.length}.` : ''}`} current={section}
+  jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: info.title, description: info.lead, url: `${SITE.url}${info.path}` })}>
+  <div class="wrap">
+    <p class="crumbs"><a href="/">Главная</a> / {info.title}</p>
+    <header class="page-head">
+      <h1>{info.title}</h1>
+      <p class="lead">{info.lead}</p>
+      <ul class="chips">
+        {Object.values(DIRECTION_INFO).map((d) => <li><a class="chip" href={d.path}>{d.title}</a></li>)}
+        {section === 'prompts' && groups.map((g) => <li><a class="chip" href={`#${anchor(g.title)}`}>{g.title} · {g.items.length}</a></li>)}
+      </ul>
+    </header>
+    {items.length === 0 && (
+      <div class="note">
+        <p>{section === 'cases'
+          ? 'Здесь будут разборы моих собственных запусков и внедрений ИИ — с целью, шагами и цифрами. Первые кейсы готовятся. Пока можно посмотреть разборы инструментов и презентации практикумов.'
+          : 'Материалы скоро появятся.'}</p>
+        <p><a href="/reviews/">Разборы</a> · <a href="/slides/">Презентации</a> · <a href={SITE.contact.href}>Обсудить вашу задачу</a></p>
+      </div>
+    )}
+    {groups.map((g) => (
+      <section id={g.title ? anchor(g.title) : undefined}>
+        {g.title && <h2>{g.title}</h2>}
+        <ul class="grid">{g.items.map((m) => <Card m={m} />)}</ul>
+      </section>
+    ))}
+  </div>
+</Base>
