@@ -40,7 +40,7 @@ dom.askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
 
 // Тёмная секция: пока она в кадре, шапка светлая; текст приезжает при входе в зону видимости
-const intro = document.getElementById('about');
+const intro = document.getElementById('intro');
 new IntersectionObserver((entries) => {
   for (const e of entries) {
     document.body.classList.toggle('is-intro-visible', e.isIntersecting);

@@ -103,7 +103,8 @@ export function boot3d({ preset, dom, analytics }) {
   window.addEventListener('loader:done', finish, { once: true });
 
   createScene(canvas, { name: content.name, preset })
-    .then((s) => {
+    .then(async (s) => {
+      await s.warm(); // шейдеры компилируются параллельно, поток свободен для лоадера
       app = s; app.start(); window.__app = app; installCompare(app);
       window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
       if (loader.classList.contains('loader--out')) finish();
