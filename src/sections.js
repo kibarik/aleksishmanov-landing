@@ -35,23 +35,17 @@ function card(p) {
 }
 
 export function renderSections(content, { latest = [] } = {}) {
-  const { intro, about, projects, contact, footer } = content;
+  const { about, projects, contact, footer } = content;
   return `
-    <section class="intro" id="intro">
+    <section class="intro about" id="about">
       <div class="intro__sticky">
         <div class="intro__inner">
-          <h2 class="intro__title">${esc(content.offer)}</h2>
-          <p class="intro__lead">${esc(intro.lead)}</p>
-          <p class="intro__name">${esc(intro.name)}</p>
-          <p class="intro__role">${esc(intro.role)}</p>
+          <h2 class="section__label">${esc(about.title)}</h2>
+          <p class="about__offer">${esc(content.offer)}</p>
+          <p class="about__since">${esc(about.since)}</p>
+          <dl class="timeline">${about.timeline.map(({ year, text }) => `<div class="timeline__row"><dt>${esc(year)}</dt><dd>${esc(text)}</dd></div>`).join('')}</dl>
         </div>
       </div>
-    </section>
-    <section class="section about" id="about">
-      <h2 class="section__label">${esc(about.title)}</h2>
-      <p class="about__offer">${esc(content.offer)}</p>
-      <p class="about__since">${esc(about.since)}</p>
-      <dl class="timeline">${about.timeline.map(({ year, text }) => `<div class="timeline__row"><dt>${esc(year)}</dt><dd>${esc(text)}</dd></div>`).join('')}</dl>
     </section>
     <section class="section projects" id="projects">
       <h2 class="section__label">${esc(projects.title)}</h2>
