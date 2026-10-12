@@ -38,10 +38,10 @@ const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-');
         <p><a href="/reviews/">Разборы</a> · <a href="/slides/">Презентации</a> · <a href={SITE.contact.href}>Обсудить вашу задачу</a></p>
       </div>
     )}
-    {groups.map((g) => (
+    {groups.map((g, gi) => (
       <section id={g.title ? anchor(g.title) : undefined}>
         {g.title && <h2>{g.title}</h2>}
-        <ul class="grid">{g.items.map((m) => <Card m={m} />)}</ul>
+        <ul class="grid">{g.items.map((m, i) => <Card m={m} heading={g.title ? 'h3' : 'h2'} eager={gi === 0 && i === 0} priority={gi === 0 && i === 0} />)}</ul>
       </section>
     ))}
   </div>

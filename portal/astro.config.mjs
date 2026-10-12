@@ -7,7 +7,8 @@ export default defineConfig({
   site: 'https://aleksishmanov.ru',
   trailingSlash: 'always',
   outDir: '../dist-portal',
-  build: { format: 'directory' },
+  // CSS — внутри HTML: внешний файл блокировал первую отрисовку (PageSpeed: render-blocking)
+  build: { format: 'directory', inlineStylesheets: 'always' },
   // главная собирается Vite, но в sitemap она нужна первой
   integrations: [sitemap({ customPages: ['https://aleksishmanov.ru/'], filter: (page) => !page.includes('/404') })],
   markdown: { shikiConfig: { theme: 'github-light', wrap: true } },

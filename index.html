@@ -21,6 +21,8 @@
     :root { --black: #0a0a0a; }
     html, body { margin: 0; background: var(--black); color: #fff; font-family: 'Manrope', system-ui, sans-serif; }
     body.is-loading { overflow: hidden; height: 100vh; height: 100svh; }
+    /* без WebGL лоадера нет: фиксация высоты на время загрузки только давала сдвиг всей страницы (CLS ~0,7) при её снятии */
+    html[data-webgl="off"] body.is-loading { overflow: visible; height: auto; }
     .loader { position: fixed; inset: 0; z-index: 50; background: var(--black); color: #fff; display: grid; place-items: center; transition: opacity 1s ease, visibility 1s; }
     .loader--done { opacity: 0; visibility: hidden; }
     .loader__inner { display: flex; flex-direction: column; align-items: center; gap: 28px; perspective: 900px; }

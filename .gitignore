@@ -12,3 +12,7 @@ tests/shots/
 public/ref/
 dist-portal
 portal/.astro
+
+# превью обложек портала — генерирует scripts/portal-thumbs.mjs при сборке
+portal/public/_t/
+portal/src/.thumbs.json
