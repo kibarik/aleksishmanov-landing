@@ -19,6 +19,9 @@ test('desktop: сцена вне экрана не рисует, при возв
   await page.evaluate(() => document.getElementById('footer').scrollIntoView());
   await page.waitForTimeout(500);
   expect(await framesIn(page, 1000)).toBe(0);
+  // снимок кадра (прод-смоук, сравнение с референсом) на паузе не зависает: кадр рисуется по запросу
+  const png = await page.evaluate(() => Promise.race([window.__capturePng(), new Promise((r) => setTimeout(() => r(''), 3000))]));
+  expect(png.length, 'снимок на паузе').toBeGreaterThan(5000);
 
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(500);

@@ -623,7 +623,11 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     },
     attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); warmShadows(8); },
     onTimeline(fn) { listeners.add(fn); },
-    capture() { return new Promise((res) => { captureCb = res; }); },
+    capture() {
+      // на паузе (канвас вне кадра) цикл стоит — кадр для снимка рисуется по запросу
+      if (!onScreen) { composer.render(); return Promise.resolve(readPixels()); }
+      return new Promise((res) => { captureCb = res; });
+    },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },
     lightsOn() { lightOnAt = clock.getElapsedTime(); warmShadows(150); }, // свет разгорается 2.2 с
     gtao, grainPass, glitchPass, composer, tl,
