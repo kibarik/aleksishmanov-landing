@@ -1,17 +1,7 @@
 ---
 // Каркас каждой страницы портала: метатеги для поиска и превью, редирект со старых доменов,
 // шапка, подвал. Главная (3D-лендинг) живёт отдельно — index.html в корне репозитория.
-// шрифты — только латиница и кириллица (полный набор подмножеств раздувал CSS ~в два раза)
-import '@fontsource/manrope/latin-400.css';
-import '@fontsource/manrope/cyrillic-400.css';
-import '@fontsource/manrope/latin-600.css';
-import '@fontsource/manrope/cyrillic-600.css';
-import '@fontsource/onest/latin-500.css';
-import '@fontsource/onest/cyrillic-500.css';
-import '@fontsource/onest/latin-600.css';
-import '@fontsource/onest/cyrillic-600.css';
-import '@fontsource/montserrat/latin-900.css';
-import '@fontsource/montserrat/cyrillic-900.css';
+import fontsHref from '../styles/fonts.css?url';
 import '../styles/global.css';
 import hostRedirect from '../../../shared/host-redirect.js?raw';
 import Header from '../components/Header.astro';
@@ -55,6 +45,13 @@ const ogImage = new URL(image, SITE.url).toString();
   <link rel="alternate" type="application/rss+xml" title={`${SITE.name}: новые материалы`} href="/rss.xml" />
   <link rel="sitemap" href="/sitemap-index.xml" />
   {jsonld && <script type="application/ld+json" set:html={jsonld} />}
+  <!-- шрифты — после загрузки страницы (styles/fonts.css): текст сначала системным шрифтом, потом подмена -->
+  <script is:inline define:vars={{ fontsHref }}>
+    window.addEventListener('load', function () {
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = fontsHref; document.head.appendChild(l);
+    });
+  </script>
+  <noscript><link rel="stylesheet" href={fontsHref} /></noscript>
   <slot name="head" />
 </head>
 <body>

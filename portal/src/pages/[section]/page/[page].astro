@@ -1,0 +1,18 @@
+---
+// Страницы 2…N длинного раздела: /<раздел>/page/<n>/ (первая — /<раздел>/).
+import SectionPage from '../../../components/SectionPage.astro';
+import { list } from '../../../lib/materials';
+import { SECTIONS, type CollectionName } from '../../../lib/site';
+import { pageCount, paged } from '../../../lib/paging';
+
+export async function getStaticPaths() {
+  const out = [];
+  for (const section of Object.keys(SECTIONS) as CollectionName[]) {
+    if (!paged(section)) continue;
+    const total = pageCount((await list(section)).length);
+    for (let page = 2; page <= total; page++) out.push({ params: { section, page: String(page) } });
+  }
+  return out;
+}
+---
+<SectionPage section={Astro.params.section as CollectionName} page={Number(Astro.params.page)} />
