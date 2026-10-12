@@ -93,8 +93,13 @@ export const content = {
     anchors: [
       { label: 'Обо мне', href: '#about' },
       { label: 'Направления', href: '#projects' },
-      { label: 'Написать', href: '#contact' },
     ],
+    /** Страницы портала в крупных пунктах после якорей. */
+    pages: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.cases],
+    /** Строка под кнопкой «Написать». */
+    social: { label: 'Telegram', handle: '@kibarik', href: TELEGRAM_DM },
+    /** Ссылка внизу панели. */
+    home: { label: '< На главную', href: '/' },
   },
 
   /** Яндекс.Метрика: идентификатор счётчика и цели. */
