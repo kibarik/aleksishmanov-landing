@@ -69,7 +69,7 @@ new IntersectionObserver((entries) => {
   }
 }, { threshold: 0.25 }).observe(footer);
 
-// Кнопка «наверх» в футере; шум панели рисуется, пока футер в кадре (см. footerNoise.js)
+// Кнопка «наверх» в футере: плавно к началу страницы
 document.querySelector('[data-footer-up]').addEventListener('click', (e) => {
   e.preventDefault();
   window.scrollTo({ top: 0, behavior: 'smooth' });

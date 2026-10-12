@@ -23,8 +23,10 @@ export function mountFooterNoise(canvas) {
 
   return {
     start() {
-      if (timer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { if (!timer) draw(); return; }
+      if (timer) return;
       draw();
+      // без анимации — один статичный кадр зерна
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       timer = setInterval(draw, 80);
     },
     stop() { clearInterval(timer); timer = 0; },

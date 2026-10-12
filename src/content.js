@@ -97,14 +97,14 @@ export const content = {
   },
 
   /**
-   * Футер — по образцу bersus.io: слева прокручиваемая карточка с группами (заголовок-ссылка раздела
-   * + список материалов), справа блоки-заголовки, призыв «Написать», соцсети и подпись.
+   * Футер повторяет футер референса: слева прокручиваемая карточка с группами (заголовок-ссылка раздела
+   * + список материалов), справа блоки-заголовки, призыв «Написать», профили и подпись.
    * Структура — по плану сайта («aleksishmanov.ru — архитектура сайта и контент-план»):
    * два направления (/ai-in-business, /startups), /tools, /blog, /cases, /slides, /prompts.
-   * Пути без своего домена — страницы будущего хаба: пока они не опубликованы, ссылки ведут на лендинг.
+   * Внутренние ссылки ведут на страницы портала; внешние открываются в новой вкладке со стрелкой.
    */
   footer: {
-    copyright: 'Aleks Ishmanov',
+    copyright: 'Алексей Ишманов',
     groups: [
       {
         title: 'ИИ в бизнесе',
@@ -124,7 +124,7 @@ export const content = {
         links: [
           { label: 'Хостинг для прототипов', href: '/blog/razmeschenie-za-1r-mes-dlya-vayb-koderov/' },
           { label: 'Wedge-стратегия', href: '/blog/wedge-strategy/' },
-          { label: 'Bullseye: 19 каналов', href: '/blog/19-distribution-channels/' },
+          { label: '19 каналов дистрибуции', href: '/blog/19-distribution-channels/' },
           { label: 'Метрика North Star', href: '/blog/nsm-metric/' },
           { label: 'Холодный старт продукта', href: '/blog/product-leaks-cold-start/' },
         ],
@@ -152,8 +152,8 @@ export const content = {
         title: 'Блог',
         href: '/blog/',
         links: [
-          { label: 'Bullseye', href: '/blog/bullseye-framework/' },
-          { label: 'Wedge', href: '/blog/wedge-strategy/' },
+          { label: 'Bullseye Framework', href: '/blog/bullseye-framework/' },
+          { label: 'Community-Led Growth', href: '/blog/community-led-growth/' },
           { label: 'A/B-тесты', href: '/blog/a-b-math-basics/' },
           { label: 'Bus Factor', href: '/blog/bus-factor-leak/' },
           { label: 'Метрики удержания', href: '/blog/retention-metrics/' },
@@ -163,16 +163,16 @@ export const content = {
         ],
       },
     ],
-    /** Правая колонка: блок с описанием (desc) или со списком ссылок (links). */
+    /** Правая колонка: блок с описанием (desc) или со списком ссылок (links); mark — значок «::» перед заголовком. */
     blocks: [
-      { title: ':: Кейсы', href: '/cases/', desc: 'Запуски и внедрения: ситуация, решение, цифры.' },
-      { title: 'Промты', href: RESOURCES.prompts.href, external: false, desc: 'AI-промты руководителя: готовые шаблоны для работы.' },
+      { title: 'Кейсы', href: '/cases/', mark: true, desc: 'Запуски и внедрения: ситуация, решение, цифры.' },
+      { title: 'Промты', href: RESOURCES.prompts.href, desc: 'AI-промты руководителя: готовые шаблоны для работы.' },
       {
         title: 'Каналы',
         links: [
           { label: 'PO-нейробаза', href: RESOURCES.corporateAi.href },
           { label: 'PMF-стратегии', href: RESOURCES.aiPmf.href },
-          { label: 'Open source обзоры', href: 'https://t.me/ai_ossresearch' },
+          { label: 'Разборы', href: 'https://t.me/ai_ossresearch' },
           { label: 'Сообщество', href: 'https://t.me/ai_prodresearch' },
           { label: 'Threads', href: RESOURCES.threads.href },
         ],
@@ -182,15 +182,15 @@ export const content = {
         href: '/about/',
         links: [
           { label: 'Практика', href: '#about' },
-          { label: 'Проекты', href: '#projects' },
+          { label: 'Направления', href: '#projects' },
           { label: 'Презентации', href: RESOURCES.slides.href },
           { label: 'Написать', href: '#contact' },
         ],
       },
     ],
-    /** Блок соцсетей под кнопкой: заголовок и иконки (icon — ключ в sections.js). */
-    social: {
-      title: 'Соцсети',
+    /** Профили под кнопкой: заголовок и иконки (icon — ключ ICONS в sections.js). */
+    profiles: {
+      title: 'Профили',
       items: [
         { label: 'Telegram', href: TELEGRAM_DM, icon: 'telegram' },
         { label: 'Threads', href: RESOURCES.threads.href, icon: 'threads' },

@@ -4,8 +4,10 @@
  */
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+/** Атрибуты ссылки на внешнюю площадку: новая вкладка без доступа к opener. */
+const NEW_TAB = 'target="_blank" rel="noopener noreferrer"';
 /** Внешняя ссылка на ресурс: новая вкладка, стрелка. */
-const externalLink = (link, cls) => `<a class="${cls}" href="${esc(link.href)}" target="_blank" rel="noopener noreferrer">${esc(link.label)}<span aria-hidden="true"> ↗</span></a>`;
+const externalLink = (link, cls) => `<a class="${cls}" href="${esc(link.href)}" ${NEW_TAB}>${esc(link.label)}<span aria-hidden="true"> ↗</span></a>`;
 /** Ссылка карточки: страница сайта — в той же вкладке, внешняя площадка — в новой. */
 const cardLink = (link, cls) => /^https?:/.test(link.href) ? externalLink(link, cls) : `<a class="${cls}" href="${esc(link.href)}">${esc(link.label)}<span aria-hidden="true"> →</span></a>`;
 
@@ -22,10 +24,8 @@ function latestSection(latest) {
     </section>`;
 }
 
-/** Ссылка футера: внешняя — в новой вкладке, внутренняя (якорь или путь сайта) — в той же. */
-const footerLink = (l, cls) => /^https?:/.test(l.href)
-  ? `<a class="${cls}" href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`
-  : `<a class="${cls}" href="${esc(l.href)}">${esc(l.label)}</a>`;
+/** Ссылка футера: внешняя — как везде (новая вкладка, ↗), внутренняя — без стрелки, как у референса. */
+const footerLink = (link, cls) => /^https?:/.test(link.href) ? externalLink(link, cls) : `<a class="${cls}" href="${esc(link.href)}">${esc(link.label)}</a>`;
 
 const ICONS = {
   up: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10.5"/><path d="M12 17V7M7.5 11.5 12 7l4.5 4.5"/></svg>',
@@ -89,19 +89,19 @@ export function renderSections(content, { latest = [] } = {}) {
             <div class="footer__blocks">
               ${footer.blocks.map((b) => `
                 <nav class="footer__column" aria-label="${esc(b.title)}">
-                  <p class="footer__column-title">${b.href ? footerLink({ label: b.title, href: b.href }, 'footer__title-link') : esc(b.title)}</p>
+                  <p class="footer__column-title${b.mark ? ' footer__column-title--mark' : ''}">${b.href ? footerLink({ label: b.title, href: b.href }, 'footer__title-link') : esc(b.title)}</p>
                   ${b.desc ? `<p class="footer__desc">${esc(b.desc)}</p>` : ''}
                   ${b.links ? `<ul class="footer__sublinks">${b.links.map((l) => `<li>${footerLink(l, 'footer__link')}</li>`).join('')}</ul>` : ''}
                 </nav>`).join('')}
             </div>
-            <div class="footer__bottom">
-              <div class="nice-btn"><a class="footer__btn" href="${esc(contact.href)}" target="_blank" rel="noopener noreferrer"><span class="footer__btn-text">${esc(contact.title)}</span></a></div>
-              <div class="footer__social">
-                <p class="footer__desc">${esc(footer.social.title)}</p>
-                <ul class="footer__social-list">${footer.social.items.map((i) => `<li><a class="footer__social-link" href="${esc(i.href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(i.label)}">${ICONS[i.icon]}</a></li>`).join('')}</ul>
-              </div>
-              <p class="footer__copy">© ${new Date().getFullYear()} ${esc(footer.copyright)}</p>
+          </div>
+          <div class="footer__bottom">
+            <div class="nice-btn"><a class="footer__btn" href="${esc(contact.href)}" ${NEW_TAB}><span class="footer__btn-text">${esc(contact.title)}</span></a></div>
+            <div class="footer__profiles">
+              <p class="footer__desc">${esc(footer.profiles.title)}</p>
+              <ul class="footer__profiles-list">${footer.profiles.items.map((i) => `<li><a class="footer__profile-link" href="${esc(i.href)}" ${NEW_TAB} aria-label="${esc(i.label)}">${ICONS[i.icon]}</a></li>`).join('')}</ul>
             </div>
+            <p class="footer__copy">© ${esc(footer.copyright)}, ${new Date().getFullYear()}</p>
           </div>
         </div>
         <canvas class="footer__noise" id="footer-noise" aria-hidden="true"></canvas>
