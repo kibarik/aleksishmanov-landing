@@ -1,4 +1,11 @@
-:root { --black: #0a0a0a; --font: 'Manrope', system-ui, sans-serif; --display: 'Montserrat', 'Manrope', system-ui, sans-serif; --tagline: 'Onest', 'Manrope', system-ui, sans-serif; }
+/* Запасные шрифты с метриками фирменных (size-adjust/ascent/descent; посчитано по @capsizecss/metrics 4.2.0
+   относительно Arial): шрифты подключаются после загрузки страницы (src/fonts.js), и подмена не должна
+   перестраивать строки — иначе PageSpeed видит позднее изменение экрана (Speed Index). То же в портале. */
+@font-face { font-family: 'Manrope Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 103.19%; ascent-override: 103.31%; descent-override: 29.07%; line-gap-override: 0%; }
+@font-face { font-family: 'Onest Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 105.20%; ascent-override: 92.20%; descent-override: 28.99%; line-gap-override: 0%; }
+@font-face { font-family: 'Montserrat Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 112.83%; ascent-override: 85.79%; descent-override: 22.25%; line-gap-override: 0%; }
+@font-face { font-family: 'Cal Sans Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 99.15%; ascent-override: 100.86%; descent-override: 30.26%; line-gap-override: 0%; }
+:root { --black: #0a0a0a; --font: 'Manrope', 'Manrope Fallback', system-ui, sans-serif; --display: 'Montserrat', 'Montserrat Fallback', 'Manrope', system-ui, sans-serif; --tagline: 'Onest', 'Onest Fallback', 'Manrope', system-ui, sans-serif; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--black); color: #fff; font-family: var(--font); }
 /* svh: на мобильных браузерах с исчезающей панелью адреса 100vh больше видимой области (как у референса) */
@@ -313,7 +320,7 @@ body.is-light .scroll-hint__mouse { filter: drop-shadow(0 0 8px rgba(249,249,249
 .menu__panel {
   --ink: #0b0b0b; --cta-w: 350px;
   position: absolute; inset: 0; background: #fff; color: var(--ink); isolation: isolate;
-  font-family: 'Cal Sans', var(--display); font-weight: 700; font-synthesis: none; opacity: 0; transition: opacity .3s ease-in-out;
+  font-family: 'Cal Sans', 'Cal Sans Fallback', var(--display); font-weight: 700; font-synthesis: none; opacity: 0; transition: opacity .3s ease-in-out;
   display: grid; grid-template-columns: 1fr var(--cta-w) 0; grid-template-rows: 4fr 150px 2fr;
 }
 .menu--open .menu__panel { opacity: 1; }
@@ -387,7 +394,7 @@ body.has-cursor:not(.is-menu-open) .menu-zone { cursor: none; } /* над зон
     background: #ffffffb8; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid #9a9a9a52; border-radius: 16px; color: #111;
     box-shadow: 0 1px 2px rgba(0,0,0,.02), 0 4px 8px rgba(0,0,0,.02), 0 16px 32px rgba(0,0,0,.04);
   }
-  .dock__btn { flex: 1; min-width: 0; padding: 10px 4px; text-align: center; font-family: 'Cal Sans', var(--display); font-size: 14px; color: #111; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock__btn { flex: 1; min-width: 0; padding: 10px 4px; text-align: center; font-family: 'Cal Sans', 'Cal Sans Fallback', var(--display); font-size: 14px; color: #111; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dock__menu { width: 44px; height: 44px; flex: none; background: none; border: 0; color: #111; cursor: pointer; display: grid; place-content: center; grid-template: 12px 12px / 12px 12px; }
   .dock__menu .ring { display: block; width: 10px; height: 10px; margin: auto; border: 3px solid currentColor; border-radius: 50%; box-sizing: border-box; }
   .dock__btn:focus-visible, .dock__menu:focus-visible { outline: 2px solid #111; outline-offset: -2px; border-radius: 12px; }
