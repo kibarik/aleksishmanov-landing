@@ -417,6 +417,9 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   }
   window.addEventListener('resize', scaleTitle);
   document.fonts?.load('900 400px Montserrat').then(layoutTitle).catch(() => {});
+  // шрифты сайта подключаются после загрузки страницы (fonts.js): если описаний Montserrat ещё не было,
+  // load() выше отработал вхолостую — перерисовываем имя, когда шрифт действительно пришёл
+  document.fonts?.addEventListener?.('loadingdone', () => { if (document.fonts.check('900 40px Montserrat')) layoutTitle(); });
 
   /** Mobile: один сегмент black-man → full, без глитча, орбита камеры, key light сразу после свапа. */
   function applyTimelineMobile(sticky) {

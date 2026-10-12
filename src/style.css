@@ -14,6 +14,14 @@ body { -webkit-font-smoothing: antialiased; }
 html[data-webgl="off"] .fallback { display: block; position: absolute; inset: 0; }
 html[data-webgl="off"] .fallback img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="off"] .scroll-hint { display: none; }
+/* Без WebGL первый экран — кадр белой сцены, теглайн, Ask и шапка — рисуется сразу из HTML и CSS,
+   не дожидаясь бандла и анимации появления (это LCP для PageSpeed: у его серверов нет GPU) */
+html[data-webgl="off"] .tagline { opacity: 1; }
+html[data-webgl="off"] .flip__word { opacity: 1; transform: none; transition: none; }
+html[data-webgl="off"] .ask { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+html[data-webgl="off"] .nav { opacity: 1; transform: none; }
+html[data-webgl="off"] body { background: #f9f9f9; }
+html[data-webgl="off"] body:not(.is-dark-section) .nav { color: #111; }
 .tagline {
   position: absolute; left: 0; right: 0; top: 14vh; top: 14svh; text-align: center; color: #111;
   font-family: var(--tagline); font-size: clamp(16px, 1.7vw, 24px); font-weight: 600; letter-spacing: -.01em;
@@ -65,7 +73,7 @@ html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="
 .intro--in .about__since { transition-delay: .18s; }
 .intro--in .timeline { transition-delay: .24s; }
 @media (prefers-reduced-motion: reduce) { .intro__inner > * { transition: none; } }
-.section__label { font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #777; margin-bottom: 28px; }
+.section__label { font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6b6b6b; margin-bottom: 28px; }
 .intro .section__label { color: rgba(255,255,255,.5); }
 .about__offer { font-family: var(--display); font-size: clamp(30px, 4.6vw, 64px); font-weight: 900; letter-spacing: -.025em; line-height: 1.05; max-width: 14em; margin-bottom: 56px; }
 .about__since { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 14px; }
@@ -76,7 +84,7 @@ html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="
 
 .cards { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .card { display: flex; flex-direction: column; gap: 14px; padding: 28px 26px 26px; background: #fff; border: 1px solid #e6e6e6; border-radius: 20px; }
-.card__direction { font-family: var(--display); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #777; }
+.card__direction { font-family: var(--display); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6b6b6b; }
 .card__title { font-family: var(--display); font-size: clamp(24px, 2vw, 30px); font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
 .card__essence { font-size: 16px; line-height: 1.5; color: #333; }
 .card__topics { list-style: none; display: grid; gap: 6px; padding-top: 6px; border-top: 1px solid #eee; font-size: 14px; line-height: 1.5; color: #444; counter-reset: topic; }
@@ -143,6 +151,8 @@ html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="
 .footer__card:hover .footer__card-arrow { opacity: 1; transform: none; }
 .footer__card-links, .footer__sublinks { list-style: none; }
 .footer__card-links li, .footer__sublinks li { line-height: 19.6px; }
+/* зона нажатия ссылки — 24 px по высоте (WCAG 2.5.8, аудит target-size): строка 19,6 + поля по 2,2 */
+.footer__link { display: inline-block; padding: 2.2px 0; }
 .footer__link { position: relative; z-index: 3; font-family: var(--font); font-size: 14px; font-weight: 300; line-height: 19.6px; color: #fff; text-decoration: none; }
 .footer__link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -441,7 +451,7 @@ body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
 .latest__list { list-style: none; margin: 24px 0 0; padding: 0; border-top: 1px solid rgba(10, 10, 10, .12); }
 .latest__item { display: flex; gap: 20px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid rgba(10, 10, 10, .12); text-decoration: none; color: inherit; }
 .latest__item:hover .latest__title { text-decoration: underline; }
-.latest__type { flex: 0 0 110px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .55; }
+.latest__type { flex: 0 0 110px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #6b6b6b; }
 .latest__title { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.35; }
 .latest__all { margin: 20px 0 0; font-size: 15px; }
 .latest__all a { color: inherit; }

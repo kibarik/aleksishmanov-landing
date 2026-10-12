@@ -1,23 +1,15 @@
-// Шрифты локально (без Google Fonts): детерминированная отрисовка имени на сцене и Lighthouse.
-// Полные css с unicode-range: браузер грузит только нужные сабсеты (латиница + кириллица).
-import '@fontsource/cal-sans/400.css';
-import '@fontsource/manrope/300.css';
-import '@fontsource/manrope/400.css';
-import '@fontsource/manrope/500.css';
-import '@fontsource/manrope/800.css';
-import '@fontsource/montserrat/600.css';
-import '@fontsource/montserrat/700.css';
-import '@fontsource/montserrat/900.css';
-import '@fontsource/onest/500.css';
-import '@fontsource/onest/600.css';
 import { content } from './content.js';
 import { mountSections } from './sections.js';
 import { mountFlipText } from './flipText.js';
 import { mountCursor } from './cursor.js';
 import { mountMenu, NO_SCENE_SCROLL } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
-import { installAnalytics } from './analytics.js';
 import { mountFooterNoise } from './footerNoise.js';
+
+// шрифты — после загрузки страницы, в свободное время (см. fonts.js)
+const loadFonts = () => (window.requestIdleCallback || setTimeout)(() => import('./fonts.js'), { timeout: 800 });
+if (document.readyState === 'complete') loadFonts();
+else window.addEventListener('load', loadFonts, { once: true });
 
 // Лендинг всегда начинается с первого экрана: липкий режим запрещает прокрутку, и восстановленная браузером
 // позиция (перезагрузка, автоперезагрузка при пропавшем чанке) оставляла посетителя на футере без секций.
@@ -108,7 +100,6 @@ function bootFallback() {
 }
 
 const noWebgl = document.documentElement.dataset.webgl === 'off';
-const analytics = installAnalytics(content.analytics, { hasScene: !noWebgl });
 
 /** Один раз перезагрузить страницу: обычно чанк пропал из-за свежего деплоя, а HTML в кеше старый. */
 const RETRY_KEY = 'scene-chunk-retry';
@@ -117,10 +108,9 @@ const markRetry = () => { try { sessionStorage.setItem(RETRY_KEY, '1'); } catch 
 
 if (noWebgl) {
   bootFallback();
-  analytics.whiteScene(); // кадр белой сцены — это и есть первый экран фолбэка
 } else {
   import('./boot3d.js')
-    .then((m) => { window.__bundleReady = true; return m.boot3d({ preset, dom, analytics }); })
+    .then((m) => { window.__bundleReady = true; return m.boot3d({ preset, dom }); })
     .catch((err) => {
       // Чанк сцены не приехал: во время деплоя старые имена файлов исчезают, а этот хостинг
       // отдаёт на них HTML с кодом 200 — импорт падает. Первый раз пробуем перезагрузиться
@@ -129,6 +119,5 @@ if (noWebgl) {
       if (!retried()) { markRetry(); location.reload(); return; }
       document.documentElement.dataset.webgl = 'off';
       bootFallback();
-      analytics.whiteScene();
     });
 }

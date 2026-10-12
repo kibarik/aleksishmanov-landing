@@ -14,7 +14,7 @@ import { mountMenu } from './menu.js';
  */
 const PARALLAX = 0.7;
 
-export function boot3d({ preset, dom, analytics }) {
+export function boot3d({ preset, dom }) {
   const { loader, pct, nav, hint, tagline, hero, askScene, canvas } = dom;
 
   let app = null;
@@ -112,7 +112,6 @@ export function boot3d({ preset, dom, analytics }) {
       window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
       if (loader.classList.contains('loader--out')) finish();
       app.onTimeline((tl) => {
-        if (tl.swapped) analytics?.whiteScene();
         tagline.classList.toggle('tagline--visible', tl.tagline);
         askScene.classList.toggle('ask--visible', tl.tagline);
         hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
