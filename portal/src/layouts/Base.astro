@@ -45,10 +45,13 @@ const ogImage = new URL(image, SITE.url).toString();
   <link rel="alternate" type="application/rss+xml" title={`${SITE.name}: новые материалы`} href="/rss.xml" />
   <link rel="sitemap" href="/sitemap-index.xml" />
   {jsonld && <script type="application/ld+json" set:html={jsonld} />}
-  <!-- шрифты — после загрузки страницы (styles/fonts.css): текст сначала системным шрифтом, потом подмена -->
+  <!-- шрифты (styles/fonts.css) — сразу после первого кадра: первая отрисовка их не ждёт (FCP), а подмена
+       текста происходит рано. После load было поздно: Speed Index 3,2 с при FCP 0,9 с -->
   <script is:inline define:vars={{ fontsHref }}>
-    window.addEventListener('load', function () {
-      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = fontsHref; document.head.appendChild(l);
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = fontsHref; document.head.appendChild(l);
+      }, 0);
     });
   </script>
   <noscript><link rel="stylesheet" href={fontsHref} /></noscript>
