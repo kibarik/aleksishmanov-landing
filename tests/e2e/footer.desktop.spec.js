@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { content } from '../../src/content.js';
 import { waitForPrelude, isInViewport } from './helpers.js';
 
-test('desktop: футер — отдельный тёмный экран с 3D-объектом', async ({ page }) => {
+test('desktop: футер — тёмная панель как у референса, с 3D-объектом', async ({ page }) => {
   await page.goto('/');
   await waitForPrelude(page);
   await page.evaluate(() => window.__sticky.release());
@@ -10,12 +10,20 @@ test('desktop: футер — отдельный тёмный экран с 3D-�
   await page.waitForTimeout(1500);
 
   expect(await isInViewport(page, '#footer')).toBe(true);
-  // тёмный экран во всю высоту и светлая шапка на нём
+  // панель не меньше 82% высоты экрана, с отступом 20px по бокам; светлая шапка на ней
   const box = await page.evaluate(() => {
-    const f = document.getElementById('footer').getBoundingClientRect();
-    return { h: f.height, vh: window.innerHeight };
+    const f = document.querySelector('#footer .footer__panel').getBoundingClientRect();
+    return { h: f.height, vh: window.innerHeight, left: f.left, w: f.width, vw: window.innerWidth };
   });
-  expect(box.h).toBeGreaterThanOrEqual(box.vh * 0.98);
+  expect(box.h).toBeGreaterThanOrEqual(box.vh * 0.82 - 1);
+  expect(Math.round(box.left)).toBe(20);
+  // левая карточка прокручивается внутри и не растягивает панель
+  const scroll = await page.evaluate(() => {
+    const s = document.querySelector('#footer [data-footer-scroll]');
+    return { scrollable: s.scrollHeight > s.clientHeight, cardH: s.parentElement.getBoundingClientRect().height };
+  });
+  expect(scroll.scrollable).toBe(true);
+  expect(scroll.cardH).toBeLessThan(box.h);
   expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(255, 255, 255)');
 
   // 3D-объект запустился и рисует кадры

@@ -1,6 +1,7 @@
 // Шрифты локально (без Google Fonts): детерминированная отрисовка имени на сцене и Lighthouse.
 // Полные css с unicode-range: браузер грузит только нужные сабсеты (латиница + кириллица).
 import '@fontsource/cal-sans/400.css';
+import '@fontsource/manrope/300.css';
 import '@fontsource/manrope/400.css';
 import '@fontsource/manrope/500.css';
 import '@fontsource/manrope/800.css';
@@ -16,6 +17,7 @@ import { mountCursor } from './cursor.js';
 import { mountMenu, NO_SCENE_SCROLL } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
 import { installAnalytics } from './analytics.js';
+import { mountFooterNoise } from './footerNoise.js';
 
 const dom = {
   loader: document.getElementById('loader'),
@@ -54,9 +56,11 @@ new IntersectionObserver((entries) => {
 // Футер тоже тёмный: шапка на нём светлая. 3D-объект живёт только пока футер в кадре.
 const footer = document.getElementById('footer');
 let footer3d = null;
+const footerNoise = mountFooterNoise(document.getElementById('footer-noise'));
 new IntersectionObserver((entries) => {
   for (const e of entries) {
     document.body.classList.toggle('is-footer-visible', e.isIntersecting);
+    if (e.isIntersecting) footerNoise.start(); else footerNoise.stop();
     document.body.classList.toggle('is-dark-section', e.isIntersecting || document.body.classList.contains('is-intro-visible'));
     if (document.documentElement.dataset.webgl === 'off' || preset === 'mobile') continue;
     if (e.isIntersecting) {
@@ -65,6 +69,12 @@ new IntersectionObserver((entries) => {
     } else footer3d?.then((s) => s.stop());
   }
 }, { threshold: 0.25 }).observe(footer);
+
+// Кнопка «наверх» в футере: плавно к началу страницы
+document.querySelector('[data-footer-up]').addEventListener('click', (e) => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 const preset = getDevicePreset();
 document.body.dataset.preset = preset;
