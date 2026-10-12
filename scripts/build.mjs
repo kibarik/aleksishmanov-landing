@@ -15,9 +15,9 @@ const PORTAL = path.join(ROOT, 'dist-portal');
 const run = (cmd) => execSync(cmd, { cwd: ROOT, stdio: 'inherit' });
 
 run('npx vite build');
-// превью обложек портала (webp 480/960) — до astro build: карточки читают манифест
+// превью картинок портала (webp) — до astro build: карточки и статьи читают манифест
 const thumbs = await buildThumbs();
-console.log(`превью обложек: ${thumbs.covers}, новых файлов: ${thumbs.made}`);
+console.log(`превью картинок: ${thumbs.images}, новых файлов: ${thumbs.made}`);
 run('npx astro build --root portal');
 
 const conflicts = [];
