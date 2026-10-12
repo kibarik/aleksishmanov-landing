@@ -19,6 +19,11 @@ import { getDevicePreset } from './stickyScroll.js';
 import { installAnalytics } from './analytics.js';
 import { mountFooterNoise } from './footerNoise.js';
 
+// Лендинг всегда начинается с первого экрана: липкий режим запрещает прокрутку, и восстановленная браузером
+// позиция (перезагрузка, автоперезагрузка при пропавшем чанке) оставляла посетителя на футере без секций.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
 const dom = {
   loader: document.getElementById('loader'),
   pct: document.getElementById('loader-pct'),
