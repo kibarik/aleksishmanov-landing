@@ -151,7 +151,10 @@ html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="
 .footer__scene, .footer__fallback { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .footer__fallback { display: none; object-fit: contain; opacity: .5; filter: grayscale(1) contrast(1.1); }
 html[data-webgl="off"] .footer__scene, body[data-preset="mobile"] .footer__scene { display: none; }
-html[data-webgl="off"] .footer__fallback, body[data-preset="mobile"] .footer__fallback { display: block; }
+html[data-webgl="off"] .footer__fallback { display: block; }
+/* облегчённый пресет (окно уже 1024 px, телефоны) 3D футера не запускает, а кадр-заглушка белой сцены
+   в тёмной панели — белое пятно: место объекта убираем */
+body[data-preset="mobile"] .footer__object { display: none; }
 
 /* справа сверху: блоки-заголовки */
 .footer__right { grid-column: 3; grid-row: 1; width: 420px; }
