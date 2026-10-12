@@ -77,6 +77,12 @@ const TITLE_MAX_FILL = 0.96;     // длинное имя ужимается д�
 const TITLE_FRAME_FILL = 0.84;   // desktop: буквы не шире этой доли видимой ширины кадра
 
 /** @param name {{ desktop: string, mobile: string }} имя по пресетам (content.name) */
+/** Отдать браузеру кадр: пока идёт тяжёлая синхронная работа, лоадер не должен замирать. Во фоновой вкладке rAF спит — страхуемся таймером. */
+const breathe = () => new Promise((resolve) => {
+  const t = setTimeout(resolve, 120);
+  requestAnimationFrame(() => { clearTimeout(t); setTimeout(resolve, 0); });
+});
+
 export async function createScene(canvas, { onProgress, name, preset = 'desktop' }) {
   const RENDER = RENDER_PRESET[preset] ?? RENDER_PRESET.desktop;
   RectAreaLightUniformsLib.init();
@@ -100,6 +106,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   scene.environmentIntensity = 0.1;
 
   const camera = new THREE.PerspectiveCamera(16, 1, 0.1, 60);
+  await breathe();
 
   // ---------- model ----------
   const draco = new DRACOLoader();
@@ -113,6 +120,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     : await new Promise((resolve, reject) => {
       loader.load(MODEL_URL[preset] ?? MODEL_URL.desktop, resolve, (e) => { if (e.total) onProgress?.(e.loaded / e.total); }, reject);
     });
+  await breathe();
   const root = gltf.scene;
   const PART = new URLSearchParams(location.search).get('part') || 'back';
   root.traverse((o) => { if (o.isMesh) o.geometry = keepHalf(o.geometry, PART === 'front' ? 1 : -1); });
@@ -120,8 +128,10 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   // ---------- materials ----------
   const grain = noiseTexture(512, 0.55, 0.72);
   grain.repeat.set(24, 24);
+  await breathe();
   const grainNormal = noiseNormalTexture(512, 2.0);
   grainNormal.repeat.set(24, 24);
+  await breathe();
   // Тёмная фаза: глянцевая «кожа». RectAreaLight в three не учитывает clearcoat → глянец в базовой roughness.
   const darkMat = new THREE.MeshPhysicalMaterial({
     color: 0x050505, roughness: 0.5, roughnessMap: grain, metalness: 0, clearcoat: 0,
@@ -141,6 +151,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   // Белая фаза: мраморная статуя. Без света читается чёрным силуэтом (как у bersus после свапа).
   const marbleAlbedo = marbleTexture(1024);
   marbleAlbedo.repeat.set(3, 3);
+  await breathe();
   const marbleNormal = noiseNormalTexture(512, 1.2);
   marbleNormal.repeat.set(4, 4);
   // Чистая поверхность: без шумовой roughnessMap и с очень слабым normal-зерном — иначе рябь на белом
@@ -580,17 +591,25 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
   // Прогрев шейдеров: материал статуи и белое окружение компилируются заранее, иначе свап
   // в середине перехода даёт длинный кадр на компиляции.
-  function precompile() {
+  let warmed = false;
+  async function precompile({ async = false } = {}) {
+    // тёмная сцена показывается первой — её шейдеры тоже греем заранее
+    if (async) await renderer.compileAsync(scene, camera).catch(() => {});
     const prev = meshes.map((m) => m.material);
     for (const m of meshes) m.material = statueMat;
     white.visible = true;
-    renderer.compile(scene, camera);
+    // compileAsync не блокирует поток (KHR_parallel_shader_compile): лоадер продолжает двигаться
+    if (async) await renderer.compileAsync(scene, camera).catch(() => renderer.compile(scene, camera));
+    else renderer.compile(scene, camera);
     white.visible = false;
     meshes.forEach((m, i) => { m.material = prev[i]; });
+    warmed = true;
   }
 
   return {
-    start() { running = true; precompile(); frame(); },
+    /** Прогрев шейдеров без блокировки потока; start() после него не компилирует повторно. */
+    warm() { return precompile({ async: true }); },
+    start() { running = true; if (!warmed) precompile(); frame(); },
     attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); warmShadows(8); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },
