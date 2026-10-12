@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -21,8 +22,6 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GrainShader } from './grainShader.js';
 import { GlitchShader } from './glitchShader.js';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -216,40 +215,45 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   title.position.set(0, 1.12, -0.9);
   title.castShadow = true;
   white.add(title);
-  // Пропсы вокруг пьедестала — вместо шахмат bersus: глянцевые чёрные глифы кода
-  const glyphMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 1.4 });
+  // Шахматы вокруг пьедестала (композиция bersus: две фигуры спереди по бокам, одна позади).
+  // Модели — tunakron, CC0 (public/models/chess/LICENSE.txt). Материал свой: чёрный лак.
+  const chessMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 1.4 });
   const props = [];
-  new FontLoader().load(`${BASE}fonts/helvetiker_bold.typeface.json`, (font) => {
-    const add = (ch, size, pos, rot) => {
-      const g = new TextGeometry(ch, { font, size, depth: size * 0.42, curveSegments: 10, bevelEnabled: true, bevelThickness: size * 0.03, bevelSize: size * 0.025, bevelSegments: 3 });
-      g.center();
-      const m = new THREE.Mesh(g, glyphMat);
-      m.position.set(...pos); m.rotation.set(...rot);
+  // z растёт к камере (она на +8.74): ближние фигуры у края кадра, дальняя за пьедесталом
+  const CHESS = [
+    { file: 'knight', pos: [-2.1, -PED_H, 0.5], rotY: -2.07, h: 0.72 }, // морда смотрит к центру кадра
+    { file: 'rook', pos: [2.3, -PED_H, 0.7], rotY: -0.3, h: 0.66 },
+    { file: 'queen', pos: [1.0, -PED_H, -2.2], rotY: 0.2, h: 0.85, mx: 1.9 }, // mx: дальняя не прячется за пьедесталом на узком кадре
+  ];
+  const chessLoader = new GLTFLoader();
+  Promise.all(CHESS.map((c) => chessLoader.loadAsync(`${BASE}models/chess/${c.file}.glb`))).then((gltfs) => {
+    gltfs.forEach((gltf, i) => {
+      const { pos, rotY, h: height, mx = 1 } = CHESS[i];
+      const src = gltf.scene.getObjectByProperty('isMesh', true);
+      const geo = toCreasedNormals(src.geometry.clone(), 0.7); // гладкий лак, рёбра остаются резкими
+      geo.computeBoundingBox();
+      const h = geo.boundingBox.max.y - geo.boundingBox.min.y;
+      const m = new THREE.Mesh(geo, chessMat);
+      const k = height / h;
+      m.scale.setScalar(k);
+      m.position.set(...pos); m.rotation.y = rotY;
       m.castShadow = true; m.receiveShadow = true;
-      m.userData.base = { pos: [...pos], size };
-      m.name = pos[2] > 1 ? 'glyph-near' : 'glyph-far'; // имя для тестов параллакса
+      m.userData.base = { pos: [...pos], size: height, k, mx };
+      m.name = pos[2] > 0 ? 'chess-near' : 'chess-far'; // имя для тестов параллакса
       white.add(m); props.push(m);
-      return m;
-    };
-    // Глубина кадра: ближние глифы крупные и у края, дальние мелкие и за пьедесталом.
-    // z растёт к камере (она на +8.74), поэтому размер задаётся вместе с z: ближний крупнее.
-    add('{', 0.55, [-1.85, -PED_H + 0.52, 2.1], [0.06, 0.42, -0.14]);   // передний план слева
-    add('}', 0.48, [1.9, -PED_H + 0.46, 1.6], [-0.05, -0.38, 0.12]);    // передний план справа
-    add(';', 0.3, [-1.15, -PED_H + 0.16, 0.5], [0, 0.55, 0]);           // средний план у пьедестала
-    add('<', 0.44, [-2.5, -PED_H + 0.24, -1.9], [0, 0.85, 0.05]);       // дальний слева, за именем
-    add('/', 0.46, [2.6, -PED_H + 0.06, -2.6], [Math.PI / 2, 0, 0.75]); // дальний справа, лежит
+    });
     layoutProps();
   });
   function layoutProps() {
-    // на мобильном кадр узкий: глифы ближе к оси и мельче, глубина сохраняется
+    // на мобильном кадр узкий: фигуры ближе к оси и мельче, глубина сохраняется
     const kx = preset === 'mobile' ? 0.42 : 1;
     const kz = preset === 'mobile' ? 0.7 : 1;
     for (const m of props) {
       const b = m.userData.base;
-      m.position.set(b.pos[0] * kx, b.pos[1] - (1 - kx) * b.size * 0.25, b.pos[2] * kz);
+      m.position.set(b.pos[0] * kx * (preset === 'mobile' ? b.mx : 1), b.pos[1] - (1 - kx) * b.size * 0.25, b.pos[2] * kz);
       m.userData.laidOutX = m.position.x;
       m.userData.laidOutY = m.position.y;
-      m.scale.setScalar(preset === 'mobile' ? 0.7 : 1);
+      m.scale.setScalar(b.k * (preset === 'mobile' ? 0.7 : 1));
     }
   }
 
@@ -557,7 +561,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     camTarget.copy(cam.tgt);
     camTarget.x += side * mouse.sx * MOUSE.tgtX * par;
     camTarget.y += -mouse.sy * MOUSE.tgtY * par;
-    // глифы переднего плана уходят за курсором сильнее дальних: параллакс по глубине
+    // фигуры переднего плана уходят за курсором сильнее дальних: параллакс по глубине
     for (const m of props) {
       const b = m.userData.base;
       const depth = Math.max(0, b.pos[2] + 3) / 6; // 0 у дальних, ~1 у ближних

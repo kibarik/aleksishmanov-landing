@@ -33,18 +33,18 @@ test('desktop: сцена отзывается на движение мыши, �
   await goToWhiteScene(page, 'desktop');
 
   const camX = () => page.evaluate(() => window.__app.camera.position.x);
-  const glyphX = () => page.evaluate(() => {
-    const p = window.__app.scene.getObjectByName('glyph-near');
+  const pieceX = () => page.evaluate(() => {
+    const p = window.__app.scene.getObjectByName('chess-near');
     return p ? p.position.x : null;
   });
 
   await page.mouse.move(120, 700, { steps: 10 });
   await page.waitForTimeout(900);
-  const left = { cam: await camX(), glyph: await glyphX() };
+  const left = { cam: await camX(), piece: await pieceX() };
   await page.mouse.move(1340, 200, { steps: 10 });
   await page.waitForTimeout(900);
-  const right = { cam: await camX(), glyph: await glyphX() };
+  const right = { cam: await camX(), piece: await pieceX() };
 
   expect(right.cam - left.cam, `камера не сдвинулась: ${JSON.stringify([left, right])}`).toBeGreaterThan(0.4);
-  expect(Math.abs(right.glyph - left.glyph), 'ближний глиф должен двигаться заметнее камеры').toBeGreaterThan(0.4);
+  expect(Math.abs(right.piece - left.piece), 'ближняя фигура должна двигаться заметнее камеры').toBeGreaterThan(0.4);
 });

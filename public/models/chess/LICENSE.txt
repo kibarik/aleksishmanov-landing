@@ -1,0 +1,2 @@
+Модели шахматных фигур: «3d chess pieces», автор tunakron, CC0 — https://opengameart.org/content/3d-chess-pieces
+Использованы: knight, rook, queen (без изменений).
