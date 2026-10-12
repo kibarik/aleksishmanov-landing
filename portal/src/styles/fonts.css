@@ -1,0 +1,12 @@
+/* Шрифты портала — отдельным файлом, подключаются после загрузки страницы (Base.astro): иначе файлы шрифтов
+   встают в очередь до первой отрисовки, и PageSpeed засчитывает их в FCP. Только латиница и кириллица. */
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/cyrillic-400.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/cyrillic-600.css';
+@import '@fontsource/onest/latin-500.css';
+@import '@fontsource/onest/cyrillic-500.css';
+@import '@fontsource/onest/latin-600.css';
+@import '@fontsource/onest/cyrillic-600.css';
+@import '@fontsource/montserrat/latin-900.css';
+@import '@fontsource/montserrat/cyrillic-900.css';

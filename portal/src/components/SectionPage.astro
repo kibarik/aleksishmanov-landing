@@ -1,0 +1,68 @@
+---
+// Список раздела: блог, разборы, инструменты, промты, презентации, кейсы.
+// Длинные разделы — по PAGE_SIZE карточек: первая страница /<раздел>/, дальше /<раздел>/page/<n>/.
+// Без сжатия на хостинге список из 100+ карточек весил >110 КБ HTML, и мобильный PageSpeed упирался
+// в загрузку самой страницы (с 24 карточками — 35 КБ и 100 баллов). Промты сгруппированы по рубрикам
+// с якорями — их не делим.
+import Base from '../layouts/Base.astro';
+import Card from './Card.astro';
+import { list } from '../lib/materials';
+import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../lib/site';
+import { graph, breadcrumbs } from '../lib/schema';
+import { PAGE_SIZE, pageCount, pageHref, paged } from '../lib/paging';
+
+interface Props { section: CollectionName; page: number }
+const { section, page } = Astro.props;
+const info = SECTIONS[section];
+const all = await list(section);
+const total = paged(section) ? pageCount(all.length) : 1;
+const items = paged(section) ? all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : all;
+// промты — по разделам каталога, как было на prompts.aleksishmanov.ru
+const groups = section === 'prompts'
+  ? [...new Set(items.map((m) => m.data.category || 'Другое'))].map((c) => ({ title: c, items: items.filter((m) => (m.data.category || 'Другое') === c) }))
+  : [{ title: '', items }];
+const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-');
+const pageTitle = page > 1 ? `${info.title}, страница ${page}` : info.title;
+const pageUrl = pageHref(info.path, page);
+---
+<Base title={`${pageTitle}: ${SITE.short}`} description={`${info.lead} ${all.length ? `Материалов: ${all.length}.` : ''}${page > 1 ? ` Страница ${page} из ${total}.` : ''}`} current={section}
+  jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: pageTitle, description: info.lead, url: `${SITE.url}${pageUrl}` })}>
+  {page > 1 && <link slot="head" rel="prev" href={pageHref(info.path, page - 1)} />}
+  {page < total && <link slot="head" rel="next" href={pageHref(info.path, page + 1)} />}
+  <div class="wrap">
+    <p class="crumbs"><a href="/">Главная</a> / {info.title}</p>
+    <header class="page-head">
+      <h1>{pageTitle}</h1>
+      <p class="lead">{info.lead}</p>
+      <ul class="chips">
+        {Object.values(DIRECTION_INFO).map((d) => <li><a class="chip" href={d.path}>{d.title}</a></li>)}
+        {section === 'prompts' && groups.map((g) => <li><a class="chip" href={`#${anchor(g.title)}`}>{g.title} · {g.items.length}</a></li>)}
+      </ul>
+    </header>
+    {all.length === 0 && (
+      <div class="note">
+        <p>{section === 'cases'
+          ? 'Здесь будут разборы моих собственных запусков и внедрений ИИ — с целью, шагами и цифрами. Первые кейсы готовятся. Пока можно посмотреть разборы инструментов и презентации практикумов.'
+          : 'Материалы скоро появятся.'}</p>
+        <p><a href="/reviews/">Разборы</a> · <a href="/slides/">Презентации</a> · <a href={SITE.contact.href}>Обсудить вашу задачу</a></p>
+      </div>
+    )}
+    {groups.map((g, gi) => (
+      <section id={g.title ? anchor(g.title) : undefined}>
+        {g.title && <h2>{g.title}</h2>}
+        <ul class="grid">{g.items.map((m, i) => <Card m={m} heading={g.title ? 'h3' : 'h2'} eager={gi === 0 && i === 0} priority={gi === 0 && i === 0} />)}</ul>
+      </section>
+    ))}
+    {total > 1 && (
+      <nav class="pager" aria-label="Страницы раздела">
+        {page > 1 ? <a class="pager__step" href={pageHref(info.path, page - 1)} rel="prev">← Новее</a> : <span class="pager__step" aria-hidden="true"></span>}
+        <ol class="pager__pages">
+          {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+            <li>{n === page ? <span class="pager__num" aria-current="page">{n}</span> : <a class="pager__num" href={pageHref(info.path, n)}>{n}</a>}</li>
+          ))}
+        </ol>
+        {page < total ? <a class="pager__step" href={pageHref(info.path, page + 1)} rel="next">Старее →</a> : <span class="pager__step" aria-hidden="true"></span>}
+      </nav>
+    )}
+  </div>
+</Base>
