@@ -101,6 +101,12 @@ export async function mountFooter3d(canvas) {
     renderer.render(scene, camera);
   }
 
+  // Шейдеры компилируются заранее и без блокировки потока, а первый кадр (загрузка буферов и окружения
+  // в видеопамять, ~100 мс) рисуется здесь же, при подготовке: иначе он выпадает на въезд футера в кадр.
+  resize();
+  await renderer.compileAsync(scene, camera).catch(() => {});
+  renderer.render(scene, camera);
+
   return {
     start() { if (running) return; running = true; clock.getDelta(); resize(); frame(); },
     stop() { running = false; cancelAnimationFrame(raf); },

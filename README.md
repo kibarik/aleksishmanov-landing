@@ -7,8 +7,15 @@ npm run dev      # http://localhost:5173
 npm run build
 ```
 
-- `public/models/character.glb` — персонаж для десктопа, 1M треугольников, Draco (2.7 MB). Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
-- `public/models/character-mobile.glb` — облегчённый персонаж, 150k треугольников, Draco (710 KB):
+- `public/models/character.glb` — персонаж для десктопа, 500k треугольников, Draco с координатами в 12 бит (1.47 MB).
+  Сделан из прежней версии на 1M (2.7 MB, коммит до 2026-10-12): вдвое меньше работы GPU на кадр, на кадрах не отличим;
+  300k уже даёт гранёные блики на спине, нормали в 8 бит — пятна. Исходник `~/Downloads/base.glb` (36 MB, две фигуры).
+
+  ```bash
+  npx @gltf-transform/cli simplify character-1m.glb /tmp/s.glb --ratio 0.5 --error 0.01
+  npx @gltf-transform/cli draco /tmp/s.glb public/models/character.glb --quantize-position 12
+  ```
+- `public/models/character-mobile.glb` — облегчённый персонаж, 150k треугольников, Draco (710 KB), из версии на 1M:
 
   ```bash
   npx @gltf-transform/cli simplify public/models/character.glb /tmp/m.glb --ratio 0.15 --error 0.002

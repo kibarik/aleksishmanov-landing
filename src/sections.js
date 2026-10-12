@@ -83,7 +83,7 @@ export function renderSections(content, { latest = [] } = {}) {
           </div>
           <div class="footer__object">
             <canvas class="footer__scene" id="footer-scene" aria-hidden="true"></canvas>
-            <img class="footer__fallback" id="footer-fallback" src="./fallback/white-desktop.webp" alt="" aria-hidden="true" />
+            <img class="footer__fallback" id="footer-fallback" src="./fallback/white-desktop.webp" alt="" aria-hidden="true" loading="lazy" />
           </div>
           <div class="footer__right">
             <div class="footer__blocks">
