@@ -1,35 +1,128 @@
 /**
- * Меню-оффканвас: якоря по секциям и ссылки на ресурсы (всё из модуля контента).
- * Открывается кнопкой в шапке, закрывается крестиком, кликом вне, Escape и после перехода по якорю.
- * Пока меню открыто, липкий скролл не принимает жесты; клик по якорю сначала отпускает сцену.
+ * Меню по модели bersus.io: полноэкранная белая панель, пункты выезжают по буквам, «жидкость» под курсором.
+ * Десктоп: открывается наведением на зону 70×70 в углу (или кликом — тач и клавиатура), закрывается кликом по зоне
+ * и Escape, но только когда анимация доиграла; закрытие — тот же таймлайн задом наперёд в 3 раза быстрее, затем 1,5 с
+ * нельзя открыть снова. Мобильный режим: нижний док и карточка-меню над ним, без жидкости.
+ * Ссылка внутри меню закрывает его мгновенно. Пока меню открыто, липкий скролл не принимает жесты.
  */
+import emblem from './menu-emblem.svg?url';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
+/** Расписание таймлайна (секунды): как у эталона — пункты по буквам, потом кнопка, крестик и нижние ссылки. */
+const T = {
+  total: 1.7,
+  itemStarts: [0.38, 0.52, 0.64, 0.78, 0.88, 1.0],
+  charDur: 0.3, charStagger: 0.02,
+  cross: { start: 0.8, dur: 0.9 },
+  cta: { start: 1.1, dur: 0.6 },
+  social: { start: 1.5, dur: 0.2 },
+};
+const OPEN_DELAY_MS = 300; // панель проявляется, и только потом стартует таймлайн
+const REOPEN_LOCK_MS = 1500; // после закрытия
+const CLOSE_SPEED = 3;
+
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const power2InOut = (p) => (p < 0.5 ? 2 * p * p : 1 - ((-2 * p + 2) ** 2) / 2);
+/** gsap back.inOut(overshoot) */
+const backInOut = (over) => {
+  const s = over * 1.525;
+  return (p) => ((p *= 2) < 1 ? 0.5 * p * p * ((s + 1) * p - s) : 0.5 * ((p -= 2) * p * ((s + 1) * p + s) + 2));
+};
+const back3 = backInOut(3);
+
+const RINGS = '<span class="ring"></span><span class="ring"></span><span class="ring"></span><span class="ring"></span>';
+const ARROW = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 55 55' fill='none' stroke='%230b0b0b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 27.5h30M30 15l12.5 12.5L30 40'/%3E%3C/svg%3E\")";
+
+function chars(label) {
+  return [...label].map((ch) => (ch === ' ' ? ' ' : `<span class="menu__char" aria-hidden="true">${esc(ch)}</span>`)).join('');
+}
+
 function markup(content) {
-  const { menu, resources } = content;
+  const { menu, contact } = content;
+  const items = [...menu.anchors, ...menu.pages];
   return `
     <div class="menu__overlay" id="menu-overlay"></div>
-    <nav class="menu__panel" aria-label="${esc(menu.title)}">
+    <nav class="menu__panel" aria-label="${esc(menu.title)}" style="--arrow:${ARROW}">
+      <canvas class="menu__fluid" aria-hidden="true"></canvas>
+      <div class="menu__art" aria-hidden="true"><img src="${emblem}" alt="" /></div>
+      <i class="menu__dot" aria-hidden="true"></i>
       <button class="menu__close" id="menu-close" type="button" aria-label="Закрыть меню">
-        <span></span><span></span>
+        <svg viewBox="0 0 46 46" aria-hidden="true"><path d="M9 9l28 28M37 9L9 37" /></svg>
       </button>
-      <ul class="menu__anchors">
-        ${menu.anchors.map((a) => `<li><a class="menu__anchor" href="${esc(a.href)}">${esc(a.label)}</a></li>`).join('')}
+      <ul class="menu__items">
+        ${items.map((a) => `<li><a class="menu__anchor" href="${esc(a.href)}" aria-label="${esc(a.label)}">${chars(a.label)}</a></li>`).join('')}
       </ul>
-      <div class="menu__footer">
-        <p class="menu__footer-title">${esc(menu.resourcesTitle)}</p>
-        <ul class="menu__resources">
-          ${resources.map((r) => /^https?:/.test(r.href)
-            ? `<li><a class="menu__resource" href="${esc(r.href)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}<span aria-hidden="true"> ↗</span></a></li>`
-            : `<li><a class="menu__resource" href="${esc(r.href)}">${esc(r.label)}</a></li>`).join('')}
-        </ul>
+      <div class="menu__side">
+        <a class="menu__cta" href="${esc(contact.href)}" target="_blank" rel="noopener noreferrer">
+          <span class="menu__cta-pointer" aria-hidden="true"></span><span class="menu__cta-label">${esc(contact.title)}</span>
+        </a>
+        <p class="menu__social"><a href="${esc(menu.social.href)}" target="_blank" rel="noopener noreferrer">${esc(menu.social.label)}: ${esc(menu.social.handle)}</a></p>
       </div>
+      <p class="menu__home"><a class="menu__back" href="${esc(menu.home.href)}">${esc(menu.home.label)}</a></p>
     </nav>`;
+}
+
+/** Нижний док мобильного режима: три быстрых перехода и кнопка меню. */
+function dockMarkup(content) {
+  const quick = [content.menu.anchors[0], content.menu.pages[0], content.menu.pages[1]].filter(Boolean);
+  return `<div class="dock__bar">
+      ${quick.map((a) => `<a class="dock__btn" href="${esc(a.href)}">${esc(a.label)}</a>`).join('')}
+      <button class="dock__menu" id="menu-dock-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="menu">${RINGS}</button>
+    </div>`;
 }
 
 /** Липкий скролл без сцены (фолбэк без WebGL): страница уже отдана нативному скроллу. */
 export const NO_SCENE_SCROLL = { state: { released: true }, release() {}, setPaused() {} };
+
+/** Таймлайн: render(t) расставляет стили по времени; play/reverse гоняют t через rAF. */
+function createTimeline(root) {
+  const entries = [];
+  const items = [...root.querySelectorAll('.menu__items li')];
+  items.forEach((li, i) => {
+    const start = T.itemStarts[i] ?? T.itemStarts.at(-1) + 0.12 * (i - T.itemStarts.length + 1);
+    [...li.querySelectorAll('.menu__char')].forEach((el, k) => {
+      entries.push({ el, start: start + k * T.charStagger, dur: T.charDur, ease: back3, x: 30, y: 0, scale: 1.2 });
+    });
+  });
+  const cta = root.querySelector('.menu__cta');
+  const social = root.querySelector('.menu__social');
+  const close = root.querySelector('.menu__close');
+  entries.push({ el: cta, ...T.cta, ease: back3, x: 100, y: 0, scale: 1 });
+  entries.push({ el: close, ...T.cross, ease: power2InOut, x: 0, y: 0, scale: 1 });
+  entries.push({ el: social, ...T.social, ease: power2InOut, x: 0, y: 10, scale: 1 });
+
+  let t = 0; let raf = 0;
+  function render(time) {
+    t = time;
+    for (const e of entries) {
+      const v = e.ease(clamp01((time - e.start) / e.dur));
+      e.el.style.opacity = String(clamp01(v));
+      const x = e.x * (1 - v); const y = e.y * (1 - v); const s = e.scale + (1 - e.scale) * v;
+      e.el.style.transform = x || y || s !== 1 ? `translate3d(${x}px, ${y}px, 0) scale(${s})` : 'none';
+    }
+  }
+  function run(target, speed, done) {
+    cancelAnimationFrame(raf);
+    let prev = performance.now();
+    const step = (now) => {
+      const dt = (now - prev) / 1000; prev = now;
+      const dir = Math.sign(target - t);
+      const next = t + dir * speed * dt;
+      if ((dir > 0 && next >= target) || (dir < 0 && next <= target) || dir === 0) { render(target); raf = 0; done?.(); return; }
+      render(next);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+  render(0);
+  return {
+    play: (done) => run(T.total, 1, done),
+    reverse: (done) => run(0, CLOSE_SPEED, done),
+    set: (time) => { cancelAnimationFrame(raf); raf = 0; render(time); },
+    get time() { return t; },
+  };
+}
 
 /**
  * @param root контейнер меню (#menu)
@@ -38,40 +131,153 @@ export const NO_SCENE_SCROLL = { state: { released: true }, release() {}, setPau
  */
 export function mountMenu(root, toggle, content, sticky) {
   root.innerHTML = markup(content);
+  const dock = document.createElement('div');
+  dock.className = 'dock';
+  dock.id = 'menu-dock';
+  dock.innerHTML = dockMarkup(content);
+  root.insertAdjacentElement('afterend', dock);
+  const dockToggle = dock.querySelector('#menu-dock-toggle');
+  const zone = document.createElement('div');
+  zone.className = 'menu-zone';
+  zone.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(zone);
+
   const close = root.querySelector('#menu-close');
   const overlay = root.querySelector('#menu-overlay');
-  let open = false;
+  const timeline = createTimeline(root);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileMq = matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)');
+  const toggles = [toggle, dockToggle];
 
-  function setOpen(next) {
-    if (open === next) return;
-    open = next;
-    root.classList.toggle('menu--open', open);
-    document.body.classList.toggle('is-menu-open', open);
-    toggle.setAttribute('aria-expanded', String(open));
-    root.setAttribute('aria-hidden', String(!open));
-    sticky.setPaused(open); // жесты не проваливаются в сцену за панелью
-    (open ? close : toggle).focus();
+  let open = false; let ready = false; let locked = false; let byKeyboard = false;
+  let inZone = false; let needLeave = false; // курсор в зоне 70×70; после закрытия кликом ждём, пока он выйдет
+  let openTimer = 0; let lockTimer = 0; let fluidTimer = 0;
+  let fluid = null; let fluidTried = false;
+
+  async function setFluid(on) {
+    clearTimeout(fluidTimer);
+    if (on) {
+      if (mobileMq.matches) return;
+      if (!fluidTried) {
+        fluidTried = true;
+        try { fluid = (await import('./menuFluid.js')).createFluid(root.querySelector('.menu__fluid')); } catch { fluid = null; }
+      }
+      if (open) fluid?.start();
+    } else {
+      fluidTimer = setTimeout(() => { if (!open) fluid?.stop(); }, REOPEN_LOCK_MS);
+    }
   }
 
-  toggle.addEventListener('click', () => setOpen(!open));
-  close.addEventListener('click', () => setOpen(false));
-  overlay.addEventListener('click', () => setOpen(false));
+  function applyOpen(focusClose) {
+    root.classList.add('menu--open');
+    document.body.classList.add('is-menu-open');
+    for (const b of toggles) b.setAttribute('aria-expanded', 'true');
+    root.setAttribute('aria-hidden', 'false');
+    sticky.setPaused(true); // жесты не проваливаются в сцену за панелью
+    if (focusClose) close.focus({ preventScroll: true }); // мышью открыли — рамка фокуса на крестике не нужна
+  }
+
+  function openMenu(fromKeyboard = false) {
+    if (open || locked) return;
+    open = true; ready = false; byKeyboard = fromKeyboard;
+    applyOpen(fromKeyboard);
+    if (mobileMq.matches || reduced.matches) {
+      timeline.set(T.total);
+      setTimeout(() => { if (open) { ready = true; root.classList.add('menu--ready'); } }, 300);
+    } else {
+      timeline.set(0);
+      openTimer = setTimeout(() => timeline.play(() => { if (open) { ready = true; root.classList.add('menu--ready'); } }), OPEN_DELAY_MS);
+    }
+    setFluid(true);
+  }
+
+  /** После закрытия: фейд панели и защита от мгновенного повторного открытия. */
+  function finishClose(returnFocus) {
+    open = false; ready = false;
+    root.classList.remove('menu--open', 'menu--ready');
+    document.body.classList.remove('is-menu-open');
+    for (const b of toggles) b.setAttribute('aria-expanded', 'false');
+    root.setAttribute('aria-hidden', 'true');
+    sticky.setPaused(false);
+    locked = true;
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(() => { locked = false; }, REOPEN_LOCK_MS);
+    setFluid(false);
+    if (returnFocus && byKeyboard) (mobileMq.matches ? dockToggle : toggle).focus({ preventScroll: true }); // мышью — без рамки фокуса
+  }
+
+  /** Обычное закрытие: только когда таймлайн доиграл; пункты уходят в обратном порядке. */
+  function closeMenu() {
+    if (!open || !ready) return;
+    ready = false;
+    if (mobileMq.matches || reduced.matches) { finishClose(true); return; }
+    timeline.reverse(() => finishClose(true));
+  }
+
+  /** Закрытие по ссылке: без обратной анимации, сразу. */
+  function closeInstant() {
+    if (!open) return;
+    clearTimeout(openTimer);
+    timeline.set(0);
+    finishClose(false);
+  }
+
+  const toggleMenu = (e) => (open ? closeMenu() : openMenu(e?.detail === 0)); // detail 0 — Enter/Space с клавиатуры
+  toggle.addEventListener('click', toggleMenu);
+  dockToggle.addEventListener('click', toggleMenu);
+  close.addEventListener('click', closeMenu);
+  overlay.addEventListener('click', () => { if (mobileMq.matches) closeMenu(); });
+  // Наведение открывает; если курсор уже стоял в зоне (закрыли Esc или таймер блокировки ещё шёл), хватает любого движения.
+  // После закрытия кликом по зоне заново открывает только выход курсора и возврат, иначе меню вскакивало бы под рукой.
+  zone.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { inZone = true; openMenu(false); } });
+  zone.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' && !needLeave) openMenu(false); });
+  zone.addEventListener('pointerleave', () => { inZone = false; needLeave = false; });
+  zone.addEventListener('click', (e) => { if (open && ready && inZone) needLeave = true; toggleMenu(e); });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !open) return;
     e.stopPropagation(); // иначе клавиша уйдёт в обработчик липкого скролла
-    setOpen(false);
+    closeMenu();
   }, { capture: true });
 
-  for (const a of root.querySelectorAll('.menu__anchor')) {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      setOpen(false);
-      // сцена ещё липкая: сначала отдаём нативный скролл, потом ведём к секции
-      if (!sticky.state.released) sticky.release();
-      const target = document.querySelector(a.getAttribute('href'));
-      requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    });
+  /** Переход к якорю секции главной: сцена ещё липкая — сначала отдаём нативный скролл. */
+  function goAnchor(a, e) {
+    e.preventDefault();
+    closeInstant();
+    if (!sticky.state.released) sticky.release();
+    const target = document.querySelector(a.getAttribute('href'));
+    requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  return { get open() { return open; }, close: () => setOpen(false) };
+  for (const a of [...root.querySelectorAll('.menu__anchor'), ...dock.querySelectorAll('.dock__btn')]) {
+    const href = a.getAttribute('href');
+    if (href.startsWith('#')) a.addEventListener('click', (e) => goAnchor(a, e));
+    else a.addEventListener('click', () => closeInstant()); // страница сменится, панель гаснет сразу
+  }
+  const back = root.querySelector('.menu__back');
+  back.addEventListener('click', (e) => {
+    closeInstant();
+    if (location.pathname === '/') e.preventDefault(); // уже на главной: просто закрыть, не перезагружать
+  });
+  for (const a of root.querySelectorAll('.menu__social a, .menu__cta')) a.addEventListener('click', () => closeInstant());
+
+  // «Прожектор» кнопки: круг идёт за курсором внутри кнопки, при уходе остаётся где был
+  const cta = root.querySelector('.menu__cta');
+  const pointer = root.querySelector('.menu__cta-pointer');
+  const moveSpot = (e) => {
+    const r = cta.getBoundingClientRect();
+    const x = Math.min(r.width, Math.max(0, e.clientX - r.left)) - 45;
+    const y = Math.min(r.height, Math.max(0, e.clientY - r.top)) - 45;
+    pointer.style.setProperty('--px', `${x}px`);
+    pointer.style.setProperty('--py', `${y}px`);
+    cta.classList.add('menu__cta--active');
+  };
+  cta.addEventListener('mouseenter', moveSpot);
+  cta.addEventListener('mousemove', moveSpot);
+  cta.addEventListener('mouseleave', () => cta.classList.remove('menu__cta--active'));
+
+  return {
+    get open() { return open; },
+    get ready() { return ready; },
+    close: () => { if (open) { if (ready) closeMenu(); else closeInstant(); } },
+  };
 }

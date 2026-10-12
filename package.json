@@ -23,6 +23,7 @@
     "test:prod": "PROD_URL=https://aleksishmanov.ru playwright test prod-assets prod-smoke --project=desktop --project=mobile"
   },
   "dependencies": {
+    "@fontsource/cal-sans": "^5.3.0",
     "@fontsource/manrope": "^5.3.0",
     "@fontsource/montserrat": "^5.3.0",
     "@fontsource/onest": "^5.3.1",

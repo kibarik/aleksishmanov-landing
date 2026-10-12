@@ -1,9 +1,11 @@
 // Шрифты локально (без Google Fonts): детерминированная отрисовка имени на сцене и Lighthouse.
 // Полные css с unicode-range: браузер грузит только нужные сабсеты (латиница + кириллица).
+import '@fontsource/cal-sans/400.css';
 import '@fontsource/manrope/400.css';
 import '@fontsource/manrope/500.css';
 import '@fontsource/manrope/800.css';
 import '@fontsource/montserrat/600.css';
+import '@fontsource/montserrat/700.css';
 import '@fontsource/montserrat/900.css';
 import '@fontsource/onest/500.css';
 import '@fontsource/onest/600.css';
