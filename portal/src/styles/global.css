@@ -1,3 +1,9 @@
+/* Запасные шрифты с метриками фирменных (size-adjust/ascent/descent; посчитано по @capsizecss/metrics 4.2.0
+   относительно Arial): пока Manrope/Onest/Montserrat не пришли, текст набран тем же «размером» — подмена не
+   перестраивает строки, и PageSpeed не видит позднего изменения экрана (Speed Index). Шрифты — styles/fonts.css. */
+@font-face { font-family: 'Manrope Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 103.19%; ascent-override: 103.31%; descent-override: 29.07%; line-gap-override: 0%; }
+@font-face { font-family: 'Onest Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 105.20%; ascent-override: 92.20%; descent-override: 28.99%; line-gap-override: 0%; }
+@font-face { font-family: 'Montserrat Fallback'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica'); size-adjust: 112.83%; ascent-override: 85.79%; descent-override: 22.25%; line-gap-override: 0%; }
 /* Портал: светлая бумага для чтения, тёмные шапка и подвал — в тон лендингу (чёрная сцена, белая статуя). */
 :root {
   --ink: #0a0a0a;
@@ -12,9 +18,9 @@
   --radius: 14px;
   --wrap: 1180px;
   --read: 70ch;
-  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-head: 'Onest', 'Manrope', system-ui, sans-serif;
-  --font-brand: 'Montserrat', system-ui, sans-serif;
+  --font: 'Manrope', 'Manrope Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: 'Onest', 'Onest Fallback', 'Manrope', system-ui, sans-serif;
+  --font-brand: 'Montserrat', 'Montserrat Fallback', system-ui, sans-serif;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
