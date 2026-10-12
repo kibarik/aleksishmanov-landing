@@ -106,6 +106,9 @@ export function boot3d({ preset, dom, analytics }) {
     .then(async (s) => {
       await s.warm(); // шейдеры компилируются параллельно, поток свободен для лоадера
       app = s; app.start(); window.__app = app; installCompare(app);
+      // ушедшая вниз сцена не рисует: иначе персонаж, тени и постобработка занимают GPU, пока посетитель
+      // читает секции, и прокрутка дёргается
+      new IntersectionObserver(([e]) => app.setOnScreen(e.isIntersecting)).observe(canvas);
       window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
       if (loader.classList.contains('loader--out')) finish();
       app.onTimeline((tl) => {

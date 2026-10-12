@@ -31,7 +31,7 @@ const seg = (t, a, b) => clamp01((t - a) / (b - a));
 
 // BASE_URL: пути относительно базы сборки, чтобы статика работала и не в корне домена
 const BASE = import.meta.env.BASE_URL;
-// desktop: 1M треугольников, draco, 2.7 MB (исходник base.glb 36 MB)
+// desktop: 500k треугольников, draco, позиции 12 бит, 1.47 MB (исходник base.glb 36 MB) — см. README
 // mobile: децимация до 150k (gltf-transform simplify), draco, 710 KB — см. README
 const MODEL_URL = {
   desktop: `${BASE}models/character.glb`,
@@ -521,6 +521,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   // ---------- loop ----------
   const clock = new THREE.Clock();
   let running = false;
+  let onScreen = true; // канвас в кадре: вне кадра кадры не рисуются (setOnScreen)
   let firstFrameSent = false;
   let lightOnAt = -1;
   let sticky = null;
@@ -532,7 +533,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const warmShadows = (frames = 4) => { shadowWarm = Math.max(shadowWarm, frames); };
 
   function frame() {
-    if (!running) return;
+    if (!running || !onScreen) return;
     requestAnimationFrame(frame);
     const dt = Math.min(0.1, clock.getDelta());
     const t = clock.getElapsedTime();
@@ -614,6 +615,12 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     /** Прогрев шейдеров без блокировки потока; start() после него не компилирует повторно. */
     warm() { return precompile({ async: true }); },
     start() { running = true; if (!warmed) precompile(); frame(); },
+    /** Сцена ушла из кадра — цикл останавливается; вернулась — продолжает с того же места. */
+    setOnScreen(v) {
+      if (onScreen === v) return;
+      onScreen = v;
+      if (v && running) { clock.getDelta(); frame(); }
+    },
     attachScroll(s) { sticky = s; attached = true; layoutTitle(); layoutProps(); warmShadows(8); },
     onTimeline(fn) { listeners.add(fn); },
     capture() { return new Promise((res) => { captureCb = res; }); },

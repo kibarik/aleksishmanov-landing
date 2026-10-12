@@ -61,16 +61,26 @@ new IntersectionObserver((entries) => {
 // Футер тоже тёмный: шапка на нём светлая. 3D-объект живёт только пока футер в кадре.
 const footer = document.getElementById('footer');
 let footer3d = null;
+const has3dFooter = () => document.documentElement.dataset.webgl !== 'off' && preset !== 'mobile';
+/** Объект футера (геометрия, окружение, шейдеры) готовится один раз; дорого — ~100 мс работы потока. */
+const prepareFooter3d = () => (footer3d ??= import('./footer3d.js').then((m) => m.mountFooter3d(document.getElementById('footer-scene'))));
+// Готовим заранее, в свободное время, пока до футера ещё два экрана: иначе эта работа выпадает
+// на момент, когда футер въезжает в кадр, и прокрутка спотыкается.
+const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+new IntersectionObserver((entries, io) => {
+  if (!entries.some((e) => e.isIntersecting) || !has3dFooter()) return;
+  io.disconnect();
+  idle(prepareFooter3d, { timeout: 2000 });
+}, { rootMargin: '0px 0px 200% 0px' }).observe(footer);
 const footerNoise = mountFooterNoise(document.getElementById('footer-noise'));
 new IntersectionObserver((entries) => {
   for (const e of entries) {
     document.body.classList.toggle('is-footer-visible', e.isIntersecting);
     if (e.isIntersecting) footerNoise.start(); else footerNoise.stop();
     document.body.classList.toggle('is-dark-section', e.isIntersecting || document.body.classList.contains('is-intro-visible'));
-    if (document.documentElement.dataset.webgl === 'off' || preset === 'mobile') continue;
+    if (!has3dFooter()) continue;
     if (e.isIntersecting) {
-      footer3d ??= import('./footer3d.js').then((m) => m.mountFooter3d(document.getElementById('footer-scene')));
-      footer3d.then((s) => s.start());
+      prepareFooter3d().then((s) => s.start());
     } else footer3d?.then((s) => s.stop());
   }
 }, { threshold: 0.25 }).observe(footer);

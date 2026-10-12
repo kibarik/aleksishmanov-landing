@@ -62,6 +62,10 @@ export function portalBridge() {
         const sections = await import(pathToFileURL(path.join(ROOT, 'src', 'sections.js')).href + bust);
         const markup = sections.renderSections(content, { latest });
         out = out.replace(/<main class="content" id="content">\s*<\/main>/, `<main class="content" id="content">${markup}</main>`);
+        // фраза оффера на лоадере — самый крупный текст первого экрана (LCP): в HTML она рисуется сразу,
+        // а не после загрузки бандла; main.js кладёт тот же текст из content.js
+        const offer = content.offer.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+        out = out.replace('<p class="loader__quote" id="loader-offer"></p>', `<p class="loader__quote" id="loader-offer">${offer}</p>`);
       }
       return out;
     },
