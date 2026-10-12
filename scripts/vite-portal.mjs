@@ -1,6 +1,8 @@
 /**
  * Мост лендинга и портала (Vite-плагин главной):
  *  - первым в <head> — скрипт редиректа со старых доменов (shared/host-redirect.js, как во всех страницах портала);
+ *  - SPA-фолбэк хостинга: приложение Timeweb отдаёт index.html с кодом 200 на любой неизвестный путь
+ *    (2026-10-10, прод), поэтому главная, открытая не по адресу «/», уводит на страницу 404;
  *  - разметка Person (JSON-LD) для поиска по имени;
  *  - при сборке секции главной рендерятся в HTML (тем же renderSections, что и в браузере):
  *    поисковик видит текст и ссылки на разделы без выполнения JS.
@@ -48,7 +50,9 @@ export function portalBridge() {
   return {
     name: 'aleks-portal-bridge',
     async transformIndexHtml(html, ctx) {
-      let out = html.replace(/<meta charset="UTF-8" \/>/i, (m) => `${m}\n  <script>${hostScript}</script>`);
+      // только на основном хосте: со старого домена уводит скрипт хоста, его переход не перебиваем
+      const notFound = "(function(w){var p=w.location.pathname;if(w.__hostTarget&&w.__hostTarget(w.location.hostname,p))return;if(p!=='/'&&p!=='/index.html')w.location.replace('/404.html');})(window);";
+      let out = html.replace(/<meta charset="UTF-8" \/>/i, (m) => `${m}\n  <script>${hostScript}</script>\n  <script>${notFound}</script>`);
       const latest = latestMaterials();
       out = out.replace('</head>', `  <script type="application/ld+json">${JSON.stringify(person)}</script>\n  <script>window.__latestMaterials = ${JSON.stringify(latest).replace(/</g, '\\u003c')};</script>\n</head>`);
       if (!ctx.server) {

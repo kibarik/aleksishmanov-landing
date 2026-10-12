@@ -80,6 +80,14 @@ test('5. несуществующий адрес — страница 404 с к�
   expect(await res.text()).toContain('Такой страницы нет');
 });
 
+test('5b. хостинг в режиме SPA (отдаёт главную на любой путь) — посетитель всё равно попадает на 404', async ({ page }) => {
+  // так ведёт себя приложение Timeweb для aleksishmanov.ru: неизвестный путь → index.html с кодом 200
+  await page.route('**/net-takoy-stranicy/', (route) => route.fulfill({ status: 200, contentType: 'text/html', path: path.join(DIST, 'index.html') }));
+  await page.goto('/net-takoy-stranicy/');
+  await page.waitForURL(/\/404\.html$/);
+  await expect(page.locator('h1')).toHaveText('Такой страницы нет');
+});
+
 test('6. sitemap, robots, RSS, llms.txt и Markdown-копии', async ({ request }) => {
   const sitemap = await (await request.get('/sitemap-0.xml')).text();
   expect(sitemap).toContain('<loc>https://aleksishmanov.ru/</loc>');
