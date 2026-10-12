@@ -9,7 +9,6 @@ export const SITE = {
   short: 'Запуск технологических продуктов и ИИ в корпоративных процессах',
   contact: { label: 'Написать в Telegram', href: 'https://t.me/kibarik' },
   ask: { label: 'Ask Ishmanov AI', href: 'https://t.me/kibarik' },
-  metrika: 103355275,
 };
 
 export type CollectionName = 'blog' | 'reviews' | 'tools' | 'prompts' | 'slides' | 'cases';

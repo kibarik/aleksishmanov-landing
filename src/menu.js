@@ -45,7 +45,7 @@ function markup(content) {
     <div class="menu__overlay" id="menu-overlay"></div>
     <nav class="menu__panel" aria-label="${esc(menu.title)}" style="--arrow:${ARROW}">
       <canvas class="menu__fluid" aria-hidden="true"></canvas>
-      <div class="menu__art" aria-hidden="true"><img src="${emblem}" alt="" /></div>
+      <div class="menu__art" aria-hidden="true"><img src="${emblem}" alt="" loading="lazy" decoding="async" /></div>
       <i class="menu__dot" aria-hidden="true"></i>
       <button class="menu__close" id="menu-close" type="button" aria-label="Закрыть меню">
         <svg viewBox="0 0 46 46" aria-hidden="true"><path d="M9 9l28 28M37 9L9 37" /></svg>

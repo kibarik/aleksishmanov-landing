@@ -12,6 +12,7 @@
   <meta property="og:description" content="Запускаю сложные технологические продукты за недели и внедряю ИИ в корпоративные процессы. Статьи, разборы инструментов, промты и презентации практикумов." />
   <meta property="og:url" content="https://aleksishmanov.ru/" />
   <link rel="canonical" href="https://aleksishmanov.ru/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="alternate" type="application/rss+xml" title="Алексей Ишманов: новые материалы" href="/rss.xml" />
   <meta property="og:image" content="https://aleksishmanov.ru/fallback/white-desktop.webp" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -59,7 +60,15 @@
         var o = { failIfMajorPerformanceCaveat: true };
         ok = !!(c.getContext('webgl2', o) || c.getContext('webgl', o));
       } catch (e) { ok = false; }
-      if (!ok) { document.documentElement.dataset.webgl = 'off'; return; }
+      if (!ok) {
+        document.documentElement.dataset.webgl = 'off';
+        // кадр-заглушка — главный элемент первого экрана (LCP): просим его сразу, а не после раскладки
+        var pre = document.createElement('link');
+        pre.rel = 'preload'; pre.as = 'image'; pre.fetchPriority = 'high';
+        pre.href = window.innerWidth <= 1024 ? './fallback/white-mobile.webp' : './fallback/white-desktop.webp';
+        document.head.appendChild(pre);
+        return;
+      }
       // preload модели по тому же брейкпоинту, что и пресет сцены (1024): грузится параллельно бандлу.
       // Ставим только при живом WebGL — иначе фолбэк тянул бы модель впустую.
       // Модель качаем сами, одним потоковым запросом, ещё до разбора бандла: так виден реальный

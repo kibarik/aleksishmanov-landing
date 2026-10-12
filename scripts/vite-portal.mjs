@@ -66,6 +66,10 @@ export function portalBridge() {
         // а не после загрузки бандла; main.js кладёт тот же текст из content.js
         const offer = content.offer.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
         out = out.replace('<p class="loader__quote" id="loader-offer"></p>', `<p class="loader__quote" id="loader-offer">${offer}</p>`);
+        // теглайн — тоже в HTML (без WebGL он виден сразу); main.js потом раскладывает те же слова
+        const esc = (t) => String(t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+        const words = content.tagline.map((w, i) => `<span class="flip__word" style="--i:${i}">${esc(w)}</span>`).join(' ');
+        out = out.replace('<p class="tagline" id="tagline"></p>', `<p class="tagline flip" id="tagline">${words}</p>`);
       }
       return out;
     },
