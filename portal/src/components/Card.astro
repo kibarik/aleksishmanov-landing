@@ -1,20 +1,33 @@
 ---
 import { urlFor, formatDate, type Material } from '../lib/materials';
 import { SECTIONS, DIRECTION_INFO } from '../lib/site';
-interface Props { m: Material; showType?: boolean }
-const { m, showType = false } = Astro.props;
+import { coverImage } from '../lib/thumbs';
+interface Props {
+  m: Material;
+  showType?: boolean;
+  /** уровень заголовка карточки: под h1 страницы — h2, под подзаголовком секции — h3 (аудит heading-order) */
+  heading?: 'h2' | 'h3';
+  /** первая карточка — в кадре сразу: обложку не откладываем (lazy у LCP-картинки — штраф PageSpeed);
+   *  больше одной не надо: на телефоне видна одна, остальные отбирали сеть у первой отрисовки */
+  eager?: boolean;
+  /** самая первая обложка — вероятный LCP: высокий приоритет загрузки */
+  priority?: boolean;
+}
+const { m, showType = false, heading = 'h3', eager = false, priority = false } = Astro.props;
 const href = urlFor(m);
+const Heading = heading;
+const img = m.data.cover ? coverImage(m.data.cover) : null;
 ---
 <li class="card">
   <a class="card__link" href={href}>
-    {m.data.cover && <div class="card__cover"><img src={m.data.cover} alt="" loading="lazy" decoding="async" /></div>}
+    {img && <div class="card__cover"><img src={img.src} srcset={img.srcset} sizes="(max-width: 640px) 100vw, 360px" width={img.width} height={img.height} alt="" loading={eager ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} decoding="async" /></div>}
     <div class="card__body">
       <p class="card__meta">
         {showType && <span>{SECTIONS[m.collection].one}</span>}
         {m.data.category && <span>{m.data.category}</span>}
         <time datetime={m.data.date.toISOString()}>{formatDate(m.data.date)}</time>
       </p>
-      <h3 class="card__title">{m.data.title}</h3>
+      <Heading class="card__title">{m.data.title}</Heading>
       <p class="card__desc">{m.data.description}</p>
       <p class="card__meta">{m.data.directions.map((d) => <span class="chip chip--dir">{DIRECTION_INFO[d].short}</span>)}</p>
     </div>

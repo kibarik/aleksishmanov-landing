@@ -8,12 +8,16 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from './local-server.mjs';
+import { buildThumbs } from './portal-thumbs.mjs';
 
 const DIST = path.join(ROOT, 'dist');
 const PORTAL = path.join(ROOT, 'dist-portal');
 const run = (cmd) => execSync(cmd, { cwd: ROOT, stdio: 'inherit' });
 
 run('npx vite build');
+// превью обложек портала (webp 480/960) — до astro build: карточки читают манифест
+const thumbs = await buildThumbs();
+console.log(`превью обложек: ${thumbs.covers}, новых файлов: ${thumbs.made}`);
 run('npx astro build --root portal');
 
 const conflicts = [];
