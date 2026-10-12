@@ -23,6 +23,9 @@ html[data-webgl="off"] .ask { opacity: 1; transform: translate(-50%, 0); pointer
 html[data-webgl="off"] .nav { opacity: 1; transform: none; }
 html[data-webgl="off"] body { background: #f9f9f9; }
 html[data-webgl="off"] body:not(.is-dark-section) .nav { color: #111; }
+/* статичный кадр — статичное зерно: бесконечная анимация меняла кадр каждые 0,7 с, и PageSpeed не мог
+   зафиксировать «страница достроена» (Speed Index 3,9 с при FCP 1,1 с). В 3D-режиме зерно анимировано */
+html[data-webgl="off"] .grain { animation: none; }
 .tagline {
   position: absolute; left: 0; right: 0; top: 14vh; top: 14svh; text-align: center; color: #111;
   font-family: var(--tagline); font-size: clamp(16px, 1.7vw, 24px); font-weight: 600; letter-spacing: -.01em;
