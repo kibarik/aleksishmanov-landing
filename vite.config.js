@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite';
 import { portalBridge } from './scripts/vite-portal.mjs';
+import { scenePreload } from './scripts/vite-preload.mjs';
 
 // base './': относительные пути к ассетам — сборка работает на любом статическом хостинге,
 // в том числе не в корне домена (спека, «Хостинг»).
 export default defineConfig({
   base: './',
   // главная и портал — одна сборка (scripts/build.mjs); плагин связывает их, см. scripts/vite-portal.mjs
-  plugins: [portalBridge()],
+  plugins: [portalBridge(), scenePreload()],
   build: {
     rollupOptions: {
       output: {

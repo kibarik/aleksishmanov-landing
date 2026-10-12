@@ -64,6 +64,19 @@
       // Ставим только при живом WebGL — иначе фолбэк тянул бы модель впустую.
       // Модель качаем сами, одним потоковым запросом, ещё до разбора бандла: так виден реальный
       // прогресс и нет второй загрузки (link rel=preload не переиспользовался загрузчиком three).
+      // Тяжёлое для сцены просим сразу, параллельно модели: иначе чанк three стартует только после
+      // разбора index.js и boot3d.js, а декодер draco — после чанка three (цепочка в 10+ с на медленной сети).
+      // Список чанков кладёт сборка (scripts/vite-preload.mjs); modulepreload браузер потом переиспользует.
+      function hint(rel, href, as) {
+        var l = document.createElement('link');
+        l.rel = rel; l.href = href;
+        if (as) l.as = as;
+        if (as === 'fetch') l.crossOrigin = 'anonymous'; // FileLoader качает fetch'ем, тот же режим
+        document.head.appendChild(l);
+      }
+      (window.__sceneChunks || []).forEach(function (href) { hint('modulepreload', href); });
+      hint('preload', './draco/draco_wasm_wrapper.js', 'fetch');
+      hint('preload', './draco/draco_decoder.wasm', 'fetch');
       var url = window.innerWidth <= 1024 ? './models/character-mobile.glb' : './models/character.glb';
       window.__modelProgress = 0;
       window.__model = fetch(url).then(function (res) {
