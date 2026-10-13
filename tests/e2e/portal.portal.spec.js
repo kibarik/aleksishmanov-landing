@@ -10,13 +10,14 @@ const CONTENT = path.join(ROOT, 'portal', 'src', 'content');
 const slugs = (c) => fs.readdirSync(path.join(CONTENT, c)).filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, ''));
 const teletype = slugs('blog').filter((s) => fs.readFileSync(path.join(CONTENT, 'blog', `${s}.md`), 'utf8').includes('source: "teletype"'));
 
-test('1. главная: в HTML без JS — имя, позиционирование, направления, свежие материалы, Person', async ({ request }) => {
+test('1. главная: в HTML без JS — имя, «Чем могу быть полезен», свежие материалы, Person', async ({ request }) => {
   const html = await (await request.get('/')).text();
   expect(html).toMatch(/<title>Алексей Ишманов/);
   expect(html).toContain('"@type":"Person"');
   for (const href of ['/startups/', '/ai-in-business/', '/blog/', '/prompts/', '/slides/']) expect(html).toContain(`href="${href}"`);
   expect(html).toContain('id="latest"');
-  expect(html).toContain('ИИ в корпоративных процессах');
+  expect(html).toContain('Чем могу быть полезен');
+  expect(html).toContain('Что веду');
 });
 
 test('2. шапка портала ведёт во все разделы, каждый раздел открывается', async ({ page }) => {

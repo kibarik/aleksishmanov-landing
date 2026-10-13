@@ -1,5 +1,5 @@
 /**
- * Секции после сцены: «Обо мне», карточки проектов, «Написать», футер.
+ * Секции после сцены: «Обо мне», «Чем могу быть полезен» (предложения и проекты), «Написать», футер.
  * Всё из модуля контента; разметка здесь, стили в style.css (.section, .card, .footer).
  */
 
@@ -40,9 +40,22 @@ function card(p) {
       <p class="card__direction">${esc(p.direction)}</p>
       <h3 class="card__title">${esc(p.title)}</h3>
       <p class="card__essence">${esc(p.essence)}</p>
-      <ul class="card__topics" aria-label="Темы проекта">${p.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      <ul class="card__links" aria-label="Ресурсы проекта">${p.links.map((l) => `<li>${cardLink(l, 'card__link')}</li>`).join('')}</ul>
+      <ul class="card__topics" aria-label="Форматы работы">${p.topics.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      <ul class="card__links" aria-label="Подробнее на сайте">${p.links.map((l) => `<li>${cardLink(l, 'card__link')}</li>`).join('')}</ul>
+      <a class="card__cta" href="${esc(p.cta.href)}" ${NEW_TAB}>${esc(p.cta.label)}<span aria-hidden="true"> ↗</span></a>
     </li>`;
+}
+
+/** «Что веду»: проекты строкой — название, суть, ссылка (внешняя — в новой вкладке). */
+function ongoing(o) {
+  return `
+      <div class="ongoing">
+        <h3 class="ongoing__title">${esc(o.title)}</h3>
+        <ul class="ongoing__list">${o.items.map((it) => {
+          const ext = /^https?:/.test(it.href);
+          return `<li><a class="ongoing__item" href="${esc(it.href)}"${ext ? ` ${NEW_TAB}` : ''}><span class="ongoing__name">${esc(it.label)}<span aria-hidden="true"> ${ext ? '↗' : '→'}</span></span><span class="ongoing__note">${esc(it.note)}</span></a></li>`;
+        }).join('')}</ul>
+      </div>`;
 }
 
 export function renderSections(content, { latest = [] } = {}) {
@@ -60,7 +73,8 @@ export function renderSections(content, { latest = [] } = {}) {
     </section>
     <section class="section projects" id="projects">
       <h2 class="section__label">${esc(projects.title)}</h2>
-      <ul class="cards">${projects.items.map(card).join('')}</ul>
+      <p class="projects__lead">${esc(projects.lead)}</p>
+      <ul class="cards">${projects.items.map(card).join('')}</ul>${ongoing(projects.ongoing)}
     </section>${latestSection(latest)}
     <section class="section contact" id="contact">
       <h2 class="contact__title">${esc(contact.title)}</h2>

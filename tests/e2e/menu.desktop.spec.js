@@ -43,7 +43,7 @@ test('desktop: меню открывается наведением, закры�
   await expectMenuClosed(page);
   await expect(page.locator('#menu-toggle')).toBeFocused();
 
-  // клик по «Направления» со сцены: меню закрывается сразу, сцена отпускается, страница скроллит к секции
+  // клик по «Чем полезен» (секция #projects) со сцены: меню закрывается сразу, сцена отпускается, страница скроллит к секции
   await page.mouse.move(300, 450);
   await openMenu(page);
   await page.locator('#menu .menu__anchor', { hasText: content.menu.anchors.find((a) => a.href === '#projects').label }).click();
