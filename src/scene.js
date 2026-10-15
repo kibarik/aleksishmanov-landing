@@ -145,7 +145,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vWorldY;\nuniform float uHeadY;\nuniform vec3 uHeadColor;')
       .replace('#include <color_fragment>', '#include <color_fragment>\n  float headMask = smoothstep(uHeadY - 0.015, uHeadY + 0.015, vWorldY);\n  diffuseColor.rgb = mix(diffuseColor.rgb, uHeadColor, headMask);')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  material.roughness = mix(material.roughness, 0.46, headMask);');
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  material.roughness = mix(material.roughness, 0.8, headMask);\n  material.specularColor *= mix(1.0, 0.35, headMask); material.specularF90 *= mix(1.0, 0.35, headMask);');
   };
   // Белая фаза: мраморная статуя. Без света читается чёрным силуэтом (как у bersus после свапа).
   const marbleAlbedo = marbleTexture(1024);
@@ -284,6 +284,43 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   spot.userData.base = 6;
   scene.add(spot, spot.target);
   darkLights.push(spot);
+  // Включённый экран планшета: светящаяся панель + RectAreaLight от неё на лицо, руки и капюшон.
+  // Всё в одной группе: прячется на белой сцене и при ?part=front (там другая фигура, экран не её).
+  const screenRig = new THREE.Group();
+  pivot.add(screenRig);
+  // Плоскость дисплея снята с геометрии модели в системе pivot (pivot.rotation.y = 0.38):
+  // нормаль SCREEN.n смотрит к лицу, d — расстояние плоскости, u — «вверх» по экрану, v — поперёк.
+  const SCREEN = { n: [0.8925, 0.4506, -0.0208], d: 0.403, u: [1.173, 1.454], v: [-0.019, 0.304], bezel: 0.012 };
+  const sn = new THREE.Vector3(...SCREEN.n).normalize();
+  const su = new THREE.Vector3(0, 1, 0).addScaledVector(sn, -sn.y).normalize();
+  const sv = new THREE.Vector3().crossVectors(su, sn); // x-ось плоскости: (sv, u, n) — правая тройка, sv = −v
+  const sw = SCREEN.v[1] - SCREEN.v[0] - 2 * SCREEN.bezel, sh = SCREEN.u[1] - SCREEN.u[0] - 2 * SCREEN.bezel;
+  const sc = new THREE.Vector3().addScaledVector(sn, SCREEN.d)
+    .addScaledVector(su, (SCREEN.u[0] + SCREEN.u[1]) / 2).addScaledVector(sv, -(SCREEN.v[0] + SCREEN.v[1]) / 2); // v = n × u = −sv
+  const screenMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }); // чистый белый, без серого от ACES
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), screenMat);
+  screen.matrixAutoUpdate = false;
+  screen.matrix.makeBasis(sv, su, sn).setPosition(sc);
+  screenRig.add(screen);
+  const screenLight = new THREE.RectAreaLight(0xf2f5ff, 0, sw, sh);
+  screenLight.position.copy(sc).addScaledVector(sn, 0.01);
+  // RectAreaLight светит вдоль своей −z: z = −n, y = u, x = y × z
+  screenLight.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(sv.clone().negate(), su, sn.clone().negate()));
+  screenLight.userData.base = 150;
+  screenRig.add(screenLight);
+  // RectAreaLight не даёт рассеянного свечения вокруг — точечный свет у экрана подсвечивает рукав, кисть и край капюшона
+  const screenSpill = new THREE.PointLight(0xf2f5ff, 0, 1.4, 2);
+  screenSpill.position.copy(sc).addScaledVector(sn, 0.18);
+  screenSpill.userData.base = 4;
+  screenRig.add(screenSpill);
+  // ореол: мягкое пятно за экраном (аддитивно, без постобработки — bloom на всю сцену дорог)
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(sw * 2.4, sh * 2.4), new THREE.MeshBasicMaterial({
+    map: radialTexture(128), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0,
+  }));
+  halo.matrixAutoUpdate = false;
+  halo.matrix.copy(screen.matrix).setPosition(sc.clone().addScaledVector(sn, -0.03)); // за крышкой: свет выглядывает из-за краёв
+  screenRig.add(halo);
+  darkLights.push(screenLight, screenSpill);
   let lightOn = 0;
   // Белая фаза: key light bersus (−1, 3, 1) с тенью на пол
   const key = new THREE.DirectionalLight(0xffffff, 0);
@@ -307,9 +344,10 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
   });
   const KF = {
-    // тёмная поза: камера чуть ниже груди и смотрит вверх (ракурс референса), макушка ~на четверти кадра
-    init:      { pos: [0, 1.38, -4.55], tgt: [0.06, 1.6, 0],  mm: null },
-    blackMan:  { pos: [0, 1.46, -4.2],  tgt: [0.06, 1.64, 0], mm: null },
+    // тёмная поза: камера у пояса, чуть правее спины, смотрит вверх (ракурс референса): голова — в верхней
+    // четверти кадра, корпус на всю высоту, справа горит экран планшета
+    init:      { pos: [0.4, 1.0, -4.75],  tgt: [0, 1.42, 0], mm: null },
+    blackMan:  { pos: [0.45, 1.05, -4.35], tgt: [0, 1.42, 0], mm: null },
     intoWhite: { pos: [0, 0.9, 10.5],   tgt: [0, 1.1, 0],     mm: 55 },
     full:      { pos: [0, 2.14, 8.74],  tgt: [0, 0.95, 0],    mm: 60 },
   };
@@ -326,12 +364,11 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const titleBase = { y: title.position.y, z: title.position.z };
 
   function darkFov(aspect) {
-    // кадр тёмной фазы: от макушки до груди — персонаж занимает пол-экрана, как у референса
-    // (было 1.22 — от макушки до пояса, фигура на ~27% ширины против 50% у референса);
-    // в портрете — чтобы плечи влезли по ширине
-    const dist = 4.2;
-    const fovH = 2 * Math.atan(0.8 / 2 / dist);
-    const fovW = 2 * Math.atan(0.95 / 2 / dist / aspect);
+    // кадр тёмной фазы: от макушки до бёдер (0.94 м) — фигура на всю высоту и ~45% ширины, как у референса;
+    // в портрете — чтобы плечи и экран влезли по ширине
+    const dist = 4.4;
+    const fovH = 2 * Math.atan(0.94 / 2 / dist);
+    const fovW = 2 * Math.atan(1.0 / 2 / dist / aspect);
     return THREE.MathUtils.radToDeg(Math.max(fovH, fovW));
   }
   function whiteFov(mm, aspect) {
@@ -547,6 +584,9 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     if (lightOnAt >= 0) lightOn = easeOut(clamp01((t - lightOnAt) / 2.2));
     const darkMul = tl.swapped ? 0 : lightOn;
     for (const l of darkLights) l.intensity = l.userData.base * darkMul;
+    screenMat.color.setScalar(darkMul);
+    halo.material.opacity = 0.35 * darkMul;
+    screenRig.visible = PART === 'back' && !tl.swapped;
 
     const k = 1 - Math.exp(-dt * 3);
     mouse.sx += (mouse.x - mouse.sx) * k;
@@ -639,6 +679,23 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     gtao, grainPass, glitchPass, composer, tl,
     scene, camera, renderer, pivot, material: darkMat, statueMat, state, darkLights, key,
   };
+}
+
+/** Радиальный градиент белый → прозрачный: ореол экрана. */
+function radialTexture(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const r = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  r.addColorStop(0, 'rgba(255,255,255,1)');
+  r.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+  r.addColorStop(0.55, 'rgba(255,255,255,0.1)');
+  r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r;
+  g.fillRect(0, 0, size, size);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 function mesh(geo, mat, pos) { const m = new THREE.Mesh(geo, mat); m.position.set(...pos); return m; }
