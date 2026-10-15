@@ -31,7 +31,6 @@ const backInOut = (over) => {
 };
 const back3 = backInOut(3);
 
-const RINGS = '<span class="ring"></span><span class="ring"></span><span class="ring"></span><span class="ring"></span>';
 const ARROW = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 55 55' fill='none' stroke='%230b0b0b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 27.5h30M30 15l12.5 12.5L30 40'/%3E%3C/svg%3E\")";
 
 function chars(label) {
@@ -63,12 +62,12 @@ function markup(content) {
     </nav>`;
 }
 
-/** Нижний док мобильного режима: три быстрых перехода и кнопка меню. */
+/** Нижний док мобильного режима (как у референса): ☰ слева, четыре перехода, имя водяным знаком. */
 function dockMarkup(content) {
-  const quick = [content.menu.anchors[0], content.menu.pages[0], content.menu.pages[1]].filter(Boolean);
   return `<div class="dock__bar">
-      ${quick.map((a) => `<a class="dock__btn" href="${esc(a.href)}">${esc(a.label)}</a>`).join('')}
-      <button class="dock__menu" id="menu-dock-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="menu">${RINGS}</button>
+      <span class="dock__mark" aria-hidden="true">${esc(content.name.mobile)}</span>
+      <button class="dock__menu" id="menu-dock-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
+      ${content.menu.dock.map((a) => `<a class="dock__btn" href="${esc(a.href)}">${esc(a.label)}</a>`).join('')}
     </div>`;
 }
 

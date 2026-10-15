@@ -30,10 +30,10 @@ test('прод: путь посетителя от лоадера до секц�
   await expect(page.locator('#loader-offer')).toHaveText(content.offer);
 
   await waitForPrelude(page);
-  await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
+  await expect(page.locator('#ask-scene')).toHaveAttribute('href', content.ask.href);
 
   await goToWhiteScene(page, 'desktop');
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
   await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expectAskButtons(page, content);
 

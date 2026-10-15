@@ -20,7 +20,7 @@ test('desktop: переход держит кадры, тени обновляю
   expect(await page.evaluate(() => window.__app.gtao.enabled)).toBe(true);
 
   await goToWhiteScene(page, 'desktop');
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
   // на белой сцене AO выключен: самый дорогой проход не работает там, где он не нужен
   expect(await page.evaluate(() => window.__app.gtao.enabled)).toBe(false);
   expect(await page.evaluate(() => window.__app.renderer.getPixelRatio())).toBeLessThanOrEqual(1.5);

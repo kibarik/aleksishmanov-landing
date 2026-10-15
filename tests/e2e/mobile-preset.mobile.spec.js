@@ -27,5 +27,5 @@ test('mobile: грузится облегчённый персонаж, ренд
 
   // переход всё ещё доходит до белой сцены и не проседает по кадрам
   await goToWhiteScene(page, 'mobile');
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
 });

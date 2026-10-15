@@ -7,18 +7,18 @@ test('desktop: тёмная сцена → переход → белая сце�
   await page.goto('/');
   await waitForPrelude(page);
   expect(await readProgress(page)).toBe(S.darkScene);
-  await expect(page.locator('body')).not.toHaveClass(/is-light/);
+  await expect(page.locator('body')).not.toHaveClass(/is-neon/);
 
   // один тик не коммитит переход: откат к тёмной сцене
   await wheelBurst(page, { ticks: 1 });
   await page.waitForTimeout(800);
   expect(await readProgress(page)).toBeGreaterThan(S.darkScene);
   await waitForProgress(page, S.darkScene);
-  await expect(page.locator('body')).not.toHaveClass(/is-light/);
+  await expect(page.locator('body')).not.toHaveClass(/is-neon/);
 
   await wheelBurst(page);
   await waitForProgress(page, S.transition);
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
 
   await page.waitForTimeout(700); // пауза 500 мс в конце перехода
   await wheelBurst(page);

@@ -3,8 +3,8 @@
  *
  * Шаги (см. tests/bersus-scroll-analysis.md):
  *   init → black-man   prelude 2 с: камера подъезжает, свет включается
- *   black-man → into-white   глитч, на 36% свап в белую сцену, камера пролетает сквозь фигуру вперёд
- *   into-white → full   key light + env проявляют статую, камера наезжает, теглайн
+ *   black-man → into-white   глитч, на 36% свап в неоновую сцену, камера пролетает сквозь фигуру вперёд
+ *   into-white → full   key light, неон и env проявляют статую, камера наезжает, теглайн
  *   full → release   отдаём нативный скролл, контент ниже
  *
  * Система координат: персонаж смотрит в +Z (с поворотом 0.38), камера в тёмной фазе стоит на −Z.
@@ -13,15 +13,16 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { GrainShader } from './grainShader.js';
 import { GlitchShader } from './glitchShader.js';
+import { createNeonSet, ACCENT } from './neonSet.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -31,27 +32,28 @@ const seg = (t, a, b) => clamp01((t - a) / (b - a));
 
 // BASE_URL: пути относительно базы сборки, чтобы статика работала и не в корне домена
 const BASE = import.meta.env.BASE_URL;
-// desktop: 500k треугольников, draco, позиции 12 бит, 1.47 MB (исходник base.glb 36 MB) — см. README
-// mobile: децимация до 150k (gltf-transform simplify), draco, 710 KB — см. README
+// desktop: 500k треугольников, draco, позиции 12 бит, запечённый AO в атрибуте _AO, 1.70 MB — см. README
+// mobile: децимация до 150k (gltf-transform simplify), draco, AO, 825 KB — см. README
 const MODEL_URL = {
   desktop: `${BASE}models/character.glb`,
   mobile: `${BASE}models/character-mobile.glb`,
 };
 /** Настройки рендера по пресету: мобильный облегчён по образцу референса. */
 const RENDER_PRESET = {
-  desktop: { dprMax: 1.5, gtao: true, glitch: true, shadowMap: 256 }, // тени 256 с прогревом — как у референса
-  mobile: { dprMax: 1.5, gtao: false, glitch: false, shadowMap: 128 },
+  desktop: { dprMax: 1.5, gtao: true, glitch: true, bloom: true, shadowMap: 256 }, // тени 256 с прогревом — как у референса
+  mobile: { dprMax: 1.5, gtao: false, glitch: false, bloom: false, shadowMap: 128 },
 };
 const TARGET_HEIGHT = 1.85;
 const BLACK = new THREE.Color(0x0a0a0a);
-const WHITE = new THREE.Color(3, 3, 3); // >1: после ACES tone mapping даёт чистый белый
+const NEON_BG = new THREE.Color(0x04070b); // вторая сцена: почти чёрный с холодным оттенком
 
 // Параметры bersus (desktop)
 const SWAP_POINT = 0.36;          // color swap внутри black-man → into-white
 const GLITCH_START = 0.01, GLITCH_END = 0.9;
-const KEY_LIGHT_MAX = 2.8;        // у них 1.11 в своих единицах; подобрано под нашу экспозицию
-const ENV_FADE = { start: 0.25, duration: 0.3, to: 0.55 }; // у bersus 1.25, но их статуя с запечённой тенью; нам нужен контраст от key
-const SHADOW_FLOOR = { before: 0.2, after: 0.32 }; // у bersus .13→.1, но их тень с текстурой пола читается сильнее
+const KEY_LIGHT_MAX = 2.2;        // у них 1.11 в своих единицах; подобрано под нашу экспозицию
+const ENV_FADE = { start: 0.25, duration: 0.3, to: 0.3 }; // на тёмной сцене env слабее: объём дают key и циановый контровой
+const SHADOW_FLOOR = { before: 0.4, after: 0.6 }; // тень статуи гасит свет сетки пола
+const RIM_MAX = 7;                // циановый контровой свет на статуе
 const TAGLINE_AT = 0.75;
 // Mobile (bersus, UNIT 260, black-man 260 → full 1053): свап на абсолютном 370, заголовок с 560
 const MOBILE = {
@@ -60,7 +62,7 @@ const MOBILE = {
   orbitEnd: 0.494949,                          // кадры 51–100 занимают первые 49.5% сегмента
   taglineAt: 0.88,
   hintHideAt: 0.88,
-  mmFrom: 24, mmTo: 46,
+  mmFrom: 24, mmTo: 40,
   titleYOffset: -0.8, titleScaleFrom: 1.2,
 };
 // Сила отклика сцены на мышь (единицы сцены на единицу смещения курсора −1…1)
@@ -158,9 +160,19 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     color: 0xa39f99, map: marbleAlbedo, roughness: 0.68, metalness: 0,
     normalMap: marbleNormal, normalScale: new THREE.Vector2(0.18, 0.18), envMapIntensity: 0.5,
   });
+  // Запечённый AO (атрибут _ao, scripts/bake-ao.mjs): складки и впадины темнеют, как на текстуре статуи bersus
+  statueMat.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float _ao;\nvarying float vAo;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo = _ao;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vAo;')
+      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n  float bakedAo = mix(1.0, vAo * vAo, 0.9);\n  reflectedLight.indirectDiffuse *= bakedAo;\n  reflectedLight.directDiffuse *= mix(1.0, bakedAo, 0.6);\n  reflectedLight.indirectSpecular *= bakedAo;');
+  };
   const meshes = [];
   root.traverse((o) => {
     if (!o.isMesh) return;
+    if (!o.geometry.attributes._ao) o.geometry.setAttribute('_ao', new THREE.Float32BufferAttribute(new Float32Array(o.geometry.attributes.position.count).fill(1), 1));
     o.material = darkMat; o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
     meshes.push(o);
   });
@@ -179,7 +191,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   pivot.add(mirror);
   scene.add(pivot);
 
-  // ---------- white-scene props: пьедестал, пол-тень, 3D-текст ----------
+  // ---------- вторая сцена: пьедестал, пол-тень, 3D-текст, неоновая площадка ----------
   const white = new THREE.Group();
   white.visible = false;
   scene.add(white);
@@ -211,41 +223,16 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   // 3D-текст позади фигуры: фигура перекрывает буквы. Рисуется в layoutTitle после attachScroll (известен пресет).
   const titleTex = makeTitleTexture();
   let titleFill = 0; // доля ширины плоскости, занятая буквами (для подгонки под кадр)
-  const title = new THREE.Mesh(new THREE.PlaneGeometry(TITLE_W, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0x0a0a0a }));
+  const title = new THREE.Mesh(new THREE.PlaneGeometry(TITLE_W, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0xeef2f5 }));
   title.position.set(0, 1.12, -0.9);
   title.castShadow = true;
   white.add(title);
-  // Шахматы вокруг пьедестала (композиция bersus: две фигуры спереди по бокам, одна позади).
-  // Модели — tunakron, CC0 (public/models/chess/LICENSE.txt). Материал свой: чёрный лак.
-  const chessMat = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0a, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 1.4 });
-  const props = [];
-  // z растёт к камере (она на +8.74): ближние фигуры у края кадра, дальняя за пьедесталом
-  const CHESS = [
-    { file: 'knight', pos: [-2.1, -PED_H, 0.5], rotY: -2.07, h: 0.72 }, // морда смотрит к центру кадра
-    { file: 'rook', pos: [2.3, -PED_H, 0.7], rotY: -0.3, h: 0.66 },
-    { file: 'queen', pos: [1.0, -PED_H, -2.2], rotY: 0.2, h: 0.85, mx: 1.9 }, // mx: дальняя не прячется за пьедесталом на узком кадре
-  ];
-  const chessLoader = new GLTFLoader();
-  Promise.all(CHESS.map((c) => chessLoader.loadAsync(`${BASE}models/chess/${c.file}.glb`))).then((gltfs) => {
-    gltfs.forEach((gltf, i) => {
-      const { pos, rotY, h: height, mx = 1 } = CHESS[i];
-      const src = gltf.scene.getObjectByProperty('isMesh', true);
-      const geo = toCreasedNormals(src.geometry.clone(), 0.7); // гладкий лак, рёбра остаются резкими
-      geo.computeBoundingBox();
-      const h = geo.boundingBox.max.y - geo.boundingBox.min.y;
-      const m = new THREE.Mesh(geo, chessMat);
-      const k = height / h;
-      m.scale.setScalar(k);
-      m.position.set(...pos); m.rotation.y = rotY;
-      m.castShadow = true; m.receiveShadow = true;
-      m.userData.base = { pos: [...pos], size: height, k, mx };
-      m.name = pos[2] > 0 ? 'chess-near' : 'chess-far'; // имя для тестов параллакса
-      white.add(m); props.push(m);
-    });
-    layoutProps();
-  });
+  // Предметы вокруг пьедестала вместо шахмат bersus: стойка, чип, блокчейн (src/neonSet.js)
+  const neonSet = createNeonSet(PED_H);
+  white.add(neonSet.group);
+  const props = neonSet.props;
   function layoutProps() {
-    // на мобильном кадр узкий: фигуры ближе к оси и мельче, глубина сохраняется
+    // на мобильном кадр узкий: предметы ближе к оси и мельче, глубина сохраняется
     const kx = preset === 'mobile' ? 0.42 : 1;
     const kz = preset === 'mobile' ? 0.7 : 1;
     for (const m of props) {
@@ -334,8 +321,26 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
   key.shadow.radius = 2.5;
   scene.add(key, key.target);
-  const keyFill = new THREE.HemisphereLight(0xffffff, 0xb9b5ae, 0);
+  key.color.set(0xe4ecf5); // холодный белый: тёплый key спорит с цианом
+  const keyFill = new THREE.HemisphereLight(0x9fdcff, 0x0b1a22, 0);
   scene.add(keyFill);
+  // Циановый контровой свет второй сцены: неоновая кромка по силуэту статуи (камера на +Z, свет сзади)
+  const rimLights = [[-1.5, 2.3, -1.3], [1.6, 1.5, -1.4]].map((p) => {
+    const l = new THREE.RectAreaLight(ACCENT, 0, 0.7, 2.6);
+    l.position.set(...p);
+    l.lookAt(0, 1.0, 0);
+    scene.add(l);
+    return l;
+  });
+  // подсветка пьедестала снизу: свет сетки пола
+  const floorGlow = new THREE.PointLight(ACCENT, 0, 2.2, 2);
+  floorGlow.position.set(0, -PED_H + 0.08, 0.9);
+  scene.add(floorGlow);
+  function setNeonLight(k) {
+    for (const l of rimLights) l.intensity = RIM_MAX * k;
+    floorGlow.intensity = 1.6 * k;
+    tl.neon = k;
+  }
 
   // ---------- camera keyframes (координаты bersus × 0.85, наша тёмная поза оставлена как есть) ----------
   const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
@@ -349,13 +354,13 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     init:      { pos: [0.4, 1.0, -4.75],  tgt: [0, 1.42, 0], mm: null },
     blackMan:  { pos: [0.45, 1.05, -4.35], tgt: [0, 1.42, 0], mm: null },
     intoWhite: { pos: [0, 0.9, 10.5],   tgt: [0, 1.1, 0],     mm: 55 },
-    full:      { pos: [0, 2.14, 8.74],  tgt: [0, 0.95, 0],    mm: 60 },
+    full:      { pos: [0, 1.9, 9.8],    tgt: [0, 0.7, 0],     mm: 48 }, // статуя с пьедесталом — 22…78% высоты, как у bersus; снизу место под Ask
   };
   // Mobile: camera_mobile.glb × 0.85 — камера облетает фигуру по дуге, target статичен
   const KFM = {
     init:     { pos: [0, 1.74, -2.97], tgt: [0.03, 1.55, 0] },
     blackMan: { pos: [0, 1.63, -1.77], tgt: [0.03, 1.55, 0] },
-    full:     { pos: [0, 1.6, 8.74],   tgt: [0.03, 0.9, 0] },
+    full:     { pos: [0, 1.6, 8.74],   tgt: [0.03, 0.62, 0] }, // пьедестал заканчивается над Ask и доком
   };
   const orbit = new THREE.CatmullRomCurve3([
     [0, 1.63, -1.77], [1.2, 1.53, -1.62], [2.44, 1.43, -0.82], [3.28, 1.37, 0.82],
@@ -388,6 +393,10 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, radiusExponent: 1, rings: 2, samples: 16 });
   gtao.enabled = RENDER.gtao;
   if (RENDER.gtao) composer.addPass(gtao);
+  // Свечение неона только на второй сцене и только на десктопе: на телефоне проход дорог
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.6, 0.45, 0.92);
+  bloom.enabled = false;
+  if (RENDER.bloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
   // мобильный пресет: глитч-пасс не добавляется в композер (переход идёт облётом камеры)
   const glitchPass = new ShaderPass(GlitchShader);
@@ -410,7 +419,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   resize();
 
   // ---------- timeline ----------
-  const tl = { t01: 0, t12: 0, t23: 0, swapped: false, glitch: 0, tagline: false, hintHidden: false };
+  const tl = { t01: 0, t12: 0, t23: 0, swapped: false, glitch: 0, neon: 0, tagline: false, hintHidden: false };
   const listeners = new Set();
   const cam = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), fov: 30 };
 
@@ -419,13 +428,13 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     tl.swapped = on;
     for (const m of meshes) m.material = on ? statueMat : darkMat;
     white.visible = on;
-    scene.background.copy(on ? WHITE : BLACK);
-    document.body.classList.toggle('is-light', on);
+    scene.background.copy(on ? NEON_BG : BLACK);
+    document.body.classList.toggle('is-neon', on);
+    bloom.enabled = RENDER.bloom && on;
     warmShadows(8); // материалы и свет сменились — даём теням догнать
     // GTAO включается только в applyTimeline: единственное место, где решается его судьба
     grainPass.uniforms.amount.value = on ? 0.0 : 0.07;
-    // AO на белом фоне даёт грязь по краям — ослабляем
-    // на белом AO выключен: 16-сэмпловый GTAO даёт шум-рябь на ровных светлых поверхностях
+    // на второй сцене GTAO выключен: 16-сэмпловый проход даёт шум-рябь на светлой статуе (AO запечён)
   }
 
   let attached = false;
@@ -438,7 +447,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     titleFill = drawTitle(c, name[preset]);
     titleTex.needsUpdate = true;
     // desktop: буквы за торсом; mobile: над головой, узкая ширина под портрет
-    if (preset === 'mobile') title.position.set(0, 2.1, -0.6);
+    if (preset === 'mobile') title.position.set(0, 1.92, -0.6); // нижний край букв за головой, как у референса
     else title.position.set(0, 1.12, -0.9);
     titleBase.y = title.position.y;
     scaleTitle();
@@ -487,7 +496,8 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     const keyOn = tl.swapped ? 1 : 0;
     key.intensity = KEY_LIGHT_MAX * keyOn;
     keyFill.intensity = 0.12 * keyOn;
-    scene.environmentIntensity = tl.swapped ? lerp(0.3, ENV_FADE.to, t) : 0.1;
+    setNeonLight(keyOn);
+    scene.environmentIntensity = tl.swapped ? lerp(0.2, ENV_FADE.to, t) : 0.1;
     floor.material.opacity = keyOn ? SHADOW_FLOOR.after : SHADOW_FLOOR.before;
 
     // заголовок: выезжает снизу и уменьшается 1.2 → 1 (smoothstep от 37.8% до 100%)
@@ -526,7 +536,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
       const e = easeInOutCubic(t23);
       cam.pos.fromArray(KF.intoWhite.pos).lerp(new THREE.Vector3().fromArray(KF.full.pos), e);
       cam.tgt.fromArray(KF.intoWhite.tgt).lerp(new THREE.Vector3().fromArray(KF.full.tgt), e);
-      cam.fov = lerp(whiteFov(55, a), whiteFov(60, a), e);
+      cam.fov = lerp(whiteFov(55, a), whiteFov(KF.full.mm, a), e);
     }
 
     // GTAO только в покое тёмной сцены: во время перехода его всё равно скрывает глитч,
@@ -546,6 +556,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     const keyFade = t23;
     key.intensity = KEY_LIGHT_MAX * keyFade;
     keyFill.intensity = 0.07 * keyFade;
+    setNeonLight(tl.swapped ? Math.max(keyFade, 0.15) : 0); // неон тлеет с момента свапа и разгорается с key
     const envT = seg(t23, ENV_FADE.start, ENV_FADE.start + ENV_FADE.duration);
     scene.environmentIntensity = tl.swapped ? ENV_FADE.to * envT : 0.1;
     floor.material.opacity = lerp(SHADOW_FLOOR.before, SHADOW_FLOOR.after, keyFade);
@@ -594,6 +605,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
     if (sticky) applyTimeline(sticky);
     else { cam.pos.fromArray(KF.blackMan.pos); cam.tgt.fromArray(KF.blackMan.tgt); cam.fov = darkFov(camera.aspect); }
+    if (white.visible) neonSet.update(t, tl.neon);
 
     // idle: дыхание + курсор-параллакс (в белой фазе слабее и в другую сторону: камера на +Z)
     pivot.rotation.y = state.baseRotY + Math.sin(t * 0.35) * 0.01;
@@ -716,7 +728,7 @@ function makeTitleTexture() {
 function drawTitle(c, text) {
   const ctx = c.getContext('2d');
   ctx.clearRect(0, 0, c.width, c.height);
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#fff'; // цвет букв задаёт материал (светлый на тёмной сцене)
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const font = (px) => { ctx.font = `900 ${px}px Montserrat, "Helvetica Neue", Arial, sans-serif`; ctx.letterSpacing = `${-0.042 * px}px`; };
@@ -763,24 +775,17 @@ function marbleTexture(size) {
   return tex;
 }
 
-/** Оставляет треугольники, центр которых на стороне sign по оси Z, и уплотняет вершины. */
+/** Оставляет треугольники, центр которых на стороне sign по оси Z, и уплотняет вершины (все атрибуты, в т.ч. _ao). */
 function keepHalf(geo, sign) {
   const pos = geo.attributes.position;
-  const nor = geo.attributes.normal;
-  const uv = geo.attributes.uv;
+  const names = Object.keys(geo.attributes);
   const idx = geo.index ? geo.index.array : null;
   const triCount = idx ? idx.length / 3 : pos.count / 3;
   const remap = new Int32Array(pos.count).fill(-1);
+  const order = [];
   const newIdx = [];
-  const P = [], N = [], U = [];
-  let next = 0;
   const use = (v) => {
-    if (remap[v] < 0) {
-      remap[v] = next++;
-      P.push(pos.getX(v), pos.getY(v), pos.getZ(v));
-      if (nor) N.push(nor.getX(v), nor.getY(v), nor.getZ(v));
-      if (uv) U.push(uv.getX(v), uv.getY(v));
-    }
+    if (remap[v] < 0) { remap[v] = order.length; order.push(v); }
     return remap[v];
   };
   for (let t = 0; t < triCount; t++) {
@@ -789,9 +794,13 @@ function keepHalf(geo, sign) {
     if (z * sign > 0) newIdx.push(use(a), use(b), use(c));
   }
   const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  if (nor) out.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
-  if (uv) out.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2));
+  for (const name of names) {
+    const src = geo.attributes[name];
+    const n = src.itemSize;
+    const dst = new Float32Array(order.length * n);
+    for (let i = 0; i < order.length; i++) for (let k = 0; k < n; k++) dst[i * n + k] = src.getComponent(order[i], k);
+    out.setAttribute(name, new THREE.BufferAttribute(dst, n));
+  }
   out.setIndex(newIdx);
   out.computeBoundingBox();
   out.computeBoundingSphere();

@@ -114,6 +114,8 @@ export const content = {
       { label: 'Обо мне', href: '#about' },
       { label: 'Чем полезен', href: '#projects' },
     ],
+    /** Нижний док на телефоне: ☰ и четыре перехода, как у референса (Solutions · Services · Portfolio · About). */
+    dock: [PAGES.blog, PAGES.reviews, PAGES.cases, { label: 'Обо мне', href: '#about' }],
     /** Страницы портала в крупных пунктах после якорей. */
     pages: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.cases],
     /** Строка под кнопкой «Написать». */

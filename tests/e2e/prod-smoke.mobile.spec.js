@@ -14,7 +14,7 @@ test('прод: мобильный пресет доходит до белой �
   expect(models.some((u) => u.includes('character-mobile.glb')), `персонаж: ${models}`).toBe(true);
 
   await goToWhiteScene(page, 'mobile');
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
   await expect(page.locator('#tagline')).toHaveText(content.tagline.join(' '));
   await expectAskButtons(page, content);
 });

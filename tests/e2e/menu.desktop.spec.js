@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { content } from '../../src/content.js';
-import { waitForPrelude, goToWhiteScene, openMenu, expectMenuClosed, isInViewport, rectOf } from './helpers.js';
+import { waitForPrelude, goToWhiteScene, leaveScene, openMenu, expectMenuClosed, isInViewport, rectOf } from './helpers.js';
 
 test('desktop: меню открывается наведением, закрывается Escape и кликом по зоне, ссылки закрывают сразу', async ({ page }) => {
   await page.goto('/');
@@ -73,12 +73,17 @@ test('desktop: пункты выезжают по буквам, закрытие
   await expect(page.locator('#menu')).not.toHaveClass(/menu--open/, { timeout: 3_000 });
 });
 
-test('desktop: шапка тёмная на белой сцене и светлая на тёмной', async ({ page }) => {
+test('desktop: шапка светлая на обеих сценах и тёмная над светлым контентом', async ({ page }) => {
   await page.goto('/');
   await waitForPrelude(page);
   const navColor = () => page.evaluate(() => getComputedStyle(document.getElementById('nav')).color);
   expect(await navColor()).toBe('rgb(255, 255, 255)');
 
   await goToWhiteScene(page, 'desktop');
-  expect(await navColor()).toBe('rgb(17, 17, 17)');
+  expect(await navColor(), 'на неоновой сцене').toBe('rgb(255, 255, 255)');
+
+  await leaveScene(page, 'desktop');
+  await page.evaluate(() => document.getElementById('projects').scrollIntoView());
+  await page.waitForTimeout(600);
+  expect(await navColor(), 'над светлым контентом').toBe('rgb(17, 17, 17)');
 });
