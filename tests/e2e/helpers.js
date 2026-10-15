@@ -273,19 +273,26 @@ export async function expectSectionsMatchContent(page, content) {
   expect(overflow.bad, 'элементы за гаттером 16px').toEqual([]);
 }
 
-/** На тёмной сцене: Ask в шапке уже виден и ведёт по ссылке контента, на сцене — ещё скрыт. */
+/**
+ * На тёмной сцене — как у референса — ничего, кроме персонажа и подсказки: шапка (имя, Ask, меню) скрыта
+ * и появится с белой сценой. Ссылка Ask уже из контента. toBeVisible() здесь не годится: Playwright считает
+ * видимым и элемент с нулевой прозрачностью — проверяем класс и итоговую прозрачность.
+ */
 export async function expectAskOnDarkScene(page, content) {
-  await expect(page.locator('#ask-nav')).toBeVisible();
+  await expect(page.locator('#nav')).not.toHaveClass(/nav--visible/);
+  await expect.poll(() => page.evaluate(() => +getComputedStyle(document.getElementById('nav')).opacity)).toBeLessThan(0.05);
   await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
   await expect(page.locator('#ask-scene')).not.toHaveClass(/ask--visible/);
 }
 
 /**
- * На белой сцене: кнопка под пьедесталом показана (появляется с теглайном), обе кнопки видимы,
+ * На белой сцене: кнопка под пьедесталом показана (появляется с теглайном), шапка появилась, обе кнопки видимы,
  * href из контента, новая вкладка.
  */
 export async function expectAskButtons(page, content) {
   await expect(page.locator('#ask-scene')).toHaveClass(/ask--visible/);
+  // шапка появляется с белой сценой (на тёмной её нет — expectAskOnDarkScene)
+  await expect(page.locator('#nav')).toHaveClass(/nav--visible/);
   for (const id of ['#ask-scene', '#ask-nav']) {
     const btn = page.locator(id);
     await expect(btn).toBeVisible();

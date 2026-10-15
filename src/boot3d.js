@@ -96,7 +96,6 @@ export function boot3d({ preset, dom }) {
       loader.classList.add('loader--done');
       document.body.classList.remove('is-loading');
       sticky.start(); // prelude стартует через 500 мс, длится 2 с
-      setTimeout(() => { nav.classList.add('nav--visible'); }, 900);
       setTimeout(() => { hint.classList.add('scroll-hint--visible'); }, 2600);
     }, OUTRO_MS);
   }
@@ -112,6 +111,9 @@ export function boot3d({ preset, dom }) {
       window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
       if (loader.classList.contains('loader--out')) finish();
       app.onTimeline((tl) => {
+        // как у референса: на тёмной сцене ничего, кроме персонажа и подсказки; шапка (имя, Ask, меню) —
+        // с белой сцены и дальше
+        nav.classList.toggle('nav--visible', tl.swapped);
         tagline.classList.toggle('tagline--visible', tl.tagline);
         askScene.classList.toggle('ask--visible', tl.tagline);
         hint.classList.toggle('scroll-hint--hidden', tl.hintHidden);
