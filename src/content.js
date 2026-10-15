@@ -107,6 +107,13 @@ export const content = {
   },
 
   /** Меню: якоря по секциям главной и разделы сайта внизу (resources). */
+  /** Подписи предметов второй сцены (наведение на десктопе): тема и раздел портала. */
+  props: {
+    chip: { label: 'ИИ в бизнесе', href: '/ai-in-business/' },
+    rack: { label: 'Инструменты и highload', href: '/tools/' },
+    chain: { label: 'Стартапы', href: '/startups/' },
+  },
+
   menu: {
     title: 'Меню',
     resourcesTitle: 'Разделы сайта',

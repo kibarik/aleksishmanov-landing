@@ -43,6 +43,7 @@ export const GlitchShader = {
     uRgbShift: { value: GLITCH_DEFAULTS.rgbShift },
     uRgbIntensity: { value: GLITCH_DEFAULTS.rgbIntensity },
     uRgbMono: { value: GLITCH_DEFAULTS.rgbMono },
+    uTint: { value: [1, 1, 1] }, // оттенок моно-кадра глитча; сцена ставит циан — переход «входит в систему»
     uScanlineStrength: { value: GLITCH_DEFAULTS.scanlineStrength },
     uNoiseStrength: { value: GLITCH_DEFAULTS.noiseStrength },
     uFlickerStrength: { value: GLITCH_DEFAULTS.flickerStrength },
@@ -71,6 +72,7 @@ export const GlitchShader = {
     uniform float uRgbShift;
     uniform float uRgbIntensity;
     uniform float uRgbMono;
+    uniform vec3 uTint;
     uniform float uScanlineStrength;
     uniform float uNoiseStrength;
     uniform float uFlickerStrength;
@@ -166,7 +168,7 @@ export const GlitchShader = {
 
       if (uRgbMono > 0.5 && intensity > 0.01) {
         float luma = dot(color, vec3(0.299, 0.587, 0.114));
-        color = mix(color, vec3(luma), clamp(intensity, 0.0, 1.0));
+        color = mix(color, luma * uTint, clamp(intensity, 0.0, 1.0));
       }
 
       gl_FragColor = vec4(clamp(color, 0.0, 1.0), inputColor.a);

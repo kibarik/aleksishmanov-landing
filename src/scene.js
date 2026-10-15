@@ -20,9 +20,11 @@ import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { GrainShader } from './grainShader.js';
 import { GlitchShader } from './glitchShader.js';
 import { createNeonSet, ACCENT } from './neonSet.js';
+import { createStatueMaterial, neonEnvironment } from './statueStyles.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -40,12 +42,13 @@ const MODEL_URL = {
 };
 /** Настройки рендера по пресету: мобильный облегчён по образцу референса. */
 const RENDER_PRESET = {
-  desktop: { dprMax: 1.5, gtao: true, glitch: true, bloom: true, shadowMap: 256 }, // тени 256 с прогревом — как у референса
-  mobile: { dprMax: 1.5, gtao: false, glitch: false, bloom: false, shadowMap: 128 },
+  desktop: { dprMax: 1.5, gtao: true, glitch: true, bloom: true, reflect: true, shadowMap: 256 }, // тени 256 с прогревом — как у референса
+  mobile: { dprMax: 1.5, gtao: false, glitch: false, bloom: false, reflect: false, shadowMap: 128 },
 };
 const TARGET_HEIGHT = 1.85;
 const BLACK = new THREE.Color(0x0a0a0a);
-const NEON_BG = new THREE.Color(0x04070b); // вторая сцена: почти чёрный с холодным оттенком
+const NEON_BG = new THREE.Color(0x04070b);
+const WHITE_HALO = new THREE.Color(0xffffff); // вторая сцена: почти чёрный с холодным оттенком
 
 // Параметры bersus (desktop)
 const SWAP_POINT = 0.36;          // color swap внутри black-man → into-white
@@ -155,20 +158,11 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   await breathe();
   const marbleNormal = noiseNormalTexture(512, 1.2);
   marbleNormal.repeat.set(4, 4);
-  // Чистая поверхность: без шумовой roughnessMap и с очень слабым normal-зерном — иначе рябь на белом
-  const statueMat = new THREE.MeshPhysicalMaterial({
-    color: 0xa39f99, map: marbleAlbedo, roughness: 0.68, metalness: 0,
-    normalMap: marbleNormal, normalScale: new THREE.Vector2(0.18, 0.18), envMapIntensity: 0.5,
-  });
-  // Запечённый AO (атрибут _ao, scripts/bake-ao.mjs): складки и впадины темнеют, как на текстуре статуи bersus
-  statueMat.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float _ao;\nvarying float vAo;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo = _ao;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vAo;')
-      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n  float bakedAo = mix(1.0, vAo * vAo, 0.9);\n  reflectedLight.indirectDiffuse *= bakedAo;\n  reflectedLight.directDiffuse *= mix(1.0, bakedAo, 0.6);\n  reflectedLight.indirectSpecular *= bakedAo;');
-  };
+  // Статуя второй сцены — голограмма (решение владельца 2026-10-15); другие стили — src/statueStyles.js, ?statue=…
+  const STATUE = new URLSearchParams(location.search).get('statue') || 'holo';
+  const statueEnv = neonEnvironment(renderer, ACCENT);
+  const statue = createStatueMaterial(STATUE, { marbleAlbedo, marbleNormal, envMap: statueEnv, accent: ACCENT });
+  const statueMat = statue.material;
   const meshes = [];
   root.traverse((o) => {
     if (!o.isMesh) return;
@@ -195,7 +189,6 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const white = new THREE.Group();
   white.visible = false;
   scene.add(white);
-  const marble = new THREE.MeshPhysicalMaterial({ color: 0xa5a29c, map: marbleAlbedo, roughness: 0.78, normalMap: marbleNormal, normalScale: new THREE.Vector2(0.15, 0.15), envMapIntensity: 0.6 });
   const PED_H = 0.62;
   const ped = new THREE.Group();
   ped.position.y = -PED_H;
@@ -204,11 +197,13 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     [0.0, 0.0], [0.62, 0.0], [0.62, 0.05], [0.58, 0.06], [0.56, 0.1], [0.5, 0.115], [0.47, 0.14],
     [0.44, 0.16], [0.44, 0.48], [0.47, 0.5], [0.5, 0.525], [0.55, 0.545], [0.57, 0.575], [0.57, 0.6], [0.55, 0.62], [0.0, 0.62],
   ].map(([r, y]) => new THREE.Vector2(r, y));
-  const column = new THREE.Mesh(new THREE.LatheGeometry(profile, 96), marble);
+  // пьедестал — проектор голограммы: воронёный металл, в каннелюрах светящиеся полосы
+  const pedMetal = new THREE.MeshPhysicalMaterial({ color: 0x14181d, metalness: 0.85, roughness: 0.32, clearcoat: 0.5, clearcoatRoughness: 0.25, envMap: statueEnv, envMapIntensity: 1.3 });
+  const column = new THREE.Mesh(new THREE.LatheGeometry(profile, 96), pedMetal);
   ped.add(column);
   // каннелюры: полукруглые желобки, вырезанные «в обратную» — узкие цилиндры чуть утоплены в ствол
   const fluteGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.3, 12);
-  const fluteMat = marble.clone(); fluteMat.color.setHex(0x8f8c86);
+  const fluteMat = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false }); // цвет — в кадре, вместе с неоном
   for (let i = 0; i < 28; i++) {
     const a = (i / 28) * Math.PI * 2;
     ped.add(mesh(fluteGeo, fluteMat, [Math.cos(a) * 0.445, 0.32, Math.sin(a) * 0.445]));
@@ -226,10 +221,37 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const title = new THREE.Mesh(new THREE.PlaneGeometry(TITLE_W, 1.4), new THREE.MeshBasicMaterial({ map: titleTex, transparent: true, alphaTest: 0.5, toneMapped: false, color: 0xeef2f5 }));
   title.position.set(0, 1.12, -0.9);
   title.castShadow = true;
+  // слой 1: имя видит основная камера, но не отражение пола (перевёрнутые буквы у нижнего края резались кадром)
+  title.layers.set(1);
+  camera.layers.enable(1);
   white.add(title);
   // Предметы вокруг пьедестала вместо шахмат bersus: стойка, чип, блокчейн (src/neonSet.js)
   const neonSet = createNeonSet(PED_H);
   white.add(neonSet.group);
+  // Глянцевый пол (только десктоп): тусклое отражение имени, голограммы и неона, к краям гаснет.
+  // Отражение рисуется в половинном разрешении — мягче и вдвое дешевле.
+  const floorMirror = RENDER.reflect ? new Reflector(new THREE.PlaneGeometry(40, 40), {
+    textureWidth: Math.round(window.innerWidth / 2), textureHeight: Math.round(window.innerHeight / 2), clipBias: 0.003,
+    shader: {
+      name: 'NeonFloorReflector',
+      uniforms: { color: { value: null }, tDiffuse: { value: null }, textureMatrix: { value: null }, uStrength: { value: 0 } },
+      vertexShader: /* glsl */`
+        uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 vWorld;
+        void main() { vUv = textureMatrix * vec4(position, 1.0); vWorld = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse; uniform float uStrength; varying vec4 vUv; varying vec3 vWorld;
+        void main() {
+          vec3 refl = texture2DProj(tDiffuse, vUv).rgb;
+          float fade = exp(-length(vWorld.xz) * 0.22);
+          gl_FragColor = vec4(vec3(0.006, 0.01, 0.014) + refl * uStrength * fade, 1.0);
+        }`,
+    },
+  }) : null;
+  if (floorMirror) {
+    floorMirror.rotation.x = -Math.PI / 2;
+    floorMirror.position.y = -PED_H - 0.003;
+    white.add(floorMirror);
+  }
   const props = neonSet.props;
   function layoutProps() {
     // на мобильном кадр узкий: предметы ближе к оси и мельче, глубина сохраняется
@@ -242,6 +264,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
       m.userData.laidOutY = m.position.y;
       m.scale.setScalar(b.k * (preset === 'mobile' ? 0.7 : 1));
     }
+    neonSet.layout();
   }
 
   // ---------- lights ----------
@@ -400,6 +423,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   composer.addPass(new OutputPass());
   // мобильный пресет: глитч-пасс не добавляется в композер (переход идёт облётом камеры)
   const glitchPass = new ShaderPass(GlitchShader);
+  glitchPass.uniforms.uTint.value = [0.55, 1.0, 1.08]; // циановый глитч: тёмная сцена переходит в неоновую
   if (RENDER.glitch) composer.addPass(glitchPass);
   const grainPass = new ShaderPass(GrainShader);
   grainPass.uniforms.amount.value = 0.07;
@@ -410,6 +434,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     composer.setPixelRatio(renderer.getPixelRatio());
+    neonSet.setPixelRatio(renderer.getPixelRatio());
     gtao.setSize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
     glitchPass.uniforms.uResolution.value = [w * renderer.getPixelRatio(), h * renderer.getPixelRatio()];
     camera.aspect = w / h;
@@ -426,7 +451,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   function setSwapped(on) {
     if (tl.swapped === on) return;
     tl.swapped = on;
-    for (const m of meshes) m.material = on ? statueMat : darkMat;
+    for (const m of meshes) { m.material = on ? statueMat : darkMat; m.castShadow = !(on && STATUE === 'holo'); } // голограмма тени не отбрасывает
     white.visible = on;
     scene.background.copy(on ? NEON_BG : BLACK);
     document.body.classList.toggle('is-neon', on);
@@ -595,9 +620,13 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     if (lightOnAt >= 0) lightOn = easeOut(clamp01((t - lightOnAt) / 2.2));
     const darkMul = tl.swapped ? 0 : lightOn;
     for (const l of darkLights) l.intensity = l.userData.base * darkMul;
-    screenMat.color.setScalar(darkMul);
-    halo.material.opacity = 0.35 * darkMul;
-    screenRig.visible = PART === 'back' && !tl.swapped;
+    // экран планшета горит на обеих сценах: на тёмной белым, на неоновой — голубоватым, в тон голограмме
+    if (tl.swapped) screenMat.color.setRGB(0.75, 1, 1).multiplyScalar(1.6 * tl.neon);
+    else screenMat.color.setScalar(darkMul);
+    halo.material.color.copy(tl.swapped ? ACCENT : WHITE_HALO);
+    halo.material.opacity = 0.35 * (tl.swapped ? tl.neon : darkMul);
+    screenRig.visible = PART === 'back';
+    fluteMat.color.copy(ACCENT).multiplyScalar(0.55 * tl.neon);
 
     const k = 1 - Math.exp(-dt * 3);
     mouse.sx += (mouse.x - mouse.sx) * k;
@@ -605,7 +634,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
 
     if (sticky) applyTimeline(sticky);
     else { cam.pos.fromArray(KF.blackMan.pos); cam.tgt.fromArray(KF.blackMan.tgt); cam.fov = darkFov(camera.aspect); }
-    if (white.visible) neonSet.update(t, tl.neon);
+    if (white.visible) { neonSet.update(t, tl.neon); statue.update(t, tl.neon); if (floorMirror) floorMirror.material.uniforms.uStrength.value = 0.24 * tl.neon; }
 
     // idle: дыхание + курсор-параллакс (в белой фазе слабее и в другую сторону: камера на +Z)
     pivot.rotation.y = state.baseRotY + Math.sin(t * 0.35) * 0.01;
@@ -643,6 +672,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     if (captureCb) { const cb = captureCb; captureCb = null; cb(readPixels()); }
   }
 
+  const picker = new THREE.Raycaster(), pickNdc = new THREE.Vector2(), pickBox = new THREE.Box3(), pickV = new THREE.Vector3();
   let captureCb = null;
   function readPixels() {
     const gl = renderer.getContext();
@@ -688,6 +718,24 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     },
     setLightOn(v) { lightOnAt = -1; lightOn = v; },
     lightsOn() { lightOnAt = clock.getElapsedTime(); warmShadows(150); }, // свет разгорается 2.2 с
+    /**
+     * Предмет второй сцены под курсором (x, y — пиксели окна): { kind, x, y } — точка над предметом для подписи,
+     * или null. Только на неоновой сцене.
+     */
+    pickProp(x, y) {
+      if (!tl.swapped || !white.visible) return null;
+      pickNdc.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
+      picker.setFromCamera(pickNdc, camera);
+      const hit = picker.intersectObjects(props, true)[0];
+      if (!hit) return null;
+      let o = hit.object;
+      while (o && !o.userData.kind) o = o.parent;
+      if (!o) return null;
+      pickBox.setFromObject(o);
+      const top = pickBox.getCenter(pickV); top.y = pickBox.max.y + 0.08;
+      top.project(camera);
+      return { kind: o.userData.kind, x: (top.x + 1) / 2 * window.innerWidth, y: (1 - top.y) / 2 * window.innerHeight };
+    },
     gtao, grainPass, glitchPass, composer, tl,
     scene, camera, renderer, pivot, material: darkMat, statueMat, state, darkLights, key,
   };

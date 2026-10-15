@@ -110,6 +110,7 @@ export function boot3d({ preset, dom }) {
       new IntersectionObserver(([e]) => app.setOnScreen(e.isIntersecting)).observe(canvas);
       window.__sceneReady = true; // лоадер в index.html досчитает до 100% и отдаст loader:done
       if (loader.classList.contains('loader--out')) finish();
+      mountPropTags(app, canvas, hero, preset);
       app.onTimeline((tl) => {
         // как у референса: на тёмной сцене ничего, кроме персонажа и подсказки; шапка (имя, Ask, меню) —
         // с белой сцены и дальше
@@ -120,4 +121,38 @@ export function boot3d({ preset, dom }) {
       });
     })
     .catch((err) => { console.error(err); pct.textContent = 'ошибка'; });
+}
+
+/**
+ * Подпись предмета второй сцены под курсором (десктоп): тема и переход в раздел портала по клику.
+ * Подпись — ссылка, поэтому доступна и с клавиатуры, пока видна.
+ */
+function mountPropTags(app, canvas, hero, preset) {
+  if (preset === 'mobile') return;
+  const tag = document.createElement('a');
+  tag.className = 'prop-tag';
+  tag.id = 'prop-tag';
+  tag.innerHTML = '<span class="prop-tag__label"></span><span class="prop-tag__arrow" aria-hidden="true">→</span>';
+  hero.append(tag);
+  const label = tag.querySelector('.prop-tag__label');
+  let current = null;
+  let raf = 0;
+  let last = null;
+  const show = (hit) => {
+    const meta = hit && content.props[hit.kind];
+    current = meta ? hit.kind : null;
+    document.body.classList.toggle('is-prop-hover', !!meta);
+    if (!meta) { tag.classList.remove('prop-tag--visible'); return; }
+    if (tag.dataset.kind !== hit.kind) { tag.dataset.kind = hit.kind; label.textContent = meta.label; tag.href = meta.href; }
+    tag.style.transform = `translate(${Math.round(hit.x)}px, ${Math.round(hit.y)}px) translate(-50%, -100%)`;
+    tag.classList.add('prop-tag--visible');
+  };
+  window.addEventListener('pointermove', (e) => {
+    if (e.target === tag || tag.contains(e.target)) return; // над самой подписью — держим её
+    last = e;
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; show(app.pickProp(last.clientX, last.clientY)); });
+  }, { passive: true });
+  // клик по самому предмету — тот же переход, что и по подписи
+  canvas.addEventListener('click', () => { if (current) window.location.href = content.props[current].href; });
 }

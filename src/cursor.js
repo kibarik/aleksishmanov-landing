@@ -43,7 +43,8 @@ export function mountCursor() {
     targetX = e.clientX;
     targetY = e.clientY;
     if (!seen) { seen = true; x = targetX; y = targetY; root.classList.add('cursor--seen'); }
-    root.classList.toggle('cursor--active', !!e.target.closest?.(INTERACTIVE));
+    // над предметом второй сцены (src/boot3d.js, is-prop-hover) курсор тоже «активный»: по клику — переход
+    root.classList.toggle('cursor--active', !!e.target.closest?.(INTERACTIVE) || document.body.classList.contains('is-prop-hover'));
   }, { passive: true });
 
   window.addEventListener('pointerdown', () => root.classList.add('cursor--down'), { passive: true });
