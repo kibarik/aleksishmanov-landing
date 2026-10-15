@@ -133,19 +133,19 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   await breathe();
   // Тёмная фаза: глянцевая «кожа». RectAreaLight в three не учитывает clearcoat → глянец в базовой roughness.
   const darkMat = new THREE.MeshPhysicalMaterial({
-    color: 0x050505, roughness: 0.5, roughnessMap: grain, metalness: 0, clearcoat: 0,
+    color: 0x050505, roughness: 0.38, roughnessMap: grain, metalness: 0, clearcoat: 0,
     normalMap: grainNormal, normalScale: new THREE.Vector2(0.9, 0.9), sheen: 0, envMapIntensity: 0.1,
   });
   darkMat.onBeforeCompile = (shader) => {
     shader.uniforms.uHeadY = { value: 1.68 };
-    shader.uniforms.uHeadColor = { value: new THREE.Color(0x1a1510) };
+    shader.uniforms.uHeadColor = { value: new THREE.Color(0x0d0b09) };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying float vWorldY;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldY = (modelMatrix * vec4(transformed, 1.0)).y;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vWorldY;\nuniform float uHeadY;\nuniform vec3 uHeadColor;')
       .replace('#include <color_fragment>', '#include <color_fragment>\n  float headMask = smoothstep(uHeadY - 0.015, uHeadY + 0.015, vWorldY);\n  diffuseColor.rgb = mix(diffuseColor.rgb, uHeadColor, headMask);')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  material.roughness = mix(material.roughness, 0.62, headMask);');
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  material.roughness = mix(material.roughness, 0.46, headMask);');
   };
   // Белая фаза: мраморная статуя. Без света читается чёрным силуэтом (как у bersus после свапа).
   const marbleAlbedo = marbleTexture(1024);
@@ -268,11 +268,11 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     return l;
   };
   const darkLights = [
-    rect(0xffe8d2, 8, 2.6, 4.5, [-3.0, 4.4, 1.6]),
-    rect(0xf4f2ec, 5.5, 2.2, 4.0, [3.6, 3.2, 0.6]),
-    rect(0xffffff, 9, 0.8, 2.6, [2.6, 2.2, -2.8]),
+    rect(0xffe8d2, 5.5, 2.6, 4.5, [-3.0, 4.4, 1.6]),
+    rect(0xf4f2ec, 3.5, 2.2, 4.0, [3.6, 3.2, 0.6]),
+    rect(0xffffff, 11, 0.8, 2.6, [2.6, 2.2, -2.8]),
     rect(0xffffff, 2.5, 2.0, 0.8, [0.3, 4.4, -1.0]),
-    rect(0x9fb0d8, 1.6, 6, 4, [0.8, 1.6, 4.5]),
+    rect(0xd9c3a3, 0.9, 6, 4, [0.8, 1.6, 4.5]),
   ];
   const spot = new THREE.SpotLight(0xffffff, 6, 10, 0.5, 0.8, 1.5);
   spot.position.set(2.6, 4.6, -1.0);
@@ -307,8 +307,9 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
   });
   const KF = {
-    init:      { pos: [0, 1.47, -4.55], tgt: [0.06, 1.45, 0], mm: null },
-    blackMan:  { pos: [0, 1.62, -4.2],  tgt: [0.06, 1.5, 0],  mm: null },
+    // тёмная поза: камера чуть ниже груди и смотрит вверх (ракурс референса), макушка ~на четверти кадра
+    init:      { pos: [0, 1.38, -4.55], tgt: [0.06, 1.6, 0],  mm: null },
+    blackMan:  { pos: [0, 1.46, -4.2],  tgt: [0.06, 1.64, 0], mm: null },
     intoWhite: { pos: [0, 0.9, 10.5],   tgt: [0, 1.1, 0],     mm: 55 },
     full:      { pos: [0, 2.14, 8.74],  tgt: [0, 0.95, 0],    mm: 60 },
   };
@@ -325,10 +326,12 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   const titleBase = { y: title.position.y, z: title.position.z };
 
   function darkFov(aspect) {
-    // кадр тёмной фазы: от макушки до пояса; в портрете — чтобы плечи влезли по ширине
+    // кадр тёмной фазы: от макушки до груди — персонаж занимает пол-экрана, как у референса
+    // (было 1.22 — от макушки до пояса, фигура на ~27% ширины против 50% у референса);
+    // в портрете — чтобы плечи влезли по ширине
     const dist = 4.2;
-    const fovH = 2 * Math.atan(1.22 / 2 / dist);
-    const fovW = 2 * Math.atan(1.3 / 2 / dist / aspect);
+    const fovH = 2 * Math.atan(0.8 / 2 / dist);
+    const fovW = 2 * Math.atan(0.95 / 2 / dist / aspect);
     return THREE.MathUtils.radToDeg(Math.max(fovH, fovW));
   }
   function whiteFov(mm, aspect) {
