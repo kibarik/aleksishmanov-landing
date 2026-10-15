@@ -191,6 +191,7 @@ export async function expectSectionsMatchContent(page, content) {
   }
 
   await expect(page.locator('#projects h2')).toHaveText(content.projects.title);
+  await expect(page.locator('#projects .projects__lead')).toHaveText(content.projects.lead);
   const cards = page.locator('#projects [data-project]');
   await expect(cards).toHaveCount(content.projects.items.length);
   for (const [i, p] of content.projects.items.entries()) {
@@ -209,6 +210,17 @@ export async function expectSectionsMatchContent(page, content) {
       else await expect(links.nth(j)).not.toHaveAttribute('target', '_blank');
       await expect(links.nth(j)).toContainText(l.label);
     }
+    // главная кнопка — в Telegram, в новой вкладке
+    await expect(card.locator('.card__cta')).toHaveAttribute('href', p.cta.href);
+    await expect(card.locator('.card__cta')).toHaveAttribute('target', '_blank');
+    await expect(card.locator('.card__cta')).toContainText(p.cta.label);
+  }
+  // «Что веду»: все проекты со ссылками
+  const ongoing = page.locator('#projects .ongoing__item');
+  await expect(ongoing).toHaveCount(content.projects.ongoing.items.length);
+  for (const [i, it] of content.projects.ongoing.items.entries()) {
+    await expect(ongoing.nth(i)).toHaveAttribute('href', it.href);
+    await expect(ongoing.nth(i)).toContainText(it.label);
   }
 
   await expect(page.locator('#contact h2')).toHaveText(content.contact.title);
