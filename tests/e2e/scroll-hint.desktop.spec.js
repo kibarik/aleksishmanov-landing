@@ -24,12 +24,12 @@ test('desktop: подсказка «scroll down» видна в углу и на
   expect(r.right).toBeGreaterThan(vp.width * 0.9);
   expect(r.bottom).toBeGreaterThan(vp.height * 0.85);
 
-  // на белой сцене остаётся видимой и перекрашивается
+  // на второй (неоновой) сцене остаётся видимой и светлой
   await goToWhiteScene(page, 'desktop');
   await page.waitForTimeout(900);
   const white = await hint(page);
   expect(white.opacity, 'после перехода подсказка возвращается').toBe(1);
-  expect(white.color, 'на белой сцене подсказка тёмная').toBe('rgb(17, 17, 17)');
+  expect(white.color, 'на неоновой сцене подсказка светлая').toMatch(/255, 255, 255/);
 
   // после ухода сцены прячется: дальше и так обычный скролл
   await leaveScene(page, 'desktop');

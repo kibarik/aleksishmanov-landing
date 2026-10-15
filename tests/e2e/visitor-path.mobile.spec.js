@@ -12,7 +12,7 @@ test('mobile: тёмная сцена → белая сцена свайпами
   await swipeUp(page);
   await swipeUp(page);
   await waitForProgress(page, S.whiteScene);
-  await expect(page.locator('body')).toHaveClass(/is-light/);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
   await expect(page.locator('#tagline')).toHaveClass(/tagline--visible/);
 
   await page.waitForTimeout(600);

@@ -19,10 +19,10 @@ test('desktop: пропавший чанк сцены не оставляет с
   await expect(page.locator('#fallback img')).toBeVisible({ timeout: 20_000 });
   expect(hits, 'после первой неудачи страница перезагружается за свежим HTML').toBeGreaterThanOrEqual(2);
 
-  // лоадер не висит, тема светлая, контент доступен
+  // лоадер не висит, первый экран — кадр неоновой сцены, контент доступен
   await expect(page.locator('#loader')).toBeHidden();
-  await expect(page.locator('body')).toHaveClass(/is-light/);
-  await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
+  await expect(page.locator('#ask-scene')).toHaveAttribute('href', content.ask.href);
   await page.mouse.wheel(0, 1500);
   await page.waitForTimeout(400);
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);

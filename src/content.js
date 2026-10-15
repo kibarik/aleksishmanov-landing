@@ -107,6 +107,13 @@ export const content = {
   },
 
   /** Меню: якоря по секциям главной и разделы сайта внизу (resources). */
+  /** Подписи предметов второй сцены (наведение на десктопе): тема и раздел портала. */
+  props: {
+    chip: { label: 'ИИ в бизнесе', href: '/ai-in-business/' },
+    rack: { label: 'Инструменты и highload', href: '/tools/' },
+    chain: { label: 'Стартапы', href: '/startups/' },
+  },
+
   menu: {
     title: 'Меню',
     resourcesTitle: 'Разделы сайта',
@@ -114,6 +121,8 @@ export const content = {
       { label: 'Обо мне', href: '#about' },
       { label: 'Чем полезен', href: '#projects' },
     ],
+    /** Нижний док на телефоне: ☰ и четыре перехода, как у референса (Solutions · Services · Portfolio · About). */
+    dock: [PAGES.blog, PAGES.reviews, PAGES.cases, { label: 'Обо мне', href: '#about' }],
     /** Страницы портала в крупных пунктах после якорей. */
     pages: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.cases],
     /** Строка под кнопкой «Написать». */

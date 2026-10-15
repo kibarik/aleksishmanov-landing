@@ -21,8 +21,8 @@ test('desktop: курсор-точка следует за мышью и реа�
   expect(b.x - a.x, `курсор не уехал: ${JSON.stringify([a, b])}`).toBeGreaterThan(400);
   expect(b.y - a.y).toBeGreaterThan(200);
 
-  // над кнопкой в шапке точка превращается в кольцо
-  await page.locator('#ask-nav').hover();
+  // над ссылкой в шапке точка превращается в кольцо
+  await page.locator('.nav__logo').hover();
   await page.waitForTimeout(300);
   await expect(page.locator('.cursor')).toHaveClass(/cursor--active/);
 });
@@ -34,7 +34,7 @@ test('desktop: сцена отзывается на движение мыши, �
 
   const camX = () => page.evaluate(() => window.__app.camera.position.x);
   const pieceX = () => page.evaluate(() => {
-    const p = window.__app.scene.getObjectByName('chess-near');
+    const p = window.__app.scene.getObjectByName('prop-near');
     return p ? p.position.x : null;
   });
 

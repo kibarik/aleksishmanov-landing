@@ -281,19 +281,20 @@ export async function expectSectionsMatchContent(page, content) {
 export async function expectAskOnDarkScene(page, content) {
   await expect(page.locator('#nav')).not.toHaveClass(/nav--visible/);
   await expect.poll(() => page.evaluate(() => +getComputedStyle(document.getElementById('nav')).opacity)).toBeLessThan(0.05);
-  await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
+  await expect(page.locator('#ask-scene')).toHaveAttribute('href', content.ask.href);
   await expect(page.locator('#ask-scene')).not.toHaveClass(/ask--visible/);
 }
 
 /**
- * На белой сцене: кнопка под пьедесталом показана (появляется с теглайном), шапка появилась, обе кнопки видимы,
- * href из контента, новая вкладка.
+ * На второй сцене: кнопка под пьедесталом показана (появляется с теглайном), шапка появилась (на телефоне её
+ * роль у дока), кнопки Ask в шапке нет — как у референса; href из контента, новая вкладка.
  */
 export async function expectAskButtons(page, content) {
   await expect(page.locator('#ask-scene')).toHaveClass(/ask--visible/);
   // шапка появляется с белой сценой (на тёмной её нет — expectAskOnDarkScene)
   await expect(page.locator('#nav')).toHaveClass(/nav--visible/);
-  for (const id of ['#ask-scene', '#ask-nav']) {
+  await expect(page.locator('#ask-nav')).toHaveCount(0);
+  for (const id of ['#ask-scene']) {
     const btn = page.locator(id);
     await expect(btn).toBeVisible();
     await expect(btn).toHaveAttribute('href', content.ask.href);

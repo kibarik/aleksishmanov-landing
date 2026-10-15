@@ -11,7 +11,7 @@ html, body { background: var(--black); color: #fff; font-family: var(--font); }
 /* svh: на мобильных браузерах с исчезающей панелью адреса 100vh больше видимой области (как у референса) */
 body.is-sticky, body.is-loading { overflow: hidden; height: 100vh; height: 100svh; }
 html[data-webgl="off"] body.is-loading { overflow: visible; height: auto; } /* см. index.html: без лоадера нечего фиксировать */
-body.is-light { background: #f9f9f9; }
+body.is-neon { background: #04070b; }
 body { -webkit-font-smoothing: antialiased; }
 
 .hero { position: fixed; inset: 0; height: 100vh; height: 100svh; z-index: 0; }
@@ -28,13 +28,12 @@ html[data-webgl="off"] .tagline { opacity: 1; }
 html[data-webgl="off"] .flip__word { opacity: 1; transform: none; transition: none; }
 html[data-webgl="off"] .ask { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 html[data-webgl="off"] .nav { opacity: 1; transform: none; }
-html[data-webgl="off"] body { background: #f9f9f9; }
-html[data-webgl="off"] body:not(.is-dark-section) .nav { color: #111; }
+html[data-webgl="off"] body { background: #04070b; }
 /* статичный кадр — статичное зерно: бесконечная анимация меняла кадр каждые 0,7 с, и PageSpeed не мог
    зафиксировать «страница достроена» (Speed Index 3,9 с при FCP 1,1 с). В 3D-режиме зерно анимировано */
 html[data-webgl="off"] .grain { animation: none; }
 .tagline {
-  position: absolute; left: 0; right: 0; top: 14vh; top: 14svh; text-align: center; color: #111;
+  position: absolute; left: 0; right: 0; top: 14vh; top: 14svh; text-align: center; color: #e9eff2;
   font-family: var(--tagline); font-size: clamp(16px, 1.7vw, 24px); font-weight: 600; letter-spacing: -.01em;
   opacity: 0; transition: opacity .5s ease; perspective: 600px;
 }
@@ -62,6 +61,29 @@ html[data-webgl="off"] .grain { animation: none; }
 }
 .ask--visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .ask:hover { background: rgba(124, 124, 124, .55); }
+/* десктоп на неоновой сцене: тёмная капсула с циановой обводкой и мягкой пульсацией свечения */
+body:not([data-preset="mobile"]) .ask {
+  background: rgba(5, 12, 16, .62); border: 1px solid rgba(34, 230, 255, .55);
+  box-shadow: 0 0 0 1px rgba(34, 230, 255, .08), 0 0 26px rgba(34, 230, 255, .16), inset 0 0 18px rgba(34, 230, 255, .06);
+  animation: ask-glow 3.2s ease-in-out infinite;
+}
+body:not([data-preset="mobile"]) .ask:hover { background: rgba(8, 22, 28, .78); border-color: rgba(34, 230, 255, .9); }
+body:not([data-preset="mobile"]) .ask__send { background: #22e6ff; color: #031015; }
+body:not([data-preset="mobile"]) .ask:hover .ask__send { background: #7af1ff; }
+@keyframes ask-glow { 50% { box-shadow: 0 0 0 1px rgba(34, 230, 255, .14), 0 0 38px rgba(34, 230, 255, .28), inset 0 0 18px rgba(34, 230, 255, .1); } }
+/* подпись предмета второй сцены (наведение): тема и раздел портала */
+.prop-tag {
+  position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; gap: 10px; margin-top: -10px;
+  padding: 8px 14px; border-radius: 999px; background: rgba(4, 10, 14, .82); border: 1px solid rgba(34, 230, 255, .6);
+  color: #e9fbff; font-family: var(--font); font-size: 13px; font-weight: 600; letter-spacing: .01em; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 0 22px rgba(34, 230, 255, .22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+.prop-tag--visible { opacity: 1; pointer-events: auto; }
+.prop-tag__arrow { color: #22e6ff; }
+body.is-prop-hover .scene { cursor: pointer; }
+html[data-webgl="off"] .ask { animation: none; }
+@media (prefers-reduced-motion: reduce) { .ask { animation: none !important; } }
 .ask__chevron { font-size: 20px; line-height: 1; color: rgba(255,255,255,.85); }
 .ask__label { flex: 1; letter-spacing: -.01em; }
 .ask__send {
@@ -293,29 +315,22 @@ body[data-preset="mobile"] .footer__object { display: none; }
   padding: 28px 40px; opacity: 0; transform: translateY(-8px); transition: opacity .8s ease, transform .8s ease; color: #fff;
 }
 .nav--visible { opacity: 1; transform: none; }
-body.is-light .nav { color: #111; }
 .nav__logo { font-family: var(--display); font-weight: 900; letter-spacing: .04em; font-size: 16px; color: currentColor; text-decoration: none; }
 .nav__right { display: flex; align-items: center; gap: 22px; }
-.nav__ask { font-family: var(--font); font-size: 13px; font-weight: 500; color: currentColor; text-decoration: none; padding: 9px 16px; border: 1px solid currentColor; border-radius: 999px; transition: background .2s ease, color .2s ease; }
-.nav__ask:hover { background: #fff; border-color: #fff; color: var(--black); }
-body.is-light .nav__ask:hover { background: #111; border-color: #111; color: #fff; }
-/* шапка на тёмной секции снова светлая: правило идёт после .is-light, иначе оно проигрывает каскаду */
+/* шапка как у референса: только логотип и меню. Над светлым контентом тёмная, на сцене и тёмных секциях светлая */
+body.is-content-top .nav { color: #111; }
 body.is-dark-section .nav { color: #fff; }
-body.is-dark-section .nav__ask:hover { background: #fff; border-color: #fff; color: var(--black); }
 
 /* Подсказка «scroll down» в правом нижнем углу: мышь с колесом и явная подпись (как у референса).
-   Цвет следует за сценой: светлая на тёмной, тёмная на белой. */
+   Обе сцены тёмные — подсказка всегда светлая. */
 .scroll-hint {
   position: fixed; right: 40px; bottom: 42px; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 12px;
   color: rgba(255,255,255,.85); font-family: var(--tagline); font-size: 14px; font-weight: 500; letter-spacing: .01em;
   opacity: 0; transition: opacity .8s ease .4s, color .5s ease;
 }
-body.is-light .scroll-hint { color: #111; }
-/* подсказка попадает на глифы белой сцены: мягкое свечение под текстом держит читаемость без плашки */
+/* подсказка попадает на имя и сетку пола: мягкая тень под текстом держит читаемость без плашки */
 .scroll-hint__text { text-shadow: 0 0 10px rgba(10,10,10,.85), 0 0 22px rgba(10,10,10,.6); }
 .scroll-hint__mouse { filter: drop-shadow(0 0 8px rgba(10,10,10,.8)); }
-body.is-light .scroll-hint__text { text-shadow: 0 0 10px rgba(249,249,249,.95), 0 0 22px rgba(249,249,249,.8); }
-body.is-light .scroll-hint__mouse { filter: drop-shadow(0 0 8px rgba(249,249,249,.95)); }
 .scroll-hint--visible { opacity: 1; }
 .scroll-hint--hidden, body.is-released .scroll-hint { opacity: 0 !important; transition-delay: 0s; }
 .scroll-hint__mouse { width: 26px; height: 40px; border: 2px solid currentColor; border-radius: 14px; position: relative; }
@@ -402,14 +417,16 @@ body.has-cursor:not(.is-menu-open) .menu-zone { cursor: none; } /* над зон
   .dock { display: block; position: fixed; left: 0; right: 0; bottom: 25px; z-index: 42; pointer-events: none; opacity: 0; transition: opacity .3s ease-in-out; }
   body:has(.nav--visible) .dock { opacity: 1; }
   .dock__bar {
-    pointer-events: auto; display: flex; align-items: center; gap: 4px; width: 320px; max-width: calc(100vw - 30px); height: 56px; margin: 0 auto; padding: 0 6px;
-    background: #ffffffb8; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid #9a9a9a52; border-radius: 16px; color: #111;
-    box-shadow: 0 1px 2px rgba(0,0,0,.02), 0 4px 8px rgba(0,0,0,.02), 0 16px 32px rgba(0,0,0,.04);
+    pointer-events: auto; position: relative; overflow: hidden; display: flex; align-items: center; gap: 2px; width: 340px; max-width: calc(100vw - 30px); height: 58px; margin: 0 auto; padding: 0 8px 0 7px;
+    background: rgba(46, 49, 54, .72); backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
+    border: 1px solid rgba(255,255,255,.12); border-radius: 16px; color: #fff; box-shadow: 0 16px 36px rgba(0,0,0,.35);
   }
-  .dock__btn { flex: 1; min-width: 0; padding: 10px 4px; text-align: center; font-family: 'Cal Sans', 'Cal Sans Fallback', var(--display); font-size: 14px; color: #111; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dock__menu { width: 44px; height: 44px; flex: none; background: none; border: 0; color: #111; cursor: pointer; display: grid; place-content: center; grid-template: 12px 12px / 12px 12px; }
-  .dock__menu .ring { display: block; width: 10px; height: 10px; margin: auto; border: 3px solid currentColor; border-radius: 50%; box-sizing: border-box; }
-  .dock__btn:focus-visible, .dock__menu:focus-visible { outline: 2px solid #111; outline-offset: -2px; border-radius: 12px; }
+  /* имя водяным знаком за ссылками, как BERSUS у референса */
+  .dock__mark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -46%); font-family: var(--display); font-weight: 900; font-size: 50px; letter-spacing: -.03em; color: rgba(255,255,255,.045); white-space: nowrap; pointer-events: none; }
+  .dock__btn { position: relative; flex: 1; min-width: 0; padding: 10px 2px; text-align: center; font-family: 'Cal Sans', 'Cal Sans Fallback', var(--display); font-size: 14px; color: #fff; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock__menu { position: relative; width: 44px; height: 44px; flex: none; margin-right: 4px; background: #0b0b0c; border: 0; border-radius: 10px; color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .dock__menu span { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+  .dock__btn:focus-visible, .dock__menu:focus-visible { outline: 2px solid #fff; outline-offset: -2px; border-radius: 10px; }
   .menu__overlay { display: block; position: absolute; inset: 0; background: rgba(255,255,255,.12); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); opacity: 0; transition: opacity .3s ease-in-out; }
   .menu--open .menu__overlay { opacity: 1; }
   .menu__panel {
@@ -436,14 +453,14 @@ body.has-cursor:not(.is-menu-open) .menu-zone { cursor: none; } /* над зон
   position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
   background: #2a2a2a; opacity: .75; transition: transform .3s ease, opacity .3s ease, background .3s ease;
 }
-body.is-light .cursor__dot { background: #111; }
-body:not(.is-light) .cursor__dot { background: #f2f2f2; }
+body:is(.is-content-top:not(.is-dark-section)) .cursor__dot { background: #111; }
+body:not(.is-content-top) .cursor__dot, body.is-dark-section .cursor__dot { background: #f2f2f2; }
 .cursor__ring {
   position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
   border: 1.5px solid currentColor; color: #111; opacity: 0; transform: scale(.4);
   transition: opacity .3s ease, transform .3s cubic-bezier(.2,.8,.3,1);
 }
-body:not(.is-light) .cursor__ring { color: #f2f2f2; }
+body:not(.is-content-top) .cursor__ring, body.is-dark-section .cursor__ring { color: #f2f2f2; }
 .cursor--active .cursor__dot { transform: scale(.35); opacity: .35; }
 .cursor--active .cursor__ring { opacity: .9; transform: scale(1); }
 .cursor--down .cursor__ring { transform: scale(.8); }
@@ -458,10 +475,21 @@ body.has-cursor, body.has-cursor a, body.has-cursor button { cursor: none; }
 @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,2%)} 40%{transform:translate(2%,-4%)} 60%{transform:translate(-4%,-1%)} 80%{transform:translate(3%,3%)} 100%{transform:translate(0,0)} }
 
 @media (max-width: 720px) { .nav { padding: 20px; } .scroll-hint { right: 20px; bottom: 24px; } }
-body[data-preset="mobile"] .tagline { top: 9vh; top: 9svh; font-size: 17px; }
-body[data-preset="mobile"] .ask { bottom: 3.5vh; bottom: 3.5svh; height: 60px; font-size: 15px; padding: 0 7px 0 16px; }
-body[data-preset="mobile"] .ask__send { width: 46px; height: 46px; }
-@media (max-width: 720px) { .nav__right { gap: 14px; } .nav__ask { padding: 7px 12px; font-size: 12px; } }
+body[data-preset="mobile"] .tagline { top: 15vh; top: 15svh; font-size: 17px; }
+/* телефон, как у референса: компактная контрастная пилюля над доком (на тёмной сцене — светлая) */
+body[data-preset="mobile"] .ask {
+  bottom: calc(25px + 58px + 18px); width: auto; height: 46px; gap: 10px; padding: 0 20px 0 22px;
+  background: #f4f6f7; color: #0b0b0c; font-size: 16px; box-shadow: 0 0 0 4px rgba(255,255,255,.16), 0 12px 28px rgba(0,0,0,.4);
+}
+body[data-preset="mobile"] .ask:hover { background: #fff; }
+body[data-preset="mobile"] .ask__chevron { display: none; }
+body[data-preset="mobile"] .ask__label { flex: none; white-space: nowrap; }
+body[data-preset="mobile"] .ask__send { width: auto; height: auto; background: none; color: #0b0b0c; }
+body[data-preset="mobile"] .ask:hover .ask__send { background: none; }
+/* шапки внутри сцены нет (у референса её тоже нет на телефоне): логотип и меню — в доке */
+body[data-preset="mobile"]:not(.is-released) .nav { opacity: 0; pointer-events: none; }
+/* подсказка стоит на месте теглайна: с его появлением гаснет */
+body[data-preset="mobile"]:has(.tagline--visible) .scroll-hint { opacity: 0 !important; transition-delay: 0s; }
 body[data-preset="mobile"] .scroll-hint { left: 0; right: 0; bottom: auto; top: 9.5vh; top: 9.5svh; align-items: center; font-size: 13px; }
 body[data-preset="mobile"] .scroll-hint__mouse { display: none; }
 @media (prefers-reduced-motion: reduce) {

@@ -25,7 +25,6 @@ const dom = {
   tagline: document.getElementById('tagline'),
   hero: document.getElementById('hero'),
   askScene: document.getElementById('ask-scene'),
-  askNav: document.getElementById('ask-nav'),
   canvas: document.getElementById('scene'),
 };
 
@@ -33,12 +32,15 @@ const dom = {
 // и Telegram до выполнения JS
 document.getElementById('loader-offer').textContent = content.offer;
 mountFlipText(dom.tagline, content.tagline);
-// Ask Ishmanov AI: обе кнопки из одной константы контента (замена на бота — правка href там)
+// Ask Ishmanov AI: кнопка под пьедесталом, ссылка — из константы контента (замена на бота — правка href там)
 dom.askScene.href = content.ask.href;
 dom.askScene.querySelector('.ask__label').textContent = content.ask.label;
-dom.askNav.href = content.ask.href;
-dom.askNav.textContent = content.ask.label;
 mountSections(document.getElementById('content'), content);
+
+// Под шапкой светлый контент (сцена ушла вверх): шапка и курсор тёмные. Сцена и тёмные секции — светлые.
+new IntersectionObserver(([e]) => {
+  document.body.classList.toggle('is-content-top', e.isIntersecting);
+}, { rootMargin: '0px 0px -94% 0px' }).observe(document.getElementById('content'));
 
 // Тёмная секция: пока она в кадре, шапка светлая; текст приезжает при входе в зону видимости
 const intro = document.getElementById('about');
@@ -87,10 +89,10 @@ const preset = getDevicePreset();
 document.body.dataset.preset = preset;
 mountCursor();
 
-/** Без WebGL: статичный кадр белой сцены, обычный скролл, светлая тема; сцена не импортируется. */
+/** Без WebGL: статичный кадр неоновой сцены, обычный скролл; сцена не импортируется. */
 function bootFallback() {
   document.body.classList.remove('is-loading');
-  document.body.classList.add('is-light', 'is-released');
+  document.body.classList.add('is-neon', 'is-released');
   dom.hero.classList.add('hero--released');
   dom.nav.classList.add('nav--visible');
   dom.tagline.classList.add('tagline--visible');

@@ -14,11 +14,11 @@ test('без WebGL: кадр белой сцены вместо канваса, 
   await expect(page.locator('#fallback img')).toBeVisible();
   expect(requests.some((u) => /character\.glb|draco/.test(u)), 'модель и Draco не грузятся').toBe(false);
 
-  // шапка в светлой теме, кнопка Ask видна
-  await expect(page.locator('body')).toHaveClass(/is-light/);
-  expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(17, 17, 17)');
+  // первый экран — кадр неоновой сцены: шапка светлая, кнопка Ask видна
+  await expect(page.locator('body')).toHaveClass(/is-neon/);
+  expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(255, 255, 255)');
   await expect(page.locator('#ask-scene')).toBeVisible();
-  await expect(page.locator('#ask-nav')).toHaveAttribute('href', content.ask.href);
+  await expect(page.locator('#ask-scene')).toHaveAttribute('href', content.ask.href);
 
   // обычный скролл: страница листается к секциям
   await page.mouse.wheel(0, 1200);
