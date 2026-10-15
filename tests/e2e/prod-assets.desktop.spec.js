@@ -48,16 +48,19 @@ test('прод: отдаются все файлы страницы, чанки 
   const entryRes = await request.get(abs(entry));
   expect(entryRes.status()).toBe(200);
   const entryJs = await entryRes.text();
-  const cssHref = fromHtml.find((u) => /\.css$/.test(u));
-  const cssText = cssHref ? await (await request.get(abs(cssHref))).text() : '';
-
   const chunks = [...entryJs.matchAll(/["'`](\.\/)?(assets\/[A-Za-z0-9._-]+\.js)["'`]/g)].map((m) => m[2]);
-  // url() в css указывают относительно самого файла стилей, а не корня сайта
-  const cssBase = cssHref ? abs(cssHref) : BASE + '/';
+  // CSS главной встроен в HTML (scripts/vite-inline-css.mjs), шрифты — отдельный CSS-чанк, его подключает
+  // бандл после load (src/fonts.js). url() в нём — относительно самого файла стилей, а не корня сайта
+  // в карте зависимостей бандла путь записан относительно assets/: "./fonts-<hash>.css"
+  const fontsName = entryJs.match(/["'](?:\.\/|assets\/)(fonts-[A-Za-z0-9_-]+\.css)["']/)?.[1];
+  const fontsCss = fontsName && `assets/${fontsName}`;
+  expect(fontsCss, 'CSS шрифтов в бандле').toBeTruthy();
+  const cssText = await (await request.get(abs(fontsCss))).text();
   const fonts = [...cssText.matchAll(/url\(\s*["']?([^"')]+\.(?:woff2?|ttf))["']?\s*\)/g)]
-    .map((m) => new URL(m[1], cssBase).toString());
+    .map((m) => new URL(m[1], abs(fontsCss)).toString());
+  expect(fonts.length, 'файлы шрифтов в CSS шрифтов').toBeGreaterThan(5);
 
-  const all = [...new Set([...fromHtml.map(abs), ...chunks.map(abs), ...fonts])];
+  const all = [...new Set([...fromHtml.map(abs), ...chunks.map(abs), abs(fontsCss), ...fonts])];
   expect(all.length, 'набор файлов для проверки').toBeGreaterThan(5);
 
   // на этом хостинге несуществующий путь отдаёт 200 с HTML — проверяем тип, а не только код
@@ -75,9 +78,10 @@ test('прод: отдаются все файлы страницы, чанки 
 test('прод: HTML и бандл из одной сборки', async ({ request }) => {
   const html = await (await request.get(BASE + '/')).text();
   const entry = html.match(/assets\/index-[A-Za-z0-9_-]+\.js/)?.[0];
-  const css = html.match(/assets\/index-[A-Za-z0-9_-]+\.css/)?.[0];
+  // стили встроены в HTML: внешний файл блокировал первую отрисовку (PageSpeed)
+  const inlineCss = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('');
   expect(entry, 'входной модуль в HTML').toBeTruthy();
-  expect(css, 'стили в HTML').toBeTruthy();
+  expect(inlineCss, 'стили лендинга встроены в HTML').toContain('.footer__panel');
 
   // разметка и скрипт должны знать друг о друге: иначе выложены части разных сборок
   expect(html).toContain('id="loader-pct"');
