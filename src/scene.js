@@ -225,7 +225,7 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
   title.layers.set(1);
   camera.layers.enable(1);
   white.add(title);
-  // Предметы вокруг пьедестала вместо шахмат bersus: стойка, чип, блокчейн (src/neonSet.js)
+  // вокруг статуи — символы на орбите и HUD-экраны (src/propSets.js)
   const neonSet = createNeonSet(PED_H);
   white.add(neonSet.group);
   // Глянцевый пол (только десктоп): тусклое отражение имени, голограммы и неона, к краям гаснет.
@@ -259,12 +259,15 @@ export async function createScene(canvas, { onProgress, name, preset = 'desktop'
     const kz = preset === 'mobile' ? 0.7 : 1;
     for (const m of props) {
       const b = m.userData.base;
-      m.position.set(b.pos[0] * kx * (preset === 'mobile' ? b.mx : 1), b.pos[1] - (1 - kx) * b.size * 0.25, b.pos[2] * kz);
+      m.visible = !(preset === 'mobile' && b.mobile?.hidden);
+      if (preset === 'mobile' && b.mobile?.pos) { m.position.set(...b.mobile.pos); m.scale.setScalar(b.mobile.k); } // своя раскладка телефона
+      else {
+        m.position.set(b.pos[0] * kx * (preset === 'mobile' ? b.mx : 1), b.pos[1] - (1 - kx) * b.size * 0.25, b.pos[2] * kz);
+        m.scale.setScalar(b.k * (preset === 'mobile' ? 0.7 : 1));
+      }
       m.userData.laidOutX = m.position.x;
       m.userData.laidOutY = m.position.y;
-      m.scale.setScalar(b.k * (preset === 'mobile' ? 0.7 : 1));
     }
-    neonSet.layout();
   }
 
   // ---------- lights ----------

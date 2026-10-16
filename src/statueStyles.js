@@ -118,7 +118,7 @@ export function createStatueMaterial(kind, { marbleAlbedo, marbleNormal, envMap,
         varying vec3 vN; varying vec3 vV; varying float vY; varying float vAo;
         void main() {
           float ndv = abs(dot(normalize(vN), normalize(vV)));
-          float fres = pow(1.0 - ndv, 2.0);
+          float fres = pow(clamp(1.0 - ndv, 0.0, 1.0), 2.0); // pow от отрицательного — NaN
           float scan = 0.72 + 0.28 * step(0.5, fract(vY * 110.0 - uTime * 0.8));
           float band = 1.0 - smoothstep(0.0, 0.05, abs(fract(vY * 0.5 - uTime * 0.22) - 0.5)); // бегущая полоса
           float ao = 0.45 + 0.55 * vAo;
