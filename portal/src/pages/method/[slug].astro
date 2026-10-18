@@ -1,0 +1,64 @@
+---
+// Узел методологии (область или тема): ключевой вопрос, текст, вложенные темы, прикреплённые материалы.
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { render } from 'astro:content';
+import { allNodes, childrenOf, ancestors, nodeUrl, hasPage, STATUS_LABEL, materialsOf, type MethodNode } from '../../lib/method';
+import { SITE } from '../../lib/site';
+import { formatDate } from '../../lib/materials';
+import { graph, article, breadcrumbs } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const nodes = await allNodes();
+  return nodes.filter((n) => n.data.level !== 'problem' && hasPage(n)).map((n) => ({ params: { slug: n.id }, props: { n } }));
+}
+const { n } = Astro.props as { n: MethodNode };
+const nodes = await allNodes();
+const { Content } = await render(n);
+const chain = ancestors(nodes, n);
+const kids = childrenOf(nodes, n.id);
+const materials = await materialsOf(n);
+const siblings = childrenOf(nodes, n.data.parent ?? '').filter(hasPage);
+const idx = siblings.findIndex((s) => s.id === n.id);
+const next = siblings[idx + 1];
+const prev = idx > 0 ? siblings[idx - 1] : undefined;
+const url = `${SITE.url}${nodeUrl(n)}`;
+const crumbs = [{ name: 'Главная', url: '/' }, ...chain.map((c) => ({ name: c.data.level === 'problem' ? 'Методология' : c.data.title, url: nodeUrl(c) })), { name: n.data.title, url: nodeUrl(n) }];
+---
+<Base title={`${n.data.title}: методология`} description={n.data.description} type="article" current="method"
+  jsonld={graph(article({ title: n.data.title, description: n.data.description, url, date: n.data.date, updated: n.data.updated, section: 'Методология' }), breadcrumbs(crumbs))}>
+  <article class="article">
+    <p class="crumbs">{crumbs.slice(0, -1).map((c) => <><a href={c.url}>{c.name}</a> / </>)}</p>
+    <header class="article__head">
+      <p class="eyebrow">{n.data.level === 'area' ? 'Область методологии' : 'Тема методологии'} · {STATUS_LABEL[n.data.status]}</p>
+      <h1>{n.data.title}</h1>
+      <p class="lead method-question">{n.data.question}</p>
+      <p class="article__meta">
+        <a href="/about/" rel="author">{SITE.name}</a>
+        <time datetime={n.data.date.toISOString()}>{formatDate(n.data.date)}</time>
+        {n.data.updated && <span>обновлено <time datetime={n.data.updated.toISOString()}>{formatDate(n.data.updated)}</time></span>}
+      </p>
+    </header>
+    <div class="prose"><Content /></div>
+    {kids.length > 0 && (
+      <section class="method-children">
+        <h2>Темы области</h2>
+        <ul class="list-compact">
+          {kids.map((k) => <li>{hasPage(k)
+            ? <a href={nodeUrl(k)}><span class="list-compact__title">{k.data.title}<br /><small>{k.data.question}</small></span><span class="list-compact__meta">{STATUS_LABEL[k.data.status]}</span></a>
+            : <span class="method-planned"><span>{k.data.title}<br /><small>{k.data.question}</small></span><span class="list-compact__meta">в работе</span></span>}</li>)}
+        </ul>
+      </section>
+    )}
+    <nav class="method-pager" aria-label="Соседние узлы">
+      {prev ? <a class="btn btn--ghost" href={nodeUrl(prev)}>← {prev.data.title}</a> : <span />}
+      {next && <a class="btn btn--ghost" href={nodeUrl(next)}>{next.data.title} →</a>}
+    </nav>
+  </article>
+  {materials.length > 0 && (
+    <section class="wrap">
+      <h2>Материалы по теме</h2>
+      <ul class="grid">{materials.map((m) => <Card m={m} showType />)}</ul>
+    </section>
+  )}
+</Base>

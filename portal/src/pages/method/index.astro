@@ -1,0 +1,53 @@
+---
+// Корень методологии (ADR 0006): большая проблема и карта областей с темами и статусами.
+import Base from '../../layouts/Base.astro';
+import { render } from 'astro:content';
+import { allNodes, root, childrenOf, nodeUrl, hasPage, STATUS_LABEL, materialsOf } from '../../lib/method';
+import { SITE } from '../../lib/site';
+import { graph, article, breadcrumbs } from '../../lib/schema';
+
+const nodes = await allNodes();
+const r = await root();
+const { Content } = await render(r);
+const areas = await Promise.all(childrenOf(nodes, r.id).map(async (a) => {
+  const topics = childrenOf(nodes, a.id);
+  const counts = await Promise.all([a, ...topics].map(async (n) => (await materialsOf(n)).length));
+  return { a, topics, total: counts.reduce((s, x) => s + x, 0) };
+}));
+const url = `${SITE.url}/method/`;
+---
+<Base title={r.data.title} description={r.data.description} type="article" current="method"
+  jsonld={graph(article({ title: r.data.title, description: r.data.description, url, date: r.data.date, updated: r.data.updated, section: 'Методология' }),
+    breadcrumbs([{ name: 'Главная', url: '/' }, { name: 'Методология', url: '/method/' }]))}>
+  <div class="wrap">
+    <p class="crumbs"><a href="/">Главная</a> / Методология</p>
+    <header class="page-head">
+      <p class="eyebrow">Методология</p>
+      <h1>{r.data.title}</h1>
+      <p class="lead">{r.data.question}</p>
+    </header>
+    <div class="article method-intro"><div class="prose"><Content /></div></div>
+    <section class="method-map" aria-label="Карта методологии">
+      <h2>Карта методологии</h2>
+      <ol class="method-areas">
+        {areas.map(({ a, topics, total }, i) => (
+          <li class="method-area">
+            <p class="method-area__num">{String(i + 1).padStart(2, '0')}</p>
+            <h3 class="method-area__title">{hasPage(a) ? <a href={nodeUrl(a)}>{a.data.title}</a> : a.data.title}</h3>
+            <p class="method-area__q">{a.data.question}</p>
+            {topics.length > 0 && (
+              <ul class="method-topics">
+                {topics.map((t) => <li>{hasPage(t) ? <a href={nodeUrl(t)}>{t.data.title}</a> : <span>{t.data.title}</span>}<span class={`status status--${t.data.status}`}>{STATUS_LABEL[t.data.status]}</span></li>)}
+              </ul>
+            )}
+            <p class="method-area__meta"><span class={`status status--${a.data.status}`}>{STATUS_LABEL[a.data.status]}</span>{total > 0 && <span>материалов: {total}</span>}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+    <aside class="cta">
+      <p>Строите или перестраиваете IT-функцию и хотите разобрать вашу ситуацию по этой карте? Напишите.</p>
+      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+    </aside>
+  </div>
+</Base>

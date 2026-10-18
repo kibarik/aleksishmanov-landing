@@ -60,6 +60,16 @@ function knownPaths() {
     if (!fs.existsSync(dir)) continue;
     for (const f of fs.readdirSync(dir)) if (f.endsWith('.md')) set.add(`/${s}/${f.slice(0, -3)}/`);
   }
+  // узлы методологии (ADR 0006): корень и все, у кого есть страница (status не planned)
+  const method = path.join(CONTENT, 'method');
+  if (fs.existsSync(method)) {
+    set.add('/method/');
+    for (const f of fs.readdirSync(method)) {
+      if (!f.endsWith('.md')) continue;
+      const src = fs.readFileSync(path.join(method, f), 'utf8');
+      if (!/^status:\s*"?planned/m.test(src) && !/^level:\s*"?problem/m.test(src)) set.add(`/method/${f.slice(0, -3)}/`);
+    }
+  }
   return set;
 }
 

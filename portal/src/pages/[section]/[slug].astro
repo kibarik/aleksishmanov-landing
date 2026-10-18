@@ -6,6 +6,7 @@ import { render } from 'astro:content';
 import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
+import { nodesOfMaterial, nodeUrl } from '../../lib/method';
 
 export async function getStaticPaths() {
   const all = (await Promise.all(PAGED.map(list))).flat();
@@ -20,6 +21,7 @@ const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
   .filter((x) => x.id !== m.id && x.data.directions.some((d) => m.data.directions.includes(d)))
   .slice(0, 3);
 const sourceLabel = SOURCE_LABEL[m.data.source];
+const methodNodes = await nodesOfMaterial(m);
 ---
 <Base title={m.data.title} description={m.data.description} type="article" image={m.data.cover} current={m.collection}
   jsonld={graph(article({ title: m.data.title, description: m.data.description, url, date: m.data.date, updated: m.data.updated, image: m.data.cover, section: info.title }),
@@ -38,6 +40,9 @@ const sourceLabel = SOURCE_LABEL[m.data.source];
         {m.data.directions.map((d) => <a class="chip chip--dir" href={DIRECTION_INFO[d].path}>{DIRECTION_INFO[d].short}</a>)}
       </p>
     </header>
+    {methodNodes.length > 0 && (
+      <p class="method-part">Часть методологии: {methodNodes.map(({ node, path }, i) => <>{i > 0 && ' · '}{path.map((a) => <><a href={nodeUrl(a)}>{a.data.title}</a> → </>)}<a href={nodeUrl(node)}>{node.data.title}</a></>)}</p>
+    )}
     {m.collection === 'prompts' && <button class="btn btn--ghost copy-btn" type="button" data-copy>Скопировать промт</button>}
     {m.data.repo && <p><a class="btn" href={m.data.repo} target="_blank" rel="noopener">Репозиторий ↗</a></p>}
     <div class="prose"><Content /></div>

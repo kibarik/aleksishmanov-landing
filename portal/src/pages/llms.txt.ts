@@ -1,5 +1,6 @@
 // llms.txt (llmstxt.org): карта сайта для ИИ-поисковиков и агентов — кто автор, разделы, все материалы.
 import { listAll, urlFor } from '../lib/materials';
+import { allNodes, nodeUrl, hasPage } from '../lib/method';
 import { SITE, SECTIONS, DIRECTION_INFO, PROFILES, type CollectionName } from '../lib/site';
 
 export async function GET() {
@@ -8,6 +9,8 @@ export async function GET() {
     `# ${SITE.name}`, '',
     `> ${SITE.positioning}. Личный сайт: статьи, разборы инструментов, карточки open source, промты и презентации практикумов. Язык — русский.`, '',
     'Каждый материал доступен как HTML и как Markdown: добавьте `.md` к адресу без завершающего слэша (например, `/blog/bullseye-framework.md`). Полный текст всех статей и разборов — `/llms-full.txt`.', '',
+    '## Методология', '',
+    ...(await allNodes()).filter(hasPage).map((n) => `- [${n.data.title}](${SITE.url}${nodeUrl(n)}): ${n.data.question}`), '',
     '## Направления', '',
     ...Object.values(DIRECTION_INFO).map((d) => `- [${d.title}](${SITE.url}${d.path}): ${d.lead}`), '',
     '## Об авторе', '',

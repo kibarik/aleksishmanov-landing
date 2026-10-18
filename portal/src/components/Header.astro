@@ -6,6 +6,7 @@ const { current } = Astro.props as { current?: string };
   <div class="wrap site-header__row">
     <a class="brand" href="/">ISHMANOV<small>{SITE.name}</small></a>
     <nav class="site-nav" aria-label="Разделы">
+      <a href="/method/" aria-current={current === 'method' ? 'page' : undefined}>Методология</a>
       {NAV.map((k) => <a href={SECTIONS[k].path} aria-current={current === k ? 'page' : undefined}>{SECTIONS[k].title}</a>)}
       <a href="/about/" aria-current={current === 'about' ? 'page' : undefined}>Обо мне</a>
     </nav>

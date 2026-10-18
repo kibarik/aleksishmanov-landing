@@ -34,7 +34,26 @@ const material = z.object({
 
 const coll = (name: string) => defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema: material });
 
+/** Узел методологии (ADR 0006): проблема → области → темы. Связь с материалами хранится в узле (`materials`). */
+const methodNode = z.object({
+  title: z.string().min(3),
+  /** Ключевой вопрос, на который отвечает узел. */
+  question: z.string().min(10),
+  description: z.string().min(10).max(320),
+  level: z.enum(['problem', 'area', 'topic']),
+  /** slug родителя; у корня — пусто. */
+  parent: z.string().optional(),
+  order: z.number().default(100),
+  /** ready — содержательная страница; draft — каркас с материалами; planned — только на карте, без страницы. */
+  status: z.enum(['ready', 'draft', 'planned']).default('draft'),
+  /** Прикреплённые материалы: «<раздел>/<slug>». */
+  materials: z.array(z.string()).default([]),
+  date: z.coerce.date(),
+  updated: z.coerce.date().optional(),
+});
+
 export const collections = {
+  method: defineCollection({ loader: glob({ pattern: '**/*.md', base: './src/content/method' }), schema: methodNode }),
   blog: coll('blog'),
   reviews: coll('reviews'),
   tools: coll('tools'),
