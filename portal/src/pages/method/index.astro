@@ -1,11 +1,9 @@
 ---
-// Корень методологии (ADR 0006): сквозная диаграмма «от поступления инициативы до доказанного эффекта»,
-// по блоку на каждую стадию (схема, короткие описания шагов, переход в стадию), основания, ответвления, карта тем.
+// Корень методологии (ADR 0006): лёгкая обзорная страница. Одна схема из пяти стадий, по строке на каждую стадию
+// (вопрос, шаги, выход, ссылка), основания и ответвление, короткий текст корня. Глубина — на страницах стадий.
 import Base from '../../layouts/Base.astro';
-import Flow from '../../components/Flow.astro';
-import ProcessMap from '../../components/ProcessMap.astro';
 import { render } from 'astro:content';
-import { allNodes, root, childrenOf, nodeUrl, hasPage, STATUS_LABEL, materialsOf, stepNotes, byRole, type MethodNode } from '../../lib/method';
+import { allNodes, root, nodeUrl, hasPage, byRole, type MethodNode } from '../../lib/method';
 import { SITE } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
 
@@ -13,85 +11,57 @@ const nodes = await allNodes();
 const r = await root();
 const { Content } = await render(r);
 const stages = byRole(nodes, 'stage');
-const branches = byRole(nodes, 'branch');
-const foundations = byRole(nodes, 'foundation');
-const item = (n: MethodNode) => ({ short: n.data.short ?? n.data.title, title: n.data.title, url: hasPage(n) ? nodeUrl(n) : undefined, question: n.data.question, num: n.data.stage, gate: n.data.gate?.title });
-const anchor = (n: MethodNode) => (n.data.role === 'stage' ? `stadiya-${n.data.stage}` : n.id);
-const areas = await Promise.all(childrenOf(nodes, r.id).map(async (a) => {
-  const topics = childrenOf(nodes, a.id);
-  const counts = await Promise.all([a, ...topics].map(async (n) => (await materialsOf(n)).length));
-  return { a, topics, total: counts.reduce((s, x) => s + x, 0) };
-}));
+const extra = [...byRole(nodes, 'foundation'), ...byRole(nodes, 'branch')];
+const steps = (n: MethodNode) => n.data.flow.filter((f) => f.step).map((f) => f.title);
+const gate = (n: MethodNode) => n.data.gate?.title.toLowerCase();
 const url = `${SITE.url}/method/`;
 ---
 <Base title={r.data.title} description={r.data.description} type="article" current="method"
   jsonld={graph(article({ title: r.data.title, description: r.data.description, url, date: r.data.date, updated: r.data.updated, section: 'Методология' }),
     breadcrumbs([{ name: 'Главная', url: '/' }, { name: 'Методология', url: '/method/' }]))}>
-  <div class="wrap">
-    <p class="crumbs"><a href="/">Главная</a> / Методология</p>
-    <header class="page-head">
+  <div class="m-page">
+    <header class="m-hero">
       <p class="eyebrow">Методология</p>
       <h1>{r.data.title}</h1>
-      <p class="lead">{r.data.summary ?? r.data.question}</p>
-      <ul class="method-anchors" aria-label="Стадии">
-        {stages.map((s) => <li><a href={`#${anchor(s)}`}>{s.data.stage}. {s.data.short}</a></li>)}
-        {[...foundations, ...branches].map((s) => <li><a href={`#${anchor(s)}`}>{s.data.short}</a></li>)}
-      </ul>
+      <p class="m-lead">{r.data.summary}</p>
     </header>
 
-    <section aria-labelledby="process">
-      <h2 id="process">Процесс: от инициативы до результата</h2>
-      <ProcessMap stages={stages.map(item)} branches={branches.map((b) => ({ ...item(b), from: 1 }))} foundations={foundations.map(item)}
-        start="Пожелание бизнеса" end="Инициатива закрыта" />
+    <ol class="m-flow" aria-label="Пять стадий от запроса до результата">
+      {stages.map((s) => (
+        <li>
+          <a href={nodeUrl(s)}>
+            <span class="m-flow__num">{s.data.stage}</span>
+            <span class="m-flow__name">{s.data.short}</span>
+            {gate(s) && <span class="m-flow__gate">{gate(s)}</span>}
+          </a>
+        </li>
+      ))}
+    </ol>
+    <p class="m-base">
+      Под всеми стадиями — {extra.filter((e) => e.data.role === 'foundation').map((e, i) => <>{i > 0 && ' и '}<a href={nodeUrl(e)}>{e.data.short?.toLowerCase()}</a></>)}.
+      {extra.filter((e) => e.data.role === 'branch').map((e) => <> Если бизнес просит не доработку, а продукт, — отдельный маршрут: <a href={nodeUrl(e)}>{e.data.short?.toLowerCase()}</a>.</>)}
+    </p>
+
+    <section class="m-stages" aria-label="Стадии">
+      {stages.map((s) => (
+        <article class="m-stage" id={`stadiya-${s.data.stage}`}>
+          <p class="m-stage__num">{String(s.data.stage).padStart(2, '0')}</p>
+          <div class="m-stage__body">
+            <h2><a href={nodeUrl(s)}>{s.data.short}</a></h2>
+            <p class="m-stage__q">{s.data.question}</p>
+            <p class="m-stage__steps">{steps(s).join(' → ')}</p>
+            {gate(s) && <p class="m-stage__out">На выходе: {gate(s)}</p>}
+            {hasPage(s) && <a class="m-more" href={nodeUrl(s)}>Читать стадию</a>}
+          </div>
+        </article>
+      ))}
     </section>
 
-    {[...stages, ...foundations, ...branches].map((s) => {
-      const notes = stepNotes(s);
-      const steps = s.data.flow.filter((f) => f.step);
-      const label = s.data.role === 'stage' ? `Стадия ${s.data.stage}` : s.data.role === 'branch' ? 'Ответвление' : 'Основание всех стадий';
-      return (
-        <section class="stage-block" id={anchor(s)}>
-          <p class="stage-block__num">{label}</p>
-          <h2>{s.data.short ?? s.data.title}</h2>
-          <p class="stage-block__q">{s.data.summary ?? s.data.question}</p>
-          {s.data.flow.length > 0 && <Flow flow={s.data.flow} label={`Процесс: ${s.data.title}`} compact />}
-          {steps.length > 0 && (
-            <ul class="flow-notes">
-              {steps.map((f) => <li><strong>{f.step}. {f.title}</strong>{notes[f.step!] ?? ''}</li>)}
-            </ul>
-          )}
-          {hasPage(s) && (
-            <div class="stage-cta">
-              <p>Подробно: {s.data.title}</p>
-              <a class="btn" href={nodeUrl(s)}>Изучить</a>
-            </div>
-          )}
-        </section>
-      );
-    })}
+    <div class="m-text prose"><Content /></div>
 
-    <div class="article method-intro stage-block"><div class="prose"><Content /></div></div>
-
-    <section class="method-map" aria-label="Все темы методологии">
-      <h2>Все темы методологии</h2>
-      <ol class="method-areas">
-        {areas.map(({ a, topics, total }) => (
-          <li class="method-area">
-            <p class="method-area__num">{a.data.role === 'stage' ? `Стадия ${a.data.stage}` : a.data.role === 'branch' ? 'Ответвление' : 'Основание'}</p>
-            <h3 class="method-area__title">{hasPage(a) ? <a href={nodeUrl(a)}>{a.data.title}</a> : a.data.title}</h3>
-            {topics.length > 0 && (
-              <ul class="method-topics">
-                {topics.map((t) => <li>{hasPage(t) ? <a href={nodeUrl(t)}>{t.data.title}</a> : <span>{t.data.title}</span>}<span class={`status status--${t.data.status}`}>{STATUS_LABEL[t.data.status]}</span></li>)}
-              </ul>
-            )}
-            <p class="method-area__meta"><span class={`status status--${a.data.status}`}>{STATUS_LABEL[a.data.status]}</span>{total > 0 && <span>материалов: {total}</span>}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
-    <aside class="cta">
-      <p>Строите или перестраиваете IT-функцию и хотите разобрать вашу ситуацию по этому процессу? Напишите.</p>
-      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+    <aside class="m-cta">
+      <p>Хотите разобрать свой департамент по этому процессу?</p>
+      <a class="btn" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
     </aside>
   </div>
 </Base>
