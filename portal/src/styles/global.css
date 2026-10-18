@@ -273,3 +273,26 @@ a.flow__node:hover { box-shadow: 0 0 0 3px rgba(10, 10, 10, .08); }
 .stage-block { border-top: 1px solid #0a0a0a; }
 .method-anchors a { border-color: #0a0a0a; border-radius: 4px; }
 .method-area, .card { border-color: #d9d9d9; border-radius: 8px; }
+@media (min-width: 761px) {
+  .pmap .flow__node--stage { min-width: 0; padding: 14px 12px 12px; }
+  .pmap .flow__node--stage .flow__title { font-size: 16px; }
+  .pmap .flow__arrow { width: 14px; margin: 0 3px; }
+  .pmap .flow__mark-title { width: 80px; font-size: 12px; }
+  .pmap .flow__item--start .flow__mark, .pmap .flow__item--end .flow__mark { min-width: 72px; }
+  .pmap .flow__item--gate .flow__mark { min-width: 24px; }
+}
+@media (max-width: 760px) {
+  .flow__arrow { margin: 4px 0 4px 13px; }
+  .flow__arrow::after { border-left-color: transparent; border-top-color: #0a0a0a; }
+  .pmap__cell { align-self: stretch; width: 100%; }
+  .pmap__stage { align-self: stretch; }
+  .pmap .flow__node--stage { width: 100%; max-width: none; }
+  .pmap__branch { align-self: flex-start; }
+}
+@media (max-width: 760px) {
+  .pmap__track > .flow__item { align-self: stretch; }
+  .flow__num { left: auto; right: 10px; }
+}
+@media (min-width: 761px) { .pmap .flow__mark-title { bottom: calc(100% + 10px); } }
+.method-pager .btn { white-space: normal; max-width: 100%; text-align: left; }
+@media (max-width: 760px) { .flow__options { flex-direction: column; } }

@@ -74,8 +74,8 @@ const crumbs = [{ name: 'Главная', url: '/' }, ...chain.map((c) => ({ nam
       </section>
     )}
     <nav class="method-pager" aria-label="Соседние узлы">
-      {prev ? <a class="btn btn--ghost" href={nodeUrl(prev)}>← {prev.data.title}</a> : <span />}
-      {next && <a class="btn btn--ghost" href={nodeUrl(next)}>{next.data.title} →</a>}
+      {prev ? <a class="btn btn--ghost" href={nodeUrl(prev)}>← {prev.data.short ?? prev.data.title}</a> : <span />}
+      {next && <a class="btn btn--ghost" href={nodeUrl(next)}>{next.data.short ?? next.data.title} →</a>}
     </nav>
   </article>
   {materials.length > 0 && (
