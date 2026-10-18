@@ -11,7 +11,10 @@ test('desktop: тёмная секция открывается после сц�
   expect(await isInViewport(page, '#about')).toBe(true);
   const intro = page.locator('#about');
   await expect(intro.locator('.about__offer')).toHaveText(content.offer);
-  await expect(intro.locator('.about__fact')).toHaveCount(content.about.facts.length);
+  await expect(intro.locator('.about__fact')).toHaveCount(content.about.facts.filter((f) => f.value).length);
+  // заголовок подтверждается на том же экране: ссылка на кейсы видна без прокрутки
+  expect(await isInViewport(page, '.about__proof-link')).toBe(true);
+  await expect(intro.locator('.about__proof-link')).toHaveAttribute('href', content.about.cases.href);
 
   // текст приехал, фон тёмный, шапка светлая
   await expect(intro).toHaveClass(/intro--in/);

@@ -17,7 +17,7 @@ test('опубликованный текст «Обо мне» без загл�
 
 test('факты и карьерный путь — из контента, по строке на пункт', () => {
   const html = about();
-  assert.equal((html.match(/class="about__fact"/g) || []).length, content.about.facts.length);
+  assert.equal((html.match(/class="about__fact"/g) || []).length, content.about.facts.filter((f) => f.value).length);
   assert.equal((html.match(/class="path__row"/g) || []).length, content.about.career.items.length);
   for (const { role } of content.about.career.items) assert.ok(html.includes(role), role);
 });
@@ -51,4 +51,20 @@ test('переход в «Кейсы»: ссылка на /cases/ с подпи�
   const html = about();
   assert.match(html, new RegExp(`<a class="about__cases" href="${content.about.cases.href}"`));
   assert.ok(html.includes(content.about.cases.label));
+});
+
+test('экран оффера: цифра без значения не выводится, заполненная — выводится', () => {
+  const html = about({ facts: [{ value: '10 лет', label: 'в практике' }, { value: '', label: 'B2B-платформ запущено' }] });
+  assert.equal((html.match(/class="about__fact"/g) || []).length, 1);
+  assert.doesNotMatch(html, /B2B-платформ запущено/);
+  const full = about({ facts: [{ value: '7', label: 'B2B-платформ запущено' }] });
+  assert.match(full, /<dt>7<\/dt><dd>B2B-платформ запущено<\/dd>/);
+});
+
+test('экран оффера подтверждает заголовок: рядом с цифрами — ссылка на кейсы', () => {
+  const html = about();
+  const screen = html.slice(0, html.indexOf('about__more'));
+  assert.match(screen, new RegExp(`class="about__proof-link" href="${content.about.cases.href}"`));
+  // и без единой цифры ссылка остаётся
+  assert.match(about({ facts: [] }).slice(0, about({ facts: [] }).indexOf('about__more')), /about__proof-link/);
 });

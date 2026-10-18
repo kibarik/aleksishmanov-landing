@@ -103,16 +103,19 @@ html[data-webgl="off"] .ask { animation: none; }
 .intro__inner > * { opacity: 0; transform: translateY(18px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
 .intro--in .intro__inner > * { opacity: 1; transform: none; }
 .intro--in .about__offer { transition-delay: .1s; }
-.intro--in .about__facts { transition-delay: .2s; }
+.intro--in .about__proof { transition-delay: .2s; }
 @media (prefers-reduced-motion: reduce) { .intro__inner > * { transition: none; } }
 .section__label { font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6b6b6b; margin-bottom: 28px; }
 .intro .section__label { color: rgba(255,255,255,.5); }
 .about__offer { font-family: var(--display); font-size: clamp(30px, 4.6vw, 64px); font-weight: 900; letter-spacing: -.025em; line-height: 1.05; max-width: 14em; margin-bottom: 56px; }
-/* короткие факты под оффером: три числа в ряд, на телефоне — тоже в ряд, мельче */
-.about__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; max-width: 720px; border-top: 1px solid rgba(255,255,255,.14); }
-.about__fact { padding-top: 18px; }
+/* полоса доказательств под оффером: цифры слева, ссылка на кейсы справа на той же линии */
+.about__proof { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px 32px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.14); }
+.about__facts { display: flex; flex-wrap: wrap; gap: 20px 40px; }
+.about__fact { min-width: 96px; }
 .about__fact dt { font-family: var(--display); font-weight: 900; font-size: clamp(28px, 3.4vw, 44px); letter-spacing: -.02em; line-height: 1; }
-.about__fact dd { margin-top: 8px; font-size: 14px; line-height: 1.35; color: rgba(255,255,255,.6); }
+.about__fact dd { margin-top: 8px; font-size: 14px; line-height: 1.35; color: rgba(255,255,255,.6); max-width: 10.5em; }
+.about__proof-link { display: inline-flex; align-items: center; gap: 6px; padding: 14px 22px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; color: #fff; text-decoration: none; font-weight: 600; font-size: 15px; white-space: nowrap; transition: background .2s ease, color .2s ease, border-color .2s ease; }
+.about__proof-link:hover { background: #fff; color: var(--black); border-color: #fff; }
 
 /* вторая часть «Обо мне»: наезжает на липкий экран оффера (тот же чёрный фон, своя плоскость). Пустые блоки
    (образование, последний год) разметка не выводит — сетка тогда в одну колонку. */
@@ -156,6 +159,8 @@ html[data-webgl="off"] .ask { animation: none; }
   .year__metric dt { font-size: clamp(22px, 7vw, 34px); }
   .year__points { grid-template-columns: 1fr; }
   .about__fact dd { font-size: 12px; }
+  .about__facts { gap: 16px 28px; }
+  .about__proof-link { padding: 12px 18px; }
   .about__cases { grid-template-columns: auto 1fr; padding: 18px; gap: 18px; }
   .about__cases-arrow { display: none; }
   .about__cases-stack { width: 64px; height: 44px; }

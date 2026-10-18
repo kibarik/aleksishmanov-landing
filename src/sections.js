@@ -83,6 +83,18 @@ function lastYearBlock(y) {
         </div>`;
 }
 
+/**
+ * Полоса доказательств под оффером: до трёх цифр (пустое значение — не выводится) и ссылка на кейсы.
+ * Громкий заголовок без опоры не убеждает — опора стоит на том же экране, а не ниже по странице.
+ */
+function proofBar({ facts, cases }) {
+  const shown = facts.filter((f) => f.value);
+  return `<div class="about__proof">${shown.length ? `
+            <dl class="about__facts">${shown.map(({ value, label }) => `<div class="about__fact"><dt>${esc(value)}</dt><dd>${esc(label)}</dd></div>`).join('')}</dl>` : ''}
+            <a class="about__proof-link" href="${esc(cases.href)}">${esc(cases.label)}<span aria-hidden="true"> →</span></a>
+          </div>`;
+}
+
 /** «Обо мне», вторая часть: наезжает на липкий экран оффера. Пустые блоки не выводятся. */
 function aboutMore({ career, education, lastYear, cases }) {
   const col = (block, cls = '') => block.items.length ? `
@@ -110,7 +122,7 @@ export function renderSections(content, { latest = [] } = {}) {
         <div class="intro__inner">
           <h2 class="section__label">${esc(about.title)}</h2>
           <p class="about__offer">${esc(content.offer)}</p>
-          ${about.facts.length ? `<dl class="about__facts">${about.facts.map(({ value, label }) => `<div class="about__fact"><dt>${esc(value)}</dt><dd>${esc(label)}</dd></div>`).join('')}</dl>` : ''}
+          ${proofBar(about)}
         </div>
       </div>
       ${aboutMore(about)}

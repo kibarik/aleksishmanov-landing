@@ -184,8 +184,9 @@ export async function expectSectionsMatchContent(page, content) {
   await expect(about.locator('h2')).toHaveText(content.about.title);
   await expect(about).toContainText(content.offer);
   const facts = about.locator('.about__fact');
-  await expect(facts).toHaveCount(content.about.facts.length);
-  for (const [i, { value, label }] of content.about.facts.entries()) {
+  const shown = content.about.facts.filter((f) => f.value);
+  await expect(facts).toHaveCount(shown.length);
+  for (const [i, { value, label }] of shown.entries()) {
     await expect(facts.nth(i).locator('dt')).toHaveText(value);
     await expect(facts.nth(i).locator('dd')).toHaveText(label);
   }
