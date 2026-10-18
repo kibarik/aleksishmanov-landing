@@ -18,6 +18,8 @@ aleksishmanov.ru = главная (3D-лендинг выше) + портал н
 - Проверка: `npm run test:unit`, `npm run test:portal` (собирает `dist/` и гоняет `tests/e2e/*.portal.spec.js`
   против сервера с поведением Timeweb), `npm test` — лендинг.
 - Для ИИ-поиска: `/llms.txt`, `/llms-full.txt`, Markdown-копия каждого материала (`/blog/<slug>.md`).
+- Методология — хребет сайта (ADR 0006): узлы в `portal/src/content/method/` (проблема → области → темы), материалы
+  прикрепляются к темам полем `materials`; целостность — `tests/unit/method.test.mjs`.
 - Как писать и принимать статьи (SEO, цитирование ИИ, рубрика, промты автора и ревьюера) — `docs/content/README.md`,
   навык `.claude/skills/article`. Перед коммитом статьи — `npm run lint:content` без ошибок.
 

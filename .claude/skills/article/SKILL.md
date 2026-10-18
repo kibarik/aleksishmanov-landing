@@ -5,11 +5,13 @@ description: Написать, отревьюить или доработать 
 
 # Статья для aleksishmanov.ru
 
-Все правила — в `docs/content/`. Прочитай `docs/content/README.md` и документ под задачу, затем следуй промту:
+Сайт — одна методология «Как построить IT-департамент, который быстро и качественно реализует пожелания бизнеса» (`/method/`, ADR 0006): каждый материал прикрепляется к теме (`materials` в `portal/src/content/method/<тема>.md`). Все правила — в `docs/content/`. Прочитай `docs/content/README.md` и документ под задачу, затем следуй промту:
 
 | Задача | Промт |
 | --- | --- |
-| Новая тема из нескольких статей | `docs/content/prompts/cluster-plan.md` |
+| Что писать дальше в методологии | `docs/content/prompts/grow-method.md` |
+| Страница области или темы методологии | `docs/content/prompts/node-page.md` |
+| Набор статей внутри темы | `docs/content/prompts/cluster-plan.md` |
 | Новая статья | `docs/content/prompts/brief.md` → `docs/content/prompts/write-article.md` |
 | Ревью статьи | `docs/content/prompts/review-article.md` (ревьюер — не автор: отдельный агент) |
 | Доработка импортированного поста | `docs/content/prompts/refresh-imported.md` |

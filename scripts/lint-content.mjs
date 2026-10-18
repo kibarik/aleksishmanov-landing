@@ -73,6 +73,20 @@ function knownPaths() {
   return set;
 }
 
+/** Материалы, прикреплённые к узлам методологии (ADR 0006): «<раздел>/<slug>». */
+function attachedMaterials() {
+  const set = new Set();
+  const method = path.join(CONTENT, 'method');
+  if (!fs.existsSync(method)) return set;
+  for (const f of fs.readdirSync(method)) {
+    if (!f.endsWith('.md')) continue;
+    const m = fs.readFileSync(path.join(method, f), 'utf8').match(/^materials:\s*\[([\s\S]*?)\]/m);
+    if (m) for (const x of m[1].matchAll(/"([^"]+)"/g)) set.add(x[1]);
+  }
+  return set;
+}
+const ATTACHED = attachedMaterials();
+
 const words = (t) => t.replace(/```[\s\S]*?```/g, ' ').replace(/[|#>*_`\-]+/g, ' ').split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
 
 export function lintFile(file, paths = knownPaths()) {
@@ -131,6 +145,8 @@ export function lintFile(file, paths = knownPaths()) {
     const n = words(t);
     if (n > LIMITS.paragraphWords) { add('warn', 'paragraph', `абзац ${n} слов: «${t.slice(0, 50)}…»`); }
   }
+  const rel = path.relative(CONTENT, file).replace(/\.md$/, '');
+  if (rel.startsWith('blog/') && fm.imported !== true && !ATTACHED.has(rel)) add('warn', 'method', 'статья не прикреплена ни к одной теме методологии (materials в portal/src/content/method/<тема>.md)');
   const low = prose.toLowerCase();
   for (const b of BANNED) if (low.includes(b)) add('warn', 'voice', `клише «${b}»`);
 
