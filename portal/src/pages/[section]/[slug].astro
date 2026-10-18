@@ -22,7 +22,7 @@ const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
 const sourceLabel = SOURCE_LABEL[m.data.source];
 ---
 <Base title={m.data.title} description={m.data.description} type="article" image={m.data.cover} current={m.collection}
-  jsonld={graph(article({ title: m.data.title, description: m.data.description, url, date: m.data.date, image: m.data.cover, section: info.title }),
+  jsonld={graph(article({ title: m.data.title, description: m.data.description, url, date: m.data.date, updated: m.data.updated, image: m.data.cover, section: info.title }),
     breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }, { name: m.data.title, url: urlFor(m) }]))}>
   <link slot="head" rel="alternate" type="text/markdown" href={`${info.path}${m.id}.md`} />
   <article class="article">
@@ -31,8 +31,9 @@ const sourceLabel = SOURCE_LABEL[m.data.source];
       <p class="eyebrow">{info.one}{m.data.category && ` · ${m.data.category}`}</p>
       <h1>{m.data.title}</h1>
       <p class="article__meta">
-        <span>{SITE.name}</span>
+        <a href="/about/" rel="author">{SITE.name}</a>
         <time datetime={m.data.date.toISOString()}>{formatDate(m.data.date)}</time>
+        {m.data.updated && <span>обновлено <time datetime={m.data.updated.toISOString()}>{formatDate(m.data.updated)}</time></span>}
         {m.collection !== 'prompts' && <span>{minutes} мин чтения</span>}
         {m.data.directions.map((d) => <a class="chip chip--dir" href={DIRECTION_INFO[d].path}>{DIRECTION_INFO[d].short}</a>)}
       </p>

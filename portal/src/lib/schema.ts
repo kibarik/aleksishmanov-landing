@@ -14,7 +14,7 @@ export const person = {
   knowsAbout: ['Запуск технологических продуктов', 'Product management', 'ИИ-агенты', 'LLM', 'Внедрение ИИ в корпоративные процессы'],
 };
 
-export function article(opts: { title: string; description: string; url: string; date: Date; image?: string; section: string }) {
+export function article(opts: { title: string; description: string; url: string; date: Date; updated?: Date; image?: string; section: string }) {
   return {
     '@type': 'Article',
     headline: opts.title,
@@ -22,6 +22,7 @@ export function article(opts: { title: string; description: string; url: string;
     url: opts.url,
     mainEntityOfPage: opts.url,
     datePublished: opts.date.toISOString(),
+    dateModified: (opts.updated ?? opts.date).toISOString(),
     articleSection: opts.section,
     inLanguage: 'ru',
     author: { '@id': `${SITE.url}/#person`, '@type': 'Person', name: SITE.name, url: `${SITE.url}/about/` },

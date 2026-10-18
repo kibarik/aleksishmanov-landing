@@ -89,6 +89,7 @@ h3 { font-size: 20px; margin: 28px 0 10px; font-weight: 600; }
 .article { max-width: var(--read); margin: 0 auto; padding: 0 20px 72px; }
 .article__head { padding: 40px 0 8px; }
 .article__meta { color: var(--muted); font-size: 15px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.article__meta a[rel="author"] { color: inherit; text-decoration: underline; text-decoration-color: var(--line, currentColor); text-underline-offset: 3px; }
 .prose { font-size: 18px; }
 .prose p, .prose ul, .prose ol { margin: 0 0 1.1em; }
 .prose a { text-decoration-thickness: 1px; text-underline-offset: 3px; }

@@ -89,7 +89,7 @@ export function lintFile(file, paths = knownPaths()) {
 
   const h2 = [...prose.matchAll(/^##\s+(.+)$/gm)].map((m) => m[1].trim());
   if (total >= LIMITS.words && h2.length < 4) add('warn', 'structure', `${h2.length} разделов ## на ${total} слов — текст сложно сканировать`);
-  if (total < LIMITS.words) add('warn', 'length', `${total} слов: для статьи-ответа мало (норма от ${LIMITS.words}); короткая заметка — ок, если это осознанно`);
+  if (total < LIMITS.words) add('warn', 'length', `${total} слов: меньше ориентира для статьи (${LIMITS.words}); идеальной длины нет — для заметки это нормально`);
 
   const faqIdx = h2.findIndex((h) => /^Частые вопросы/i.test(h));
   if (faqIdx < 0) add('warn', 'faq', 'нет раздела «## Частые вопросы»');
