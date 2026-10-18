@@ -23,7 +23,7 @@ test('1. главная: в HTML без JS — имя, «Чем могу быт�
 test('2. шапка портала ведёт во все разделы, каждый раздел открывается', async ({ page }) => {
   await page.goto('/blog/');
   const nav = page.locator('.site-nav a');
-  await expect(nav).toHaveText(['Блог', 'Разборы', 'Инструменты', 'Промты', 'Презентации', 'Кейсы', 'Обо мне']);
+  await expect(nav).toHaveText(['Методология', 'Блог', 'Разборы', 'Инструменты', 'Промты', 'Презентации', 'Кейсы', 'Обо мне']);
   for (const href of await nav.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
     const res = await page.goto(href);
     expect(res.status(), href).toBe(200);

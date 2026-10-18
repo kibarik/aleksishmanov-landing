@@ -6,7 +6,7 @@ import { render } from 'astro:content';
 import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
-import { nodesOfMaterial, nodeUrl } from '../../lib/method';
+import { hasPage, nodesOfMaterial, nodeUrl } from '../../lib/method';
 
 export async function getStaticPaths() {
   const all = (await Promise.all(PAGED.map(list))).flat();
@@ -41,7 +41,7 @@ const methodNodes = await nodesOfMaterial(m);
       </p>
     </header>
     {methodNodes.length > 0 && (
-      <p class="method-part">Часть методологии: {methodNodes.map(({ node, path }, i) => <>{i > 0 && ' · '}{path.map((a) => <><a href={nodeUrl(a)}>{a.data.title}</a> → </>)}<a href={nodeUrl(node)}>{node.data.title}</a></>)}</p>
+      <p class="method-part">Часть методологии: {methodNodes.map(({ node, path }, i) => <>{i > 0 && ' · '}{path.map((a) => <><a href={nodeUrl(a)}>{a.data.title}</a> → </>)}{hasPage(node) ? <a href={nodeUrl(node)}>{node.data.title}</a> : node.data.title}</>)}</p>
     )}
     {m.collection === 'prompts' && <button class="btn btn--ghost copy-btn" type="button" data-copy>Скопировать промт</button>}
     {m.data.repo && <p><a class="btn" href={m.data.repo} target="_blank" rel="noopener">Репозиторий ↗</a></p>}
