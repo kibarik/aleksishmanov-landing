@@ -183,12 +183,20 @@ export async function expectSectionsMatchContent(page, content) {
   const about = page.locator('#about');
   await expect(about.locator('h2')).toHaveText(content.about.title);
   await expect(about).toContainText(content.offer);
-  const rows = about.locator('.timeline__row');
-  await expect(rows).toHaveCount(content.about.timeline.length);
-  for (const [i, { year, text }] of content.about.timeline.entries()) {
-    await expect(rows.nth(i).locator('dt')).toHaveText(year);
-    await expect(rows.nth(i).locator('dd')).toHaveText(text);
+  const facts = about.locator('.about__fact');
+  await expect(facts).toHaveCount(content.about.facts.length);
+  for (const [i, { value, label }] of content.about.facts.entries()) {
+    await expect(facts.nth(i).locator('dt')).toHaveText(value);
+    await expect(facts.nth(i).locator('dd')).toHaveText(label);
   }
+  const rows = about.locator('.path__row');
+  await expect(rows).toHaveCount(content.about.career.items.length + content.about.education.items.length);
+  for (const [i, { period, role }] of content.about.career.items.entries()) {
+    await expect(rows.nth(i).locator('.path__period')).toHaveText(period);
+    await expect(rows.nth(i).locator('.path__role')).toContainText(role);
+  }
+  await expect(about.locator('a.about__cases')).toHaveAttribute('href', content.about.cases.href);
+  await expect(about.locator('a.about__cases')).toContainText(content.about.cases.label);
 
   await expect(page.locator('#projects h2')).toHaveText(content.projects.title);
   await expect(page.locator('#projects .projects__lead')).toHaveText(content.projects.lead);

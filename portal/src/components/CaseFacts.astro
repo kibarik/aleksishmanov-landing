@@ -1,0 +1,30 @@
+---
+// Шапка страницы кейса: то же, что на слайде стопки (цифры, контекст, роль, годы, шаги, стек), до полной истории.
+import type { Material } from '../lib/materials';
+import { coverImage } from '../lib/thumbs';
+import { yearsLabel } from '../scripts/case-stack.js';
+
+interface Props { m: Material }
+const c = Astro.props.m.data as any;
+const img = c.cover ? coverImage(c.cover) : null;
+---
+<section class="case-facts" style={`--tone:${c.tone}`} aria-label="Кейс коротко">
+  <p class="case-facts__context">{c.context}</p>
+  <dl class="case-facts__metrics">{c.metrics.map((x: { value: string; label: string }) => <div><dt>{x.value}</dt><dd>{x.label}</dd></div>)}</dl>
+  <p class="case-facts__meta"><span>{yearsLabel(c.years)}</span><span>{c.kind}</span><span><b>{c.role}</b></span>{c.stack.length > 0 && <span>{c.stack.join(' · ')}</span>}</p>
+  <ol class="case-facts__steps">{c.steps.map((s: string) => <li>{s}</li>)}</ol>
+  {img && <figure class="case-facts__cover"><img src={img.src} srcset={img.srcset} sizes="(max-width: 760px) 100vw, 720px" width={img.width} height={img.height} alt={c.coverAlt} decoding="async" /></figure>}
+</section>
+
+<style>
+  .case-facts { margin: 8px 0 32px; padding: clamp(20px, 3vw, 32px); background: var(--card); border: 1.5px solid var(--ink); box-shadow: 12px 12px 0 var(--tone); }
+  .case-facts__context { margin: 0 0 18px; color: var(--muted); font-size: 17px; }
+  .case-facts__metrics { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .case-facts__metrics dt { font: 900 clamp(28px, 4vw, 44px)/1 var(--font-brand); letter-spacing: -.02em; color: var(--tone); overflow-wrap: anywhere; }
+  .case-facts__metrics dd { margin: 6px 0 0; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .case-facts__meta { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); }
+  .case-facts__meta b { color: var(--ink); font-weight: 600; }
+  .case-facts__steps { margin: 16px 0 0; padding-left: 1.4em; font-size: 16px; line-height: 1.55; }
+  .case-facts__cover { margin: 20px 0 0; }
+  .case-facts__cover img { width: 100%; height: auto; border: 1px solid var(--ink); }
+</style>

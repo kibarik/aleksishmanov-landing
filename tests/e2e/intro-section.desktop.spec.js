@@ -11,12 +11,20 @@ test('desktop: тёмная секция открывается после сц�
   expect(await isInViewport(page, '#about')).toBe(true);
   const intro = page.locator('#about');
   await expect(intro.locator('.about__offer')).toHaveText(content.offer);
-  await expect(intro.locator('.timeline__row')).toHaveCount(content.about.timeline.length);
+  await expect(intro.locator('.about__fact')).toHaveCount(content.about.facts.length);
 
   // текст приехал, фон тёмный, шапка светлая
   await expect(intro).toHaveClass(/intro--in/);
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('.intro')).backgroundColor)).toBe('rgb(10, 10, 10)');
   expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(255, 255, 255)');
+
+  // карьерный путь наезжает на экран оффера, шапка остаётся светлой; из него — переход в «Кейсы»
+  await page.evaluate(() => document.querySelector('.about__cases').scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(600);
+  expect(await isInViewport(page, '.about__cases')).toBe(true);
+  await expect(intro.locator('.path__row')).toHaveCount(content.about.career.items.length + content.about.education.items.length);
+  expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(255, 255, 255)');
+  await expect(intro.locator('a.about__cases')).toHaveAttribute('href', '/cases/');
 
   // ниже по странице секции снова светлые и шапка тёмная
   await page.evaluate(() => document.getElementById('projects').scrollIntoView());

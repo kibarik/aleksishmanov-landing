@@ -58,6 +58,50 @@ function ongoing(o) {
       </div>`;
 }
 
+/** Строка пути и образования: годы, роль (или место) с местом через точку, итог одной строкой — что заполнено. */
+function pathRow({ period, role = '', org = '', text = '' }) {
+  const head = role ? `${esc(role)}${org ? `<span class="path__org"> · ${esc(org)}</span>` : ''}` : esc(org);
+  return `
+            <li class="path__row">
+              <span class="path__period">${esc(period)}</span>
+              <div class="path__body">
+                <p class="path__role">${head}</p>${text ? `
+                <p class="path__text">${esc(text)}</p>` : ''}
+              </div>
+            </li>`;
+}
+
+/** Последний год — только если владелец вписал фразу (content.js, about.lastYear). */
+function lastYearBlock(y) {
+  if (!y.lead) return '';
+  return `
+        <div class="year">
+          <h3 class="about__h">${esc(y.title)}${y.period ? ` <span class="year__period">${esc(y.period)}</span>` : ''}</h3>
+          <p class="year__lead">${esc(y.lead)}</p>${y.metrics.length ? `
+          <dl class="year__metrics">${y.metrics.map(({ value, label }) => `<div class="year__metric"><dt>${esc(value)}</dt><dd>${esc(label)}</dd></div>`).join('')}</dl>` : ''}${y.points.length ? `
+          <ul class="year__points">${y.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}
+        </div>`;
+}
+
+/** «Обо мне», вторая часть: наезжает на липкий экран оффера. Пустые блоки не выводятся. */
+function aboutMore({ career, education, lastYear, cases }) {
+  const col = (block, cls = '') => block.items.length ? `
+          <div class="about__col">
+            <h3 class="about__h">${esc(block.title)}</h3>
+            <ol class="path${cls}">${block.items.map(pathRow).join('')}</ol>
+          </div>` : '';
+  return `
+      <div class="about__more">
+        <div class="about__grid${education.items.length ? '' : ' about__grid--single'}">${col(career)}${col(education, ' path--short')}
+        </div>${lastYearBlock(lastYear)}
+        <a class="about__cases" href="${esc(cases.href)}">
+          <span class="about__cases-stack" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="about__cases-text"><strong>${esc(cases.label)}</strong><small>${esc(cases.note)}</small></span>
+          <span class="about__cases-arrow" aria-hidden="true">${ICONS.arrow}</span>
+        </a>
+      </div>`;
+}
+
 export function renderSections(content, { latest = [] } = {}) {
   const { about, projects, contact, footer } = content;
   return `
@@ -66,10 +110,10 @@ export function renderSections(content, { latest = [] } = {}) {
         <div class="intro__inner">
           <h2 class="section__label">${esc(about.title)}</h2>
           <p class="about__offer">${esc(content.offer)}</p>
-          <p class="about__since">${esc(about.since)}</p>
-          <dl class="timeline">${about.timeline.map(({ year, text }) => `<div class="timeline__row"><dt>${esc(year)}</dt><dd>${esc(text)}</dd></div>`).join('')}</dl>
+          ${about.facts.length ? `<dl class="about__facts">${about.facts.map(({ value, label }) => `<div class="about__fact"><dt>${esc(value)}</dt><dd>${esc(label)}</dd></div>`).join('')}</dl>` : ''}
         </div>
       </div>
+      ${aboutMore(about)}
     </section>
     <section class="section projects" id="projects">
       <h2 class="section__label">${esc(projects.title)}</h2>
