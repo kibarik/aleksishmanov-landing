@@ -154,3 +154,122 @@ a.pager__num:hover, a.pager__step:hover { background: var(--card); }
 .method-pager { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 40px 0 0; }
 .method-planned { display: flex; gap: 16px; justify-content: space-between; padding: 14px 0; color: var(--muted); }
 .list-compact small { color: var(--muted); font-size: 14px; }
+
+/* Диаграммы процесса методологии (components/Flow.astro, ProcessMap.astro): слева направо, на телефоне — сверху вниз. */
+:root { --po: #2f8f80; --po-bg: #e3f3ef; --agent: #7d63c9; --agent-bg: #eee8fb; --team: #7b786f; --team-bg: #f0eee8; --business: #3f6fb5; --business-bg: #e2ebf8; --gate: #2b6b5a; --start: #e08a3c; --end: #cf4560; }
+.flow, .pmap { margin: 8px 0 28px; }
+.flow__track { list-style: none; margin: 0; padding: 30px 4px 14px; display: flex; align-items: center; overflow-x: auto; scrollbar-width: thin; }
+.flow__item { display: flex; align-items: center; flex: 0 0 auto; }
+.flow__arrow { width: 26px; height: 2px; background: #9a978e; position: relative; flex: 0 0 auto; margin: 0 4px; }
+.flow__arrow::after { content: ''; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left: 7px solid #9a978e; border-right: 0; }
+.flow__node { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 132px; max-width: 176px; padding: 12px 14px 10px; border: 1.5px solid var(--team); background: var(--team-bg); border-radius: 10px; text-decoration: none; color: var(--ink); line-height: 1.3; }
+a.flow__node:hover { box-shadow: 0 0 0 3px rgba(10, 10, 10, .08); }
+.flow__node--po { border-color: var(--po); background: var(--po-bg); }
+.flow__node--agent { border-color: var(--agent); background: var(--agent-bg); }
+.flow__node--business { border-color: var(--business); background: var(--business-bg); }
+.flow__node--team { border-color: var(--team); background: var(--team-bg); }
+.flow__node--stage { min-width: 120px; padding: 16px 16px 14px; border-color: var(--ink); background: var(--card); }
+.flow__node--stage .flow__title { font: 600 17px/1.25 var(--font-head); }
+.flow__num { position: absolute; top: -10px; left: 10px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--ink); color: #fff; font: 700 12px/20px var(--font); text-align: center; }
+.flow__title { font-size: 14.5px; font-weight: 600; }
+.flow__who { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.flow__options { display: flex; flex-direction: column; gap: 3px; }
+.flow__options span { font-size: 12.5px; background: rgba(255, 255, 255, .7); border-radius: 6px; padding: 2px 7px; }
+.flow__mark { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 28px; }
+.flow__dot { width: 26px; height: 26px; border-radius: 50%; background: var(--gate); display: block; }
+.flow__mark--start .flow__dot, .flow__mark--end .flow__dot { border-radius: 0; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); width: 30px; height: 28px; background: var(--start); }
+.flow__mark--end .flow__dot { background: var(--end); }
+.flow__mark-title { position: absolute; bottom: calc(100% + 6px); width: 118px; text-align: center; font-size: 12.5px; line-height: 1.25; color: var(--ink); font-weight: 600; }
+.flow__item--start .flow__mark-title, .flow__item--end .flow__mark-title { color: var(--muted); }
+.flow__legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.flow__key { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; }
+.flow__key::before { content: ''; width: 14px; height: 10px; border-radius: 3px; border: 1.5px solid var(--team); background: var(--team-bg); }
+.flow__key.flow__node--po::before { border-color: var(--po); background: var(--po-bg); }
+.flow__key.flow__node--agent::before { border-color: var(--agent); background: var(--agent-bg); }
+.flow__key.flow__node--business::before { border-color: var(--business); background: var(--business-bg); }
+.flow__key--gate::before { width: 10px; border-radius: 50%; border: 0; background: var(--gate); }
+.flow-notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 28px; margin: 4px 0 8px; padding: 0; list-style: none; }
+.flow-notes li { font-size: 15px; line-height: 1.55; }
+.flow-notes strong { display: block; font-size: 15px; }
+.gate-box { border: 1.5px solid var(--gate); border-radius: var(--radius); padding: 18px 20px; margin: 28px 0; background: var(--card); }
+.gate-box h2, .gate-box h3 { margin: 0 0 8px; font-size: 19px; display: flex; gap: 10px; align-items: center; }
+.gate-box h2::before, .gate-box h3::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: var(--gate); flex: 0 0 auto; }
+.gate-box ul { margin: 0; padding-left: 20px; }
+.stage-wide { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+.stage-wide h2 { margin: 8px 0 6px; }
+.stage-wide .stage-summary { max-width: var(--read); color: var(--ink); margin: 0 0 4px; }
+/* сквозная карта на /method/ */
+.pmap { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 18px 18px; }
+.pmap__track { padding-top: 40px; align-items: flex-start; }
+.pmap__track > .flow__item { align-self: flex-start; margin-top: 8px; }
+.pmap__track > .flow__item--gate, .pmap__track > .flow__item--start, .pmap__track > .flow__item--end { margin-top: 22px; }
+.pmap__cell { display: flex; flex-direction: column; gap: 8px; }
+.pmap__branch { font-size: 13px; color: var(--muted); text-decoration: none; border: 1px dashed #b9b6ad; border-radius: 8px; padding: 4px 8px; }
+.pmap__branch:hover { color: var(--ink); border-color: var(--ink); }
+.pmap__base { border-top: 1px dashed var(--line); margin-top: 8px; padding-top: 14px; }
+.pmap__base-label { margin: 0 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.pmap__base-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.pmap__base-list a { display: flex; flex-direction: column; gap: 2px; text-decoration: none; padding: 10px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); height: 100%; }
+.pmap__base-list a:hover { border-color: var(--ink); }
+.pmap__base-list span { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.pmap__loop { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.stage-block { padding: 34px 0 10px; border-top: 1px solid var(--line); margin-top: 28px; }
+.stage-block__num { margin: 0; font-size: 15px; color: var(--muted); }
+.stage-block h2 { margin: 2px 0 6px; font-size: clamp(26px, 4vw, 34px); }
+.stage-block__q { max-width: var(--read); color: var(--muted); margin: 0 0 4px; }
+.stage-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; background: #efefeb; border-radius: var(--radius); padding: 18px 22px; margin: 14px 0 0; }
+.stage-cta p { margin: 0; font: 600 18px/1.35 var(--font-head); }
+.method-anchors { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 12px 0 0; font-size: 14px; }
+.method-anchors a { text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; background: var(--card); }
+.method-anchors a:hover { border-color: var(--ink); }
+@media (max-width: 760px) {
+  .flow__track { flex-direction: column; align-items: stretch; overflow: visible; padding: 8px 0; }
+  .flow__item { flex-direction: column; align-items: stretch; }
+  .flow__arrow { width: 2px; height: 20px; margin: 4px auto; }
+  .flow__arrow::after { right: auto; left: -4px; top: auto; bottom: -1px; border: 5px solid transparent; border-top: 7px solid #9a978e; border-bottom: 0; }
+  .flow__node { max-width: none; min-width: 0; }
+  .flow__options { flex-direction: row; flex-wrap: wrap; }
+  .flow__mark { flex-direction: row; gap: 10px; justify-content: flex-start; padding-left: 4px; }
+  .flow__mark-title { position: static; width: auto; text-align: left; font-size: 14px; }
+  .pmap { padding: 6px 12px 14px; }
+  .pmap__track { padding-top: 10px; }
+  .pmap__track > .flow__item, .pmap__track > .flow__item--gate, .pmap__track > .flow__item--start, .pmap__track > .flow__item--end { margin-top: 0; }
+}
+.method-head { padding-bottom: 0; }
+.flow__track { justify-content: safe center; }
+.flow__item--start .flow__mark, .flow__item--end .flow__mark { min-width: 100px; }
+.stage-wide__text { max-width: calc(var(--read) - 40px); margin: 0 auto; }
+@media (max-width: 760px) { .flow__item--start .flow__mark, .flow__item--end .flow__mark { min-width: 0; } }
+.flow--compact .flow__node { min-width: 112px; max-width: 158px; padding: 11px 12px 9px; }
+.flow--compact .flow__arrow { width: 18px; }
+.flow--compact .flow__item--start .flow__mark, .flow--compact .flow__item--end .flow__mark { min-width: 84px; }
+.flow--compact .flow__mark-title { width: 100px; }
+.flow-notes strong { margin-bottom: 2px; }
+
+/* Визуал методологии: белый фон, чёрный текст, монохромные схемы без заливок. Роль на шаге — подписью, не цветом. */
+:root { --paper: #ffffff; --po: #0a0a0a; --po-bg: #fff; --agent: #0a0a0a; --agent-bg: #fff; --team: #0a0a0a; --team-bg: #fff; --business: #0a0a0a; --business-bg: #fff; --gate: #0a0a0a; --start: #0a0a0a; --end: #0a0a0a; }
+.flow__node { border-width: 1.5px; border-radius: 6px; background: #fff; }
+.flow__node--agent { border-style: dashed; }
+.flow__arrow, .flow__arrow::after { background: #0a0a0a; }
+.flow__arrow::after { background: none; border-left-color: #0a0a0a; }
+.flow__mark--start .flow__dot { clip-path: none; border-radius: 50%; width: 22px; height: 22px; background: #fff; border: 2px solid #0a0a0a; }
+.flow__mark--end .flow__dot { clip-path: none; border-radius: 3px; width: 20px; height: 20px; background: #0a0a0a; }
+.flow__dot { width: 18px; height: 18px; transform: rotate(45deg); border-radius: 2px; }
+.flow__mark--start .flow__dot, .flow__mark--end .flow__dot { transform: none; }
+.flow__options span { background: none; border-top: 1px solid #e5e5e5; border-radius: 0; padding: 3px 0 0; }
+.flow__options span:first-child { border-top: 0; }
+.flow__who { color: #6b6b6b; }
+.flow__item--start .flow__mark-title, .flow__item--end .flow__mark-title { color: #0a0a0a; font-weight: 500; }
+.flow__key::before { background: #fff !important; border: 1.5px solid #0a0a0a !important; }
+.flow__key.flow__node--agent::before { border-style: dashed !important; }
+.flow__key--gate::before { background: #0a0a0a !important; transform: rotate(45deg); width: 9px; height: 9px; border-radius: 1px; }
+.pmap { border: 1px solid #0a0a0a; border-radius: 8px; padding-top: 6px; }
+.pmap__base { border-top: 1px solid #e5e5e5; }
+.pmap__base-list a { background: #fff; border: 1px solid #0a0a0a; border-radius: 6px; }
+.pmap__branch { border: 1px dashed #0a0a0a; color: #0a0a0a; border-radius: 6px; }
+.gate-box { border: 1.5px solid #0a0a0a; border-radius: 8px; }
+.gate-box h2::before { transform: rotate(45deg); width: 12px; height: 12px; border-radius: 1px; }
+.stage-cta { background: #fff; border: 1px solid #0a0a0a; border-radius: 8px; }
+.stage-block { border-top: 1px solid #0a0a0a; }
+.method-anchors a { border-color: #0a0a0a; border-radius: 4px; }
+.method-area, .card { border-color: #d9d9d9; border-radius: 8px; }

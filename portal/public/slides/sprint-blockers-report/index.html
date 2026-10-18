@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Где и почему команда разработки была заблокирована</title>
+<meta name="description" content="Отчёт по блокерам за квартал для руководителя: ИИ-агент разбирает историю JIRA, скрипт считает дни ожидания — видно, кого ждали, где стояли задачи и что держит сейчас.">
+<link rel="canonical" href="https://aleksishmanov.ru/slides/sprint-blockers-report/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Каталог презентаций · Алексей Ишманов">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="https://aleksishmanov.ru/slides/sprint-blockers-report/">
+<meta property="og:title" content="Где и почему команда разработки была заблокирована">
+<meta property="og:description" content="Отчёт по блокерам за квартал для руководителя: ИИ-агент разбирает историю JIRA, скрипт считает дни ожидания — видно, кого ждали, где стояли задачи и что держит сейчас.">
+<meta property="og:image" content="https://aleksishmanov.ru/slides/sprint-blockers-report/cover.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="Первый слайд презентации «Где и почему команда разработки была заблокирована»">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Где и почему команда разработки была заблокирована">
+<meta name="twitter:description" content="Отчёт по блокерам за квартал для руководителя: ИИ-агент разбирает историю JIRA, скрипт считает дни ожидания — видно, кого ждали, где стояли задачи и что держит сейчас.">
+<meta name="twitter:image" content="https://aleksishmanov.ru/slides/sprint-blockers-report/cover.png">
+<meta name="twitter:image:alt" content="Первый слайд презентации «Где и почему команда разработки была заблокирована»">
+<style>
+  /* Айдентика каталога (как sprint-business-report): бежевый фон, чёрный и синий,
+     моноширинные подписи, карточки с жёсткой тенью. Стили живут здесь, сборщик
+     вставляет только слайды — два запуска подряд дают один и тот же файл. */
+  :root { --bg:#efeee8; --ink:#080808; --blue:#2437ed; --muted:#51514b; --line:#c9c8c2; --red:#d8302a; --amber:#d29b1f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #d9d8d3; }
+  body { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); overflow: hidden; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  #stage { position: fixed; left: 0; top: 0; width: 1280px; height: 720px; flex: none; transform-origin: 0 0; }
+  .slide { position: absolute; inset: 0; padding: 76px 72px 60px; display: none; flex-direction: column; justify-content: flex-start; background: var(--bg); overflow: hidden; }
+  .slide.on { display: flex; }
+  .slide.center { justify-content: center; padding-top: 64px; }
+  .accent { color: var(--blue); }
+  h1 { font-size: 66px; line-height: 1.03; letter-spacing: -.045em; font-weight: 800; }
+  h2 { font-size: 50px; line-height: 1.06; letter-spacing: -.04em; font-weight: 800; margin-bottom: 30px; }
+  .label { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 15px; font-weight: 700; letter-spacing: .08em; color: var(--blue); margin-bottom: 22px; text-transform: uppercase; }
+  .lead { font-size: 24px; line-height: 1.4; margin-top: 26px; max-width: 780px; }
+  .quote { border-left: 5px solid var(--blue); padding: 4px 0 4px 22px; font-size: 26px; line-height: 1.34; font-weight: 700; margin-top: 30px; }
+  .line { font-size: 21px; line-height: 1.4; color: var(--muted); }
+  .note { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.4; }
+  .slide > .note { padding-right: 150px; }  /* справа внизу — навигация */
+  /* титул */
+  .cover { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 56px; align-items: center; }
+  .cover.solo { grid-template-columns: 1fr; }
+  .photo { width: 300px; height: 300px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 8px 8px 0 var(--blue); display: block; }
+  .site { display: flex; justify-content: space-between; margin-top: 22px; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); text-decoration: none; color: var(--ink); }
+  .site span { font-family: "JetBrains Mono", monospace; font-size: 17px; font-weight: 700; padding: 13px 16px; }
+  .site i { display: flex; align-items: center; justify-content: center; width: 46px; background: var(--blue); color: #fff; font-style: normal; }
+  .kicker { font-family: "JetBrains Mono", monospace; font-size: 16px; font-weight: 700; letter-spacing: .06em; color: var(--muted); margin-bottom: 22px; }
+  /* реплики */
+  .talk { display: flex; flex-direction: column; gap: 18px; margin-top: 8px; max-width: 900px; }
+  .said { display: inline-block; align-self: flex-start; background: var(--ink); color: #fff; font-size: 24px; padding: 12px 18px; border-radius: 14px 14px 14px 2px; }
+  .said.r { align-self: flex-end; background: #fff; color: var(--ink); border: 1px solid var(--ink); border-radius: 14px 14px 2px 14px; }
+  .said small { display: block; font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .06em; opacity: .7; margin-bottom: 4px; }
+  /* ответ */
+  .fact { display: grid; grid-template-columns: minmax(0,1fr) 380px; gap: 56px; align-items: center; flex: 1; }
+  .big { font-size: 190px; line-height: .9; letter-spacing: -.06em; font-weight: 800; color: var(--blue); }
+  .big small { font-size: 60px; letter-spacing: -.03em; margin-left: 10px; }
+  .big + .line { font-size: 27px; color: var(--ink); margin-top: 26px; line-height: 1.35; }
+  .kpis { display: flex; flex-direction: column; gap: 18px; }
+  .kpi { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: #fff; padding: 16px 20px; }
+  .kpi.red { border-color: var(--red); box-shadow: 6px 6px 0 var(--red); }
+  .kpi b { display: block; font-size: 48px; line-height: 1; letter-spacing: -.04em; }
+  .kpi.red b { color: var(--red); }
+  .kpi span { display: block; font-size: 16px; color: var(--muted); margin-top: 6px; line-height: 1.3; }
+  /* полосы */
+  .bars { display: flex; flex-direction: column; gap: 9px; }
+  .bar { display: grid; grid-template-columns: 300px minmax(0,1fr) 150px; gap: 18px; align-items: center; }
+  .bar .who { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .bar .who small { display: block; font-weight: 400; font-size: 14px; color: var(--muted); margin-top: 2px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track { position: relative; height: 26px; background: #e3e1da; }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+  .fill.m { background: var(--blue); }
+  .bar.ext .fill { background: var(--blue); }
+  .bar.ext .fill.m { background: #9fb0ff; }
+  .bar .num { font-family: "JetBrains Mono", monospace; font-size: 15px; line-height: 1.3; }
+  .bar .num b { font-size: 24px; font-family: Inter, -apple-system, sans-serif; letter-spacing: -.02em; }
+  .open-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--red); margin-left: 8px; vertical-align: middle; }
+  .slide.dense h2 { margin-bottom: 18px; }
+  .legend { display: flex; gap: 22px; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; }
+  /* случаи */
+  table.cases { width: 100%; border-collapse: collapse; font-size: 18px; }
+  table.cases th { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 12px 10px 0; border-bottom: 2px solid var(--ink); }
+  table.cases td { padding: 11px 12px 11px 0; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.3; }
+  table.cases td.d { font-family: "JetBrains Mono", monospace; font-size: 15px; white-space: nowrap; }
+  table.cases td.n { font-size: 26px; font-weight: 800; letter-spacing: -.02em; text-align: right; white-space: nowrap; }
+  .st { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; padding: 3px 8px; white-space: nowrap; }
+  .st.open { background: var(--red); color: #fff; } .st.done { background: #e3f3e7; color: #17753a; } .st.workaround { background: #fdf0d5; color: #8a5a00; }
+  /* просьбы */
+  .asks { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+  .ask { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--red); background: #fff; padding: 18px 22px; }
+  .ask .who2 { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--red); text-transform: uppercase; }
+  .ask h3 { font-size: 22px; line-height: 1.25; letter-spacing: -.01em; margin: 8px 0 8px; }
+  .ask p { font-size: 15px; color: var(--muted); }
+  /* карточки и шаги */
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
+  .card { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); padding: 22px 24px 24px; background: var(--bg); }
+  .card.blue { border-color: var(--blue); box-shadow: 6px 6px 0 var(--blue); }
+  .card h3 { font-size: 24px; line-height: 1.15; letter-spacing: -.025em; margin-bottom: 10px; }
+  .card p { font-size: 18px; line-height: 1.4; color: var(--muted); }
+  .steps { display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr 36px 1fr; align-items: stretch; }
+  .steps > .arr { display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--blue); }
+  .steps .card { padding: 20px 18px; }
+  .steps .card h3 { font-size: 21px; } .steps .card p { font-size: 16px; }
+  .tag { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; letter-spacing: .08em; background: var(--ink); color: var(--bg); padding: 5px 10px; margin-bottom: 14px; }
+  .card.blue .tag { background: var(--blue); }
+  /* демо */
+  .demo { position: relative; flex: 1; min-height: 0; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--blue); background: #fff; overflow: hidden; margin-top: 6px; }
+  .demo iframe { width: 142.86%; height: 142.86%; transform: scale(.7); transform-origin: 0 0; border: 0; display: block; }
+  .fs-btn { position: absolute; right: 16px; bottom: 16px; z-index: 3; font: inherit; font-size: 15px; font-weight: 700; padding: 10px 16px; cursor: pointer; background: var(--blue); color: #fff; border: none; }
+  .demo-loader { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--muted); transition: opacity .25s; }
+  .demo-loader.done { opacity: 0; pointer-events: none; }
+  .spin { width: 28px; height: 28px; border: 3px solid #d9d8d0; border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* финал */
+  .final { display: grid; grid-template-columns: minmax(0,1fr) 480px; gap: 50px; align-items: center; height: 100%; }
+  .final h1 { font-size: 76px; }
+  .repo { display: inline-block; margin-top: 30px; font-size: 22px; font-weight: 700; color: var(--blue); text-decoration: none; border-bottom: 3px solid var(--blue); padding-bottom: 4px; }
+  .term { background: var(--ink); color: #e9e8e2; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 17px; line-height: 1.9; padding: 24px 28px; box-shadow: 8px 8px 0 var(--blue); white-space: pre-wrap; }
+  .term i { font-style: normal; color: #9fb0ff; }
+  ul.lim { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  ul.lim li { font-size: 19px; line-height: 1.4; display: grid; grid-template-columns: 34px 1fr; }
+  ul.lim li::before { content: "→"; color: var(--blue); font-weight: 800; }
+  /* навигация */
+  #nav { position: fixed; right: 18px; bottom: 16px; z-index: 40; display: flex; align-items: center; gap: 8px; background: rgba(239,238,232,.95); border: 1px solid var(--ink); padding: 5px 9px; }
+  #nav button { font: inherit; font-size: 16px; width: 26px; height: 24px; cursor: pointer; background: none; border: none; }
+  #nav .p { font-family: "JetBrains Mono", monospace; font-size: 12px; min-width: 46px; text-align: center; }
+  #bar { position: fixed; left: 0; top: 0; height: 3px; background: var(--blue); z-index: 41; transition: width .18s; }
+  #dfs { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; background: #fff; }
+  #dfs.on { display: flex; }
+  .ov-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: var(--ink); color: #fff; }
+  .ov-top b { font-size: 16px; } .ov-top button { font: inherit; font-size: 15px; background: none; border: 1px solid currentColor; color: inherit; padding: 6px 12px; cursor: pointer; }
+  .dfs-body { position: relative; flex: 1; } .dfs-body iframe { width: 100%; height: 100%; border: 0; }
+  /* Телефон: слайды лентой без масштаба. */
+  @media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+    html, body { height: auto; overflow: auto; display: block; background: var(--bg); }
+    #stage { position: static; width: auto; height: auto; transform: none !important; }
+    .slide { position: relative; inset: auto; display: flex !important; padding: 40px 18px 44px; border-bottom: 1px solid var(--line); }
+    .slide.center { padding-top: 40px; }
+    #nav, #bar { display: none; }
+    .slide > .note { padding-right: 0; }
+    h1, .final h1 { font-size: 36px; } h2 { font-size: 30px; margin-bottom: 22px; }
+    .lead { font-size: 18px; } .quote { font-size: 20px; } .line { font-size: 17px; }
+    .cover, .fact, .final { grid-template-columns: 1fr; gap: 26px; height: auto; }
+    .photo { width: 150px; height: 150px; } .site { max-width: 260px; }
+    .said { font-size: 18px; }
+    .big { font-size: 104px; } .big small { font-size: 34px; } .big + .line { font-size: 19px; }
+    .kpi b { font-size: 36px; }
+    .bar { grid-template-columns: 1fr; gap: 6px; } .bar .who { font-size: 17px; } .bar .who small { white-space: normal; }
+    table.cases thead { display: none; }
+    table.cases, table.cases tbody, table.cases tr, table.cases td { display: block; width: 100%; }
+    table.cases tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+    table.cases td { border: none; padding: 2px 0; text-align: left !important; font-size: 16px; }
+    table.cases td.n { font-size: 20px; }
+    .asks, .cards { grid-template-columns: 1fr; gap: 16px; }
+    .steps { grid-template-columns: 1fr; } .steps > .arr { height: 30px; transform: rotate(90deg); }
+    .demo { flex: none; height: 110px; } .demo iframe, .demo .demo-loader { display: none; }
+    .fs-btn { left: 16px; right: 16px; top: 50%; bottom: auto; transform: translateY(-50%); padding: 14px; }
+    .term { font-size: 14px; padding: 18px; }
+    ul.lim li { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage">
+  <section class="slide center on" data-title="Титул">
+    <div class="cover"><div><p class="kicker">КОМАНДА ПЛАТФОРМА · III КВАРТАЛ 2026</p><h1>Где и почему<br>команда разработки<br><span class="accent">была заблокирована</span></h1><p class="lead">Отчёт по блокерам за квартал: кого ждали, где стояли задачи и что держит прямо сейчас — по истории JIRA, без опроса команды.</p><p class="quote">Сроки срываются не в разработке,<br>а в ожидании.</p></div><div><img class="photo" id="coverPhoto" alt="Автор"><a class="site" href="https://aleksishmanov.ru/" target="_blank" rel="noopener"><span>aleksishmanov.ru</span><i>↗</i></a></div></div>
+  </section>
+
+  <section class="slide" data-title="Ситуация">
+    <p class="label">Ситуация</p>
+    <h2>«Ждали смежников» —<br><span class="accent">не ответ руководителю</span></h2>
+    <div class="talk">
+      <span class="said"><small>РУКОВОДИТЕЛЬ</small>Почему доставку не запустили в сентябре?</span>
+      <span class="said r"><small>ТЕХЛИД</small>Ждали смежников. И ревью затянулось.</span>
+      <span class="said"><small>РУКОВОДИТЕЛЬ</small>Кого именно, сколько и что держит сейчас?</span>
+      <span class="said r"><small>PO</small>Надо поднять JIRA — где-то в комментариях было.</span>
+    </div>
+    <p class="note">Флаг блокера в JIRA почти никто не ставит. Причина ожидания живёт в статусе «В ожидании», очереди на ревью и в комментариях — собрать её руками за квартал никто не успевает.</p>
+  </section>
+
+  <section class="slide" data-title="Ответ">
+    <p class="label">Ответ</p>
+    <div class="fact">
+      <div>
+        <div class="big">174<small>дня</small></div>
+        <p class="line">Июль–сентябрь: столько задачи команды ждали <b>другие команды</b> — из 327 дней ожидания всего. Остальное — узкие места внутри: ревью, приёмка, решения.</p>
+      </div>
+      <div class="kpis"><div class="kpi"><b>44</b><span>1–14 октября: дней ожидания других команд — уже сейчас</span></div><div class="kpi"><b>23</b><span>случаев ожидания с основанием из JIRA</span></div><div class="kpi red"><b>6</b><span>случаев открыты на 14.10</span></div></div>
+    </div>
+  </section>
+
+  <section class="slide dense" data-title="Где стояли задачи">
+    <p class="label">Где стояли задачи</p>
+    <h2>Узкие места процесса</h2>
+    <div class="legend"><span><i style="background:var(--ink)"></i>Июль–сентябрь</span><span><i style="background:var(--blue)"></i>1–14 октября</span></div>
+    <div class="bars"><div class="bar"><div class="who">Приостановлено<small>стояли 66 из 66 рабочих дней · задач 15 · медиана захода 20</small></div><div class="track"><i class="fill" style="left:0.0%;width:85.1%"></i><i class="fill m" style="left:85.1%;width:14.9%"></i></div><div class="num"><b>338</b> + 59<br>задаче-дней</div></div><div class="bar"><div class="who">Ждёт ревью<small>стояли 53 из 66 рабочих дней · задач 5 · медиана захода 18</small></div><div class="track"><i class="fill" style="left:0.0%;width:23.9%"></i><i class="fill m" style="left:23.9%;width:3.0%"></i></div><div class="num"><b>95</b> + 12<br>задаче-дней</div></div><div class="bar"><div class="who">Ждёт тестирования<small>стояли 10 из 66 рабочих дней · задач 1 · медиана захода 10</small></div><div class="track"><i class="fill" style="left:0.0%;width:2.5%"></i></div><div class="num"><b>10</b> + 0<br>задаче-дней</div></div></div>
+    <p class="note">Узкое место процесса — приостановки «В ожидании»: задачи стояли в них почти каждый рабочий день квартала. Задаче-день — день, который одна задача простояла в стадии. Установка и UAT не считаются: их закрывают пачками.</p>
+  </section>
+
+  <section class="slide dense" data-title="Кого ждали снаружи">
+    <p class="label">Почему · другие команды</p>
+    <h2>Кого ждали <span class="accent">снаружи</span></h2>
+    <div class="legend"><span><i style="background:var(--blue)"></i>Июль–сентябрь</span><span><i style="background:#9fb0ff"></i>1–14 октября</span></div>
+    <div class="bars"><div class="bar ext"><div class="who">Перевозчик<span class="open-dot" title="есть открытые"></span><small>Описаний, стендов и согласований для интеграции</small></div><div class="track"><i class="fill" style="left:0.0%;width:68.3%"></i><i class="fill m" style="left:68.3%;width:31.7%"></i></div><div class="num"><b>43</b> + 20<br>дней ожидания</div></div><div class="bar ext"><div class="who">Архитектурный комитет<small>Решения по единому входу</small></div><div class="track"><i class="fill" style="left:0.0%;width:69.8%"></i></div><div class="num"><b>44</b> + 0<br>дней ожидания</div></div><div class="bar ext"><div class="who">Команда данных<span class="open-dot" title="есть открытые"></span><small>Справочников и прав доступа на стендах и проде</small></div><div class="track"><i class="fill" style="left:0.0%;width:42.9%"></i><i class="fill m" style="left:42.9%;width:9.5%"></i></div><div class="num"><b>27</b> + 6<br>дней ожидания</div></div><div class="bar ext"><div class="who">Команда аналитики<small>Релиза витрины данных</small></div><div class="track"><i class="fill" style="left:0.0%;width:38.1%"></i></div><div class="num"><b>24</b> + 0<br>дней ожидания</div></div><div class="bar ext"><div class="who">Команда биллинга<small>Сервисной учётки</small></div><div class="track"><i class="fill" style="left:0.0%;width:33.3%"></i></div><div class="num"><b>21</b> + 0<br>дней ожидания</div></div><div class="bar ext"><div class="who">Команда сайта<small>Ответов по формату корзины и выкладки в ядро сайта</small></div><div class="track"><i class="fill" style="left:0.0%;width:23.8%"></i><i class="fill m" style="left:23.8%;width:7.9%"></i></div><div class="num"><b>15</b> + 5<br>дней ожидания</div></div><div class="bar ext"><div class="who">DevOps<span class="open-dot" title="есть открытые"></span><small>Окружения прода: секреты, ingress, очереди, сертификаты</small></div><div class="track"><i class="fill m" style="left:0.0%;width:20.6%"></i></div><div class="num"><b>0</b> + 13<br>дней ожидания</div></div></div>
+    <p class="note">Другие команды забрали 174 дня из 327, но больше всего дней у одной стороны внутри — решений своего PO. Красная точка — есть открытые случаи. Дни ожидания — сумма длительностей случаев.</p>
+  </section>
+
+  <section class="slide dense" data-title="Узкие места у себя">
+    <p class="label">Почему · внутри команды</p>
+    <h2>Узкие места <span class="accent">у себя</span></h2>
+    <div class="legend"><span><i style="background:var(--ink)"></i>Июль–сентябрь</span><span><i style="background:var(--blue)"></i>1–14 октября</span></div>
+    <div class="bars"><div class="bar"><div class="who">Решение своего PO<span class="open-dot" title="есть открытые"></span><small>Описаний подзадач и решений по блокерам</small></div><div class="track"><i class="fill" style="left:0.0%;width:84.8%"></i><i class="fill m" style="left:84.8%;width:15.2%"></i></div><div class="num"><b>56</b> + 10<br>дней ожидания</div></div><div class="bar"><div class="who">Ревью своей команды<small>Проверки готового кода</small></div><div class="track"><i class="fill" style="left:0.0%;width:56.1%"></i><i class="fill m" style="left:56.1%;width:10.6%"></i></div><div class="num"><b>37</b> + 7<br>дней ожидания</div></div><div class="bar"><div class="who">Приёмка своей команды<small>Приёмки аналитиком</small></div><div class="track"><i class="fill" style="left:0.0%;width:60.6%"></i></div><div class="num"><b>40</b> + 0<br>дней ожидания</div></div><div class="bar"><div class="who">Тестирование своей команды<small>Взятия задачи в тест</small></div><div class="track"><i class="fill" style="left:0.0%;width:15.2%"></i></div><div class="num"><b>10</b> + 0<br>дней ожидания</div></div></div>
+    <p class="note">Ревью, приёмка и решения своего PO — то, что команда может ускорить сама, без эскалаций. Ещё 10 дней ожидания — без названной стороны: в комментариях не сказано, кого ждали.</p>
+  </section>
+
+  <section class="slide" data-title="Самые долгие случаи">
+    <p class="label">Самые долгие случаи</p>
+    <h2>Где потеряли больше всего</h2>
+    <table class="cases"><thead><tr><th>Когда</th><th>Чего ждали</th><th>От кого</th><th style="text-align:right">Раб. дней</th><th>Сейчас</th></tr></thead><tbody><tr><td class="d">06.07–04.09</td><td>Решение по единому входу для партнёров</td><td>Архитектурный комитет</td><td class="n">44</td><td><span class="st done">решено</span></td></tr><tr><td class="d">01.07–26.08</td><td>Описание подзадач и исполнители писем о статусе заказа</td><td>Решение своего PO</td><td class="n">40</td><td><span class="st done">решено</span></td></tr><tr><td class="d">с 08.09</td><td>Согласование схемы интеграции</td><td>Перевозчик</td><td class="n">27</td><td><span class="st open">открыто</span></td></tr><tr><td class="d">с 09.09</td><td>Решение по блокерам самовывоза</td><td>Решение своего PO</td><td class="n">26</td><td><span class="st open">открыто</span></td></tr><tr><td class="d">07.07–11.08</td><td>Приёмка описания процесса доставки</td><td>Приёмка своей команды</td><td class="n">25</td><td><span class="st done">решено</span></td></tr><tr><td class="d">03.08–04.09</td><td>Релиз витрины данных для отчёта по доставкам</td><td>Команда аналитики</td><td class="n">24</td><td><span class="st done">решено</span></td></tr></tbody></table>
+    <p class="note">Самые долгие ожидания — решения: архитектурного комитета и своего PO; в октябре добавилось окружение прода. У каждого случая в отчёте — основание: цитата комментария или связь задачи.</p>
+  </section>
+
+  <section class="slide" data-title="О чём просим">
+    <p class="label">Что держит сейчас</p>
+    <h2>О чём просим: <span class="accent">снять 5 блокеров</span></h2>
+    <div class="asks"><div class="ask"><span class="who2">Перевозчик</span><h3>Согласование схемы интеграции</h3><p>с 08.09 · стоит 27 дней</p></div><div class="ask"><span class="who2">Перевозчик</span><h3>Тестовый возврат посылки на стенде перевозчика</h3><p>с 23.09 · стоит 16 дней</p></div><div class="ask"><span class="who2">DevOps</span><h3>Окружение прода для сервиса доставки</h3><p>с 06.10 · стоит 7 дней</p></div><div class="ask"><span class="who2">Команда данных</span><h3>Пустой справочник тарифов на проде — расчёт доставки не включить</h3><p>с 07.10 · стоит 6 дней</p></div></div>
+    <p class="note">Открытые на 14.10 ожидания других команд — каждое держит выпуск. Внутри команды открыто ещё 1: Решение по блокерам самовывоза.</p>
+  </section>
+
+  <section class="slide" data-title="Как это собирается">
+    <p class="label">Как это собирается</p>
+    <h2>Скрипт считает, <span class="accent">агент объясняет</span></h2>
+    <div class="steps">
+      <div class="card"><span class="tag">1 · JIRA</span><h3>Снимок квартала</h3><p>Скрипт сам берёт задачи команды через MCP-сервер Atlassian: история статусов, комментарии, связи. Только чтение.</p></div>
+      <div class="arr">→</div>
+      <div class="card"><span class="tag">2 · ДНИ</span><h3>Ожидания</h3><p>Приостановки и очереди ревью и теста — в рабочих днях, по кварталу и текущему месяцу.</p></div>
+      <div class="arr">→</div>
+      <div class="card blue"><span class="tag">3 · ИИ-АГЕНТ</span><h3>Кого ждали</h3><p>Агент раскладывает каждое ожидание по сторонам — с цитатой из комментария или связью.</p></div>
+      <div class="arr">→</div>
+      <div class="card"><span class="tag">4 · ПРОВЕРКА</span><h3>Отчёт и колода</h3><p>Скрипт не пускает неразобранное и чужие числа, собирает страницу и эту колоду.</p></div>
+    </div>
+    <p class="note">PO просит агента в чате «отчёт по блокерам за квартал» — через 15 минут страница приходит вложением.</p>
+  </section>
+
+  <section class="slide" data-title="Почему цифрам верить">
+    <p class="label">Почему цифрам можно верить</p>
+    <h2>Каждый день — <span class="accent">из истории JIRA</span></h2>
+    <div class="cards">
+      <div class="card"><h3>Дни считает скрипт</h3><p>По датам смены статусов, рабочие дни. Агент чисел не пишет — только раскладывает.</p></div>
+      <div class="card blue"><h3>У случая есть основание</h3><p>Цитата комментария или связь «блокируется». Нет основания — «слабое подтверждение» на странице.</p></div>
+      <div class="card"><h3>Ничего не теряется</h3><p>Каждое ожидание — в случае или в «не блокер» с причиной: пауза по приоритету, отложили.</p></div>
+      <div class="card"><h3>Часы не выдумываем</h3><p>Учёта времени в JIRA нет. Мера — дни ожидания: это задержка сроков, а не простой людей.</p></div>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Живой отчёт">
+    <p class="label">Живой отчёт</p>
+    <h2>Страница отчёта <span class="accent">целиком</span></h2>
+    <div class="demo">
+      <div class="demo-loader"><div class="spin"></div>Загружаем отчёт…</div>
+      <iframe id="demoFrame" title="Отчёт по блокерам: вымышленная команда «Платформа»" data-src="demo/blockers.html"></iframe>
+      <button class="fs-btn" data-frame="demoFrame">На весь экран ↗</button>
+    </div>
+    <p class="note">Вымышленная команда «Платформа»: все команды, партнёры и задачи придуманы, типичная картина квартала.</p>
+  </section>
+
+  <section class="slide center" data-title="Как начать">
+    <div class="final">
+      <div>
+        <h1>Блокеры —<br><span class="accent">в цифрах, а не в ощущениях</span></h1>
+        <p class="lead">Навык sprint-blockers — в открытом репозитории poh-sprint-agents: страница отчёта, проверка разбора агента, подключение к PO-агентам.</p>
+        <a class="repo" href="https://github.com/po-helper-org/poh-sprint-agents" target="_blank" rel="noopener">github.com/po-helper-org/poh-sprint-agents ↗</a>
+      </div>
+      <div class="term"><i>$</i> bash install.sh &lt;проект&gt;
+<i>$</i> claude "/sprint-blockers команда 2026Q3"
+<i>#</i> или PO-агенту в чат:
+<i>&gt;</i> отчёт по блокерам за III квартал</div>
+    </div>
+  </section>
+</div>
+<div id="dfs">
+  <div class="ov-top"><b id="dfsTitle"></b><button id="dfsX">Закрыть ✕</button></div>
+  <div class="dfs-body"><div class="demo-loader" id="dfsLoader"><div class="spin"></div>Загружаем живое демо…</div><iframe id="dfsFrame" title="Демо на весь экран"></iframe></div>
+</div>
+<div id="nav">
+  <button id="prev" title="Назад">‹</button><span class="p mono" id="pos"></span><button id="next" title="Вперёд">›</button>
+</div>
+<script>
+  var PHOTO = "/okr-quarter-planning/img/photo.webp";
+  var slides = [].slice.call(document.querySelectorAll('.slide'));
+  var cur = 0;
+  var narrow = window.matchMedia('(max-width: 700px), (orientation: portrait) and (max-width: 900px)');
+  function loaded(f) { try { return f.contentWindow.location.href !== 'about:blank'; } catch (e) { return true; } }
+  /* Живое демо: iframe получает src, когда открыт его слайд или предыдущий; на телефоне — только по кнопке. */
+  function loadDemos(slide) {
+    if (!slide || narrow.matches) return;
+    slide.querySelectorAll('iframe[data-src]:not([src])').forEach(function (f) {
+      var l = f.parentNode.querySelector('.demo-loader');
+      f.onload = function () { if (l && loaded(f)) l.classList.add('done'); };
+      f.src = f.getAttribute('data-src');
+    });
+  }
+  function fit() {
+    var st = document.getElementById('stage');
+    if (narrow.matches) { st.style.transform = 'none'; st.style.left = st.style.top = ''; return; }
+    var w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+    var s = Math.min(w / 1280, h / 720);
+    st.style.left = Math.round((w - 1280 * s) / 2) + 'px';
+    st.style.top = Math.round((h - 720 * s) / 2) + 'px';
+    st.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+  function show(i, push) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+    loadDemos(slides[cur]); loadDemos(slides[cur + 1]);
+    document.getElementById('pos').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('bar').style.width = ((cur + 1) / slides.length * 100) + '%';
+    if (push !== false) history.replaceState(null, '', '#slide=' + (cur + 1));
+    else if (narrow.matches && cur > 0) slides[cur].scrollIntoView();
+  }
+  window.addEventListener('load', function () { if (narrow.matches && cur > 0) slides[cur].scrollIntoView(); });
+  document.getElementById('prev').onclick = function () { show(cur - 1); };
+  document.getElementById('next').onclick = function () { show(cur + 1); };
+  var photo = document.getElementById('coverPhoto');
+  if (photo && PHOTO) photo.src = PHOTO;
+  var dfs = document.getElementById('dfs');
+  document.querySelectorAll('.fs-btn').forEach(function (b) {
+    b.onclick = function (e) {
+      e.stopPropagation();
+      var f = document.getElementById(b.getAttribute('data-frame'));
+      document.getElementById('dfsTitle').textContent = f.title;
+      var dl = document.getElementById('dfsLoader'); dl.classList.remove('done');
+      var df = document.getElementById('dfsFrame');
+      df.onload = function () { if (loaded(df)) dl.classList.add('done'); };
+      df.src = f.getAttribute('data-src');
+      dfs.classList.add('on');
+    };
+  });
+  function closeDfs() { dfs.classList.remove('on'); document.getElementById('dfsFrame').removeAttribute('src'); }
+  document.getElementById('dfsX').onclick = closeDfs;
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && dfs.classList.contains('on')) return closeDfs();
+    if (dfs.classList.contains('on')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+  function fromHash() { var m = location.hash.match(/slide=(\d+)/); return m ? parseInt(m[1], 10) - 1 : 0; }
+  window.addEventListener('hashchange', function () { show(fromHash(), false); });
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  show(fromHash(), false);
+</script>
+</body>
+</html>

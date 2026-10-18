@@ -1,0 +1,41 @@
+---
+// Диаграмма процесса узла методологии (ADR 0006): узлы слева направо, на телефоне — сверху вниз.
+// Данные — поле flow в шапке узла; шаг ведёт на раздел «## Шаг N. …» той же страницы (links[step]).
+import type { MethodNode } from '../lib/method';
+
+type FlowItem = MethodNode['data']['flow'][number];
+interface Props { flow: FlowItem[]; links?: Record<number, string>; label: string; compact?: boolean }
+const { flow, links = {}, label, compact = false } = Astro.props;
+const WHO: Record<string, string> = { po: 'PO', agent: 'агент', team: 'команда', business: 'бизнес' };
+const used = [...new Set(flow.filter((n) => n.who).map((n) => n.who!))];
+---
+<figure class:list={['flow', { 'flow--compact': compact }]}>
+  <ol class="flow__track" aria-label={label}>
+    {flow.map((n, i) => {
+      const href = n.step ? links[n.step] : undefined;
+      const Tag = href ? 'a' : 'span';
+      return (
+        <li class:list={['flow__item', `flow__item--${n.kind}`]}>
+          {i > 0 && <span class="flow__arrow" aria-hidden="true" />}
+          {n.kind === 'gate' || n.kind === 'start' || n.kind === 'end' ? (
+            <span class={`flow__mark flow__mark--${n.kind}`}><span class="flow__dot" aria-hidden="true" /><span class="flow__mark-title">{n.title}</span></span>
+          ) : (
+            <Tag class:list={['flow__node', n.who && `flow__node--${n.who}`]} href={href}>
+              {n.step && <span class="flow__num">{n.step}</span>}
+              <span class="flow__title">{n.title}</span>
+              {n.options.length > 0 && <span class="flow__options">{n.options.map((o) => <span>{o}</span>)}</span>}
+              {n.who && <span class="flow__who">{WHO[n.who]}</span>}
+            </Tag>
+          )}
+        </li>
+      );
+    })}
+  </ol>
+  {used.length > 0 && !compact && (
+    <figcaption class="flow__legend">
+      <span class="flow__key">делает человек</span>
+      {used.includes('agent') && <span class="flow__key flow__node--agent">делает ИИ-агент, решает человек</span>}
+      <span class="flow__key flow__key--gate">гейт: дальше — только при выполненном условии</span>
+    </figcaption>
+  )}
+</figure>

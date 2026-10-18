@@ -54,3 +54,22 @@ export async function nodesOfMaterial(m: { collection: string; id: string }): Pr
     .filter((n) => n.data.materials.includes(k))
     .map((node) => ({ node, path: ancestors(nodes, node).filter((a) => a.data.level !== 'problem') }));
 }
+
+/** Markdown → обычный текст: ссылки, выделение, код. */
+const plain = (md: string) => md.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*_`]+/g, '').replace(/\s+/g, ' ').trim();
+
+/** Первый абзац каждого раздела «## Шаг N. …» — короткое описание узла диаграммы на сквозной странице. */
+export function stepNotes(n: MethodNode): Record<number, string> {
+  const notes: Record<number, string> = {};
+  for (const m of (n.body ?? '').matchAll(/^##\s+Шаг\s+(\d+)[^\n]*\n+([\s\S]*?)(?=\n\n|\n##|$)/gm)) {
+    const para = m[2].trim();
+    if (para && !/^[|`>-]/.test(para)) notes[Number(m[1])] = plain(para);
+  }
+  return notes;
+}
+
+export type Role = NonNullable<MethodNode['data']['role']>;
+/** Области по месту в процессе: стадии по номеру, затем основания и ответвления. */
+export function byRole(nodes: MethodNode[], role: Role): MethodNode[] {
+  return nodes.filter((n) => n.data.level === 'area' && n.data.role === role).sort((a, b) => (a.data.stage ?? a.data.order) - (b.data.stage ?? b.data.order));
+}

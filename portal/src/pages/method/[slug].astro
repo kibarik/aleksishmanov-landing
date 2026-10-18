@@ -2,6 +2,7 @@
 // Узел методологии (область или тема): ключевой вопрос, текст, вложенные темы, прикреплённые материалы.
 import Base from '../../layouts/Base.astro';
 import Card from '../../components/Card.astro';
+import Flow from '../../components/Flow.astro';
 import { render } from 'astro:content';
 import { allNodes, childrenOf, ancestors, nodeUrl, hasPage, STATUS_LABEL, materialsOf, type MethodNode } from '../../lib/method';
 import { SITE } from '../../lib/site';
@@ -14,7 +15,12 @@ export async function getStaticPaths() {
 }
 const { n } = Astro.props as { n: MethodNode };
 const nodes = await allNodes();
-const { Content } = await render(n);
+const { Content, headings } = await render(n);
+// Шаг диаграммы ведёт на раздел «## Шаг N. …»
+const stepLinks: Record<number, string> = {};
+for (const h of headings) { const m = h.depth === 2 && h.text.match(/^Шаг\s+(\d+)/); if (m) stepLinks[Number(m[1])] = `#${h.slug}`; }
+const ROLE_LABEL = { stage: 'Стадия', branch: 'Ответвление', foundation: 'Основание' } as const;
+const eyebrow = n.data.role === 'stage' ? `Стадия ${n.data.stage}` : n.data.role ? ROLE_LABEL[n.data.role] : n.data.level === 'area' ? 'Область методологии' : 'Тема методологии';
 const chain = ancestors(nodes, n);
 const kids = childrenOf(nodes, n.id);
 const materials = await materialsOf(n);
@@ -27,10 +33,10 @@ const crumbs = [{ name: 'Главная', url: '/' }, ...chain.map((c) => ({ nam
 ---
 <Base title={`${n.data.title}: методология`} description={n.data.description} type="article" current="method"
   jsonld={graph(article({ title: n.data.title, description: n.data.description, url, date: n.data.date, updated: n.data.updated, section: 'Методология' }), breadcrumbs(crumbs))}>
-  <article class="article">
+  <div class="article method-head">
     <p class="crumbs">{crumbs.slice(0, -1).map((c) => <><a href={c.url}>{c.name}</a> / </>)}</p>
     <header class="article__head">
-      <p class="eyebrow">{n.data.level === 'area' ? 'Область методологии' : 'Тема методологии'} · {STATUS_LABEL[n.data.status]}</p>
+      <p class="eyebrow">{eyebrow} · {STATUS_LABEL[n.data.status]}</p>
       <h1>{n.data.title}</h1>
       <p class="lead method-question">{n.data.question}</p>
       <p class="article__meta">
@@ -39,10 +45,27 @@ const crumbs = [{ name: 'Главная', url: '/' }, ...chain.map((c) => ({ nam
         {n.data.updated && <span>обновлено <time datetime={n.data.updated.toISOString()}>{formatDate(n.data.updated)}</time></span>}
       </p>
     </header>
+  </div>
+  {n.data.flow.length > 0 && (
+    <section class="stage-wide" aria-labelledby="karkas">
+      <div class="stage-wide__text">
+        <h2 id="karkas">Общий каркас процесса</h2>
+        {n.data.summary && <p class="stage-summary">{n.data.summary}</p>}
+      </div>
+      <Flow flow={n.data.flow} links={stepLinks} label={`Процесс: ${n.data.title}`} />
+    </section>
+  )}
+  <article class="article">
     <div class="prose"><Content /></div>
+    {n.data.gate && (
+      <section class="gate-box">
+        <h2>Гейт: {n.data.gate.title}</h2>
+        {n.data.gate.criteria.length > 0 && <ul>{n.data.gate.criteria.map((c) => <li>{c}</li>)}</ul>}
+      </section>
+    )}
     {kids.length > 0 && (
       <section class="method-children">
-        <h2>Темы области</h2>
+        <h2>{n.data.role === 'stage' ? 'Глубже: темы стадии' : 'Темы области'}</h2>
         <ul class="list-compact">
           {kids.map((k) => <li>{hasPage(k)
             ? <a href={nodeUrl(k)}><span class="list-compact__title">{k.data.title}<br /><small>{k.data.question}</small></span><span class="list-compact__meta">{STATUS_LABEL[k.data.status]}</span></a>
@@ -57,7 +80,7 @@ const crumbs = [{ name: 'Главная', url: '/' }, ...chain.map((c) => ({ nam
   </article>
   {materials.length > 0 && (
     <section class="wrap">
-      <h2>Материалы по теме</h2>
+      <h2>{n.data.level === 'area' ? 'Инструменты и материалы' : 'Материалы по теме'}</h2>
       <ul class="grid">{materials.map((m) => <Card m={m} showType />)}</ul>
     </section>
   )}

@@ -1,0 +1,45 @@
+---
+// Сквозная диаграмма методологии на /method/: стадии от инициативы до результата, гейты между ними,
+// ответвление и основания, на которых держатся все стадии. Данные — шапки областей (role, stage, short, gate).
+interface Item { short: string; title: string; url?: string; question: string; num?: number; gate?: string }
+interface Props { stages: Item[]; branches: (Item & { from?: number })[]; foundations: Item[]; start: string; end: string }
+const { stages, branches, foundations, start, end } = Astro.props;
+const link = (i: Item) => i.url ?? '#';
+---
+<figure class="pmap">
+  <ol class="flow__track pmap__track" aria-label="Стадии процесса от инициативы до результата">
+    <li class="flow__item flow__item--start"><span class="flow__mark flow__mark--start"><span class="flow__dot" aria-hidden="true" /><span class="flow__mark-title">{start}</span></span></li>
+    {stages.map((s) => (
+      <>
+        <li class="flow__item pmap__stage">
+          <span class="flow__arrow" aria-hidden="true" />
+          <span class="pmap__cell">
+            <a class="flow__node flow__node--stage" href={link(s)}>
+              <span class="flow__num">{s.num}</span>
+              <span class="flow__title">{s.short}</span>
+            </a>
+            {branches.filter((b) => b.from === s.num).map((b) => (
+              <a class="pmap__branch" href={link(b)}>↳ {b.short}</a>
+            ))}
+          </span>
+        </li>
+        {s.gate && (
+          <li class="flow__item flow__item--gate">
+            <span class="flow__arrow" aria-hidden="true" />
+            <span class="flow__mark flow__mark--gate"><span class="flow__dot" aria-hidden="true" /><span class="flow__mark-title">{s.gate}</span></span>
+          </li>
+        )}
+      </>
+    ))}
+    <li class="flow__item flow__item--end"><span class="flow__arrow" aria-hidden="true" /><span class="flow__mark flow__mark--end"><span class="flow__dot" aria-hidden="true" /><span class="flow__mark-title">{end}</span></span></li>
+  </ol>
+  {foundations.length > 0 && (
+    <div class="pmap__base">
+      <p class="pmap__base-label">Основание всех стадий</p>
+      <ul class="pmap__base-list">
+        {foundations.map((f) => <li><a href={link(f)}><strong>{f.short}</strong><span>{f.question}</span></a></li>)}
+      </ul>
+      <p class="pmap__loop">↺ Итоги каждой инициативы возвращаются в контекст и калибруют следующие решения</p>
+    </div>
+  )}
+</figure>

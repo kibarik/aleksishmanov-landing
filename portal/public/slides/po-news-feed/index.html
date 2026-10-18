@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лента вместо 100500 чатов</title>
+
+<!-- Превью ссылки. Краулеры не выполняют JS, поэтому блок статический.
+     Живёт в шаблоне, а не дописывается руками: иначе теряется при пересборке. -->
+<meta name="description" content="Как PO наблюдать за всем вокруг и не терять внимание: чаты, почта и трекеры в одной ленте, упоминания сразу и ИИ-агент, который сверяет происходящее с целями.">
+<link rel="canonical" href="https://aleksishmanov.ru/slides/po-news-feed/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Каталог презентаций · Алексей Ишманов">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="https://aleksishmanov.ru/slides/po-news-feed/">
+<meta property="og:title" content="Лента вместо 100500 чатов">
+<meta property="og:description" content="Как PO наблюдать за всем вокруг и не терять внимание: чаты, почта и трекеры в одной ленте, упоминания сразу и ИИ-агент, который сверяет происходящее с целями.">
+<meta property="og:image" content="https://aleksishmanov.ru/slides/po-news-feed/cover.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="Первый слайд презентации «Лента вместо 100500 чатов»">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Лента вместо 100500 чатов">
+<meta name="twitter:description" content="Как PO наблюдать за всем вокруг и не терять внимание: чаты, почта и трекеры в одной ленте, упоминания сразу и ИИ-агент, который сверяет происходящее с целями.">
+<meta name="twitter:image" content="https://aleksishmanov.ru/slides/po-news-feed/cover.png">
+<meta name="twitter:image:alt" content="Первый слайд презентации «Лента вместо 100500 чатов»">
+<style>
+  :root { --bg:#efeee8; --ink:#080808; --blue:#2437ed; --muted:#51514b; --paper:#fff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #d9d8d3; }
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink); display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+
+  #stage { position: relative; width: 1280px; height: 720px; flex: none; transform-origin: center center; }
+  .slide {
+    position: absolute; inset: 0; padding: 64px 72px; display: none;
+    flex-direction: column; justify-content: center; background: var(--bg); overflow: hidden;
+  }
+  .slide.on { display: flex; }
+
+  .eyebrow { font-size: 14px; color: var(--blue); margin-bottom: 24px; font-weight: 700; letter-spacing: .06em; }
+  h1 { font-size: 66px; line-height: 1.04; letter-spacing: -.04em; font-weight: 800; }
+  h2 { font-size: 46px; line-height: 1.08; letter-spacing: -.035em; font-weight: 800; margin-bottom: 26px; }
+  h2.sm { font-size: 40px; margin-bottom: 22px; }
+  .accent { color: var(--blue); }
+  .sub { font-size: 23px; line-height: 1.42; max-width: 900px; margin-top: 24px; }
+  .quote {
+    border-left: 5px solid var(--blue); padding: 4px 0 4px 22px;
+    font-size: 26px; line-height: 1.34; font-weight: 700; margin-top: 28px; max-width: 760px;
+  }
+  .foot { font-size: 13px; line-height: 1.5; color: var(--muted); margin-top: 20px; }
+
+  /* титул */
+  .cover-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 52px; align-items: center; }
+  .cover-photo { width: 300px; height: 300px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 8px 8px 0 var(--blue); display: block; }
+  .site {
+    display: flex; align-items: stretch; justify-content: space-between; margin-top: 22px;
+    border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: var(--bg);
+    text-decoration: none; color: var(--ink); overflow: hidden;
+  }
+  .site span {
+    font-family: "JetBrains Mono", monospace; font-size: 17px; font-weight: 700;
+    letter-spacing: -.01em; padding: 13px 16px; align-self: center;
+  }
+  .site i { display: flex; align-items: center; justify-content: center; width: 46px;
+    background: var(--blue); color: #fff; font-style: normal; font-size: 17px; }
+  .site:hover i { background: var(--ink); }
+
+  /* слайд установки */
+  .install .eyebrow { font-family: "JetBrains Mono", monospace; letter-spacing: .1em; font-size: 15px; }
+  .install h1 { font-size: 78px; line-height: 1.02; }
+  .install .sub { font-size: 26px; max-width: 780px; margin-top: 30px; }
+  .repo {
+    /* align-self обязателен: слайд — flex-колонка, иначе подчёркивание
+       растягивается на всю ширину вместо длины текста */
+    display: inline-block; align-self: flex-start;
+    margin-top: 30px; font-size: 26px; font-weight: 700;
+    letter-spacing: -.02em; color: var(--blue); text-decoration: none;
+    border-bottom: 3px solid var(--blue); padding-bottom: 4px;
+  }
+  .repo:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .tag {
+    display: inline-block; align-self: flex-start; background: var(--ink); color: var(--bg);
+    font-size: 12px; letter-spacing: .07em; padding: 6px 11px; font-weight: 700; margin-bottom: 12px;
+  }
+  .tag.blue { background: var(--blue); }
+
+  .card { border: 1px solid var(--ink); padding: 20px 22px; box-shadow: 6px 6px 0 var(--ink); background: var(--paper); }
+  .card h3 { font-size: 20px; line-height: 1.2; letter-spacing: -.02em; margin-bottom: 8px; }
+  .card p { font-size: 15px; line-height: 1.42; color: var(--muted); }
+  .card.blue { border-color: var(--blue); box-shadow: 6px 6px 0 var(--blue); }
+  .card.blue h3 { color: var(--blue); }
+  .card.sm h3 { font-size: 18px; }
+  .card.sm p { font-size: 14px; }
+
+  .grid { display: grid; gap: 20px; }
+  .two { grid-template-columns: 1fr 1fr; }
+  .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lean { grid-template-columns: 1fr 1.2fr; align-items: center; gap: 48px; }
+
+  .num { font-size: 92px; font-weight: 800; letter-spacing: -.045em; line-height: .9; }
+  .num small { display: block; font-size: 16px; font-weight: 400; letter-spacing: 0; color: var(--muted); margin-top: 12px; line-height: 1.4; }
+
+  ol.steps { list-style: none; counter-reset: n; display: flex; flex-direction: column; gap: 15px; }
+  ol.steps li { counter-increment: n; display: grid; grid-template-columns: 36px 1fr; gap: 16px; align-items: baseline; }
+  ol.steps li::before { content: counter(n); font-family: "JetBrains Mono", monospace; font-size: 14px; color: var(--blue); font-weight: 700; }
+  ol.steps b { font-size: 22px; letter-spacing: -.02em; }
+  ol.steps span { font-size: 16px; color: var(--muted); }
+
+  ul.wins { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+  ul.wins li { display: grid; grid-template-columns: 24px 1fr; gap: 14px; align-items: baseline; font-size: 21px; line-height: 1.32; }
+  ul.wins li::before { content: "→"; color: var(--blue); font-weight: 700; }
+  ul.wins b { font-weight: 800; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: var(--paper); }
+  .split > div { padding: 26px 28px; }
+  .split > div + div { border-left: 1px solid var(--ink); }
+  .split .lbl { font-size: 12px; font-weight: 700; letter-spacing: .07em; margin-bottom: 12px; }
+  .split .a .lbl { color: var(--muted); }
+  .split .b .lbl { color: var(--blue); }
+  .split p { font-size: 18px; line-height: 1.4; color: var(--muted); }
+  .split .t { font-size: 36px; font-weight: 800; letter-spacing: -.03em; line-height: 1.08; margin-bottom: 10px; }
+
+  /* галерея */
+  .gal { display: grid; grid-template-columns: 1fr 176px; gap: 20px; flex: 1; min-height: 0; }
+  .gal-main { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: var(--paper); display: flex; flex-direction: column; overflow: hidden; }
+  .gal-img { flex: 1; min-height: 0; background: #f7f6f2; cursor: zoom-in; }
+  .gal-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .gal-cap { border-top: 1px solid var(--ink); padding: 11px 16px; display: flex; gap: 12px; align-items: baseline; }
+  .gal-cap .st { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--blue); font-weight: 700; }
+  .gal-cap b { font-size: 17px; }
+  .gal-cap span { font-size: 14px; color: var(--muted); }
+  .thumbs { display: flex; flex-direction: column; gap: 8px; }
+  .thumbs button { border: 1px solid #c9c8c2; background: var(--paper); padding: 0; cursor: pointer; flex: 1; min-height: 0; overflow: hidden; position: relative; }
+  .thumbs button img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+  .thumbs button.on { border: 2px solid var(--blue); }
+  .thumbs i { position: absolute; left: 0; top: 0; background: var(--ink); color: #fff; font-style: normal;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 5px; }
+  .thumbs button.on i { background: var(--blue); }
+
+  .demo { flex: 1; min-height: 0; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: var(--paper); position: relative; }
+  .demo iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .fs-btn { position: absolute; right: 14px; top: 14px; z-index: 3; font: inherit; font-size: 13px;
+    font-weight: 700; padding: 8px 14px; cursor: pointer; background: var(--blue); color: #fff; border: none; }
+
+  #lb, #dfs { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; }
+  #lb.on, #dfs.on { display: flex; }
+  #lb { background: rgba(10,10,10,.95); }
+  #dfs { background: #fff; }
+  .ov-top { display: flex; justify-content: space-between; align-items: center; padding: 13px 20px; }
+  #lb .ov-top { color: #fff; }
+  #dfs .ov-top { background: var(--ink); color: #fff; }
+  .ov-top b { font-size: 15px; }
+  .ov-top .pos { font-family: "JetBrains Mono", monospace; font-size: 12px; opacity: .75; }
+  .ov-x { background: none; border: 1px solid currentColor; color: inherit; font: inherit; font-size: 12px; padding: 5px 11px; cursor: pointer; }
+  #lb .body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 22px; }
+  #lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  #lb .row { display: flex; gap: 8px; padding: 14px; justify-content: center; }
+  #lb .row button { width: 82px; height: 48px; border: 1px solid #555; background: none; padding: 0; cursor: pointer; overflow: hidden; }
+  #lb .row button img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  #lb .row button.on { border-color: #fff; }
+  #dfs iframe { flex: 1; border: 0; }
+
+  #nav { position: fixed; right: 18px; bottom: 16px; z-index: 40; display: flex; align-items: center; gap: 8px;
+    background: rgba(239,238,232,.95); border: 1px solid var(--ink); padding: 5px 9px; }
+  #nav button { font: inherit; font-size: 16px; width: 26px; height: 24px; cursor: pointer; background: none; border: none; }
+  #nav button:hover { color: var(--blue); }
+  #nav .p { font-family: "JetBrains Mono", monospace; font-size: 12px; min-width: 46px; text-align: center; }
+  #bar { position: fixed; left: 0; top: 0; height: 3px; background: var(--blue); z-index: 41; transition: width .18s; }
+
+  /* po-news-feed */
+  .duo { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 34px; flex: 1; min-height: 0; }
+  .col { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .lead { font-size: 17px; line-height: 1.45; color: var(--muted); }
+  .lead b { color: var(--ink); }
+  .unc { font-family: "JetBrains Mono", monospace; font-size: .82em; background: #fff3c4; border: 1px solid #d8c070; padding: 0 4px; color: var(--ink); white-space: nowrap; }
+  .plus { color: #1c8a3a; }
+  .shot { align-self: start; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: #fff; overflow: hidden; cursor: zoom-in; min-height: 0; }
+  .shot img { width: 100%; height: auto; display: block; }
+  ul.list { list-style: none; display: flex; flex-direction: column; gap: 13px; }
+  ul.list li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.38; color: var(--muted); }
+  ul.list li::before { content: "→"; color: var(--blue); font-weight: 700; }
+  ul.list b { color: var(--ink); }
+  ul.list.sm li { font-size: 15px; }
+  .chat { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+  .msg { font-size: 15px; line-height: 1.42; padding: 11px 14px; border: 1px solid var(--ink); background: #fff; max-width: 94%; align-self: flex-start; }
+  .msg.po { align-self: flex-end; background: var(--ink); color: var(--bg); }
+  .msg.wide { max-width: 100%; align-self: stretch; }
+  .msg .who { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; margin-bottom: 4px; opacity: .65; }
+  .flow { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr; align-items: stretch; }
+  .flow .arr { display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--blue); }
+  .flow.tall { flex: 1; min-height: 0; grid-template-columns: 1.05fr 34px 1fr 34px 1fr; }
+  ol.steps.compact { margin-top: 30px; gap: 10px; }
+  ol.steps.compact b { font-size: 19px; }
+  ol.steps.compact span { font-size: 15px; }
+  .code { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12.5px; line-height: 1.5; background: var(--ink); color: #e9e8e2; padding: 14px 16px; white-space: pre; overflow: hidden; margin: 0; }
+  .code .k { color: #9fb0ff; }
+  .duo .demo { box-shadow: 6px 6px 0 var(--ink); overflow: hidden; }
+  .duo .demo iframe { width: 142.86%; height: 142.86%; transform: scale(.7); transform-origin: 0 0; }
+  .fs-btn { top: auto; bottom: 14px; }
+  .pair { flex: 1; min-height: 0; }
+  .pair .shot { max-height: 360px; }
+  .pair .lead { font-size: 15px; }
+  .tp-wrap { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: #fff; overflow: hidden; }
+  table.tp { border-collapse: collapse; width: 100%; font-size: 12.5px; line-height: 1.35; }
+  table.tp th { text-align: left; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase; background: #f2f1ec; padding: 8px 9px; border-bottom: 2px solid var(--ink); }
+  table.tp td { padding: 7px 9px; border-bottom: 1px solid #deddd6; vertical-align: top; }
+  table.tp td.fill { background: #f4f6ff; border-left: 1px dashed var(--blue); color: var(--blue); font-style: italic; }
+  table.tp td.role { font-family: "JetBrains Mono", monospace; font-weight: 700; }
+  #lb .row { display: none; }
+  /* Переработка: боль → решение. «Решает боль N» связывает этап с проблемой. */
+  .solves { display: inline-block; align-self: flex-start; font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700;
+    letter-spacing: .04em; color: var(--blue); border: 1px solid var(--blue); padding: 3px 8px; margin-top: 10px; }
+  .card .solves { margin-top: 14px; }
+  .col > .solves, .chat > .solves { margin: 0 0 4px; }
+  .foot.big { font-size: 20px; font-weight: 700; color: var(--ink); margin-top: 34px; }
+  .vision { margin-top: 34px; border-left: 4px solid var(--blue); padding: 6px 0 6px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .vision p { font-size: 19px; line-height: 1.45; color: var(--muted); max-width: 980px; }
+  .vision b { color: var(--ink); }
+  .repo-sm { font-family: "JetBrains Mono", monospace; font-size: 14px; color: var(--blue); text-decoration: none; font-weight: 700; }
+  table.ba { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+  table.ba th { text-align: left; font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    padding: 10px 16px; border-bottom: 2px solid var(--ink); background: #f2f1ec; }
+  table.ba th:last-child { color: var(--blue); }
+  table.ba td { padding: 11px 16px; font-size: 16px; line-height: 1.35; border-bottom: 1px solid #deddd6; vertical-align: top; color: var(--muted); }
+  table.ba td:first-child { font-weight: 800; color: var(--ink); white-space: nowrap; width: 150px; }
+  table.ba td:last-child { color: var(--ink); }
+  .install ol.steps.start { margin: 26px 0 30px; gap: 10px; }
+  .install ol.steps.start b { font-family: "JetBrains Mono", monospace; font-size: 20px; }
+  .install ol.steps.start span { font-size: 18px; }
+  /* Демо грузится по требованию: пока страница не пришла — индикатор, а не пустая рамка. */
+  .demo-loader { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 14px; background: #fff; font-family: "JetBrains Mono", monospace;
+    font-size: 13px; color: var(--muted); transition: opacity .25s; }
+  .demo-loader.done { opacity: 0; pointer-events: none; }
+  .spin { width: 28px; height: 28px; border: 3px solid #d9d8d0; border-top-color: var(--blue, #2b3cff); border-radius: 50%;
+    animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #dfs .dfs-body { position: relative; flex: 1; display: flex; }
+  #dfs .dfs-body iframe { flex: 1; }
+  /* po-news-feed */
+  h2.compact-title { font-size: 46px; line-height: 1.08; margin-bottom: 28px; }
+  .tl { margin-bottom: 18px; } .tl .tag { margin-bottom: 8px; }
+  h2.demo-title { font-size: 34px; line-height: 1.1; margin: 0; letter-spacing: -.03em; }
+  .apps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 20px; }
+  .app { position: relative; border: 1px solid var(--ink); background: var(--paper); box-shadow: 6px 6px 0 var(--ink); padding: 34px 26px; }
+  .app b { font-size: 30px; letter-spacing: -.03em; }
+  .app i { position: absolute; right: -12px; top: -12px; background: #e5251b; color: #fff; font-style: normal; font-weight: 800; font-size: 16px; min-width: 40px; text-align: center; padding: 6px 9px; border-radius: 20px; box-shadow: 2px 2px 0 var(--ink); }
+  .foot.big { font-size: 24px; margin-top: 34px; }
+  .st .card { padding: 20px 22px 22px; }
+  .st .n { font-family: "JetBrains Mono", monospace; font-size: 14px; color: var(--blue); font-weight: 700; margin-bottom: 14px; }
+  .st .card h3 { font-size: 23px; }
+  .st .card p { font-size: 16px; color: var(--ink); }
+  .code2 { font-family: "JetBrains Mono", monospace; font-size: .88em; background: #e6e5de; padding: 1px 6px; }
+  .slide { padding: 40px 72px 56px; justify-content: flex-start; }
+  .slide:first-child, .slide:nth-child(2), .slide:nth-child(10), .slide:nth-child(11) { justify-content: center; }
+  /* тёмное приложение */
+  .dk { background: #1b1c1f; color: #e8e8ea; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--blue); overflow: hidden; flex: 1; min-height: 0; font-size: 14px; }
+  .dk p { margin: 3px 0; line-height: 1.38; } .dk b { font-weight: 700; } .dk i { font-style: normal; color: #8b8d94; }
+  .dk mark { background: transparent; color: #7f9bff; font-weight: 700; padding: 0; }
+  .dk a { color: #7f9bff; text-decoration: underline; }
+  .av { width: 38px; height: 38px; border-radius: 50%; color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .av.xs { width: 28px; height: 28px; font-size: 11px; }
+  .g1 { background: #4c6fff; } .g2 { background: #9b5de5; } .g3 { background: #1c8a6a; } .g4 { background: #c2410c; } .g5 { background: #0e7490; } .g6 { background: #b45309; } .gm { background: #080808; }
+  .cols3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .col3 { padding: 10px 14px; border-left: 1px solid #2c2e33; overflow: hidden; } .col3:first-child { border-left: 0; }
+  .ch { text-align: center; font-weight: 800; font-size: 16px; padding: 4px 0 10px; }
+  .c { display: grid; grid-template-columns: 38px 1fr; gap: 10px; background: #232529; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+  .cn { display: flex; gap: 5px; align-items: baseline; font-size: 13px; } .cn em { margin-left: auto; font-style: normal; color: #8b8d94; font-size: 12px; white-space: nowrap; }
+  .cn b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hl { font-weight: 700; } .sm { color: #9a9ca3; font-size: 12.5px; } .mt { color: #9a9ca3; font-size: 12.5px; }
+  .img { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; margin-top: 6px; } .img u { height: 22px; background: #33363c; border-radius: 3px; }
+  .tabs2 { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; } .tabs2 b { padding: 3px 12px; border-radius: 14px; font-size: 13px; color: #9a9ca3; } .tabs2 b.on { background: #26334f; color: #9db3ff; border: 1px solid #5f7fe0; } .tabs2 span { margin-left: auto; font-size: 12px; color: #9a9ca3; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .05em; border: 1px solid #b8892b; color: #e0a93a; padding: 1px 6px; border-radius: 4px; margin: 2px 0; }
+  /* тред */
+  .thread { display: grid; grid-template-columns: 1.35fr 1fr; }
+  .th-main { padding: 10px 18px; overflow: hidden; border-right: 1px solid #2c2e33; }
+  .th-head { display: flex; justify-content: space-between; font-size: 17px; margin-bottom: 8px; } .th-head span { color: #8b8d94; }
+  .tp { display: grid; grid-template-columns: 38px 1fr; gap: 10px; padding: 7px 0; position: relative; }
+  .tp.s::before { content: ""; position: absolute; left: 18px; top: -10px; bottom: 50%; width: 2px; background: #3a3d44; }
+  .tp .big { font-size: 17px; font-weight: 600; }
+  .th-side { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; background: #17181a; }
+  .lbl2 { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .08em; color: #8b8d94; }
+  .composer { border: 1px solid #4a64c7; border-radius: 10px; padding: 14px; font-size: 16px; line-height: 1.4; min-height: 110px; background: #1e2026; }
+  .caret { display: inline-block; width: 2px; height: 18px; background: #7f9bff; margin-left: 2px; vertical-align: -3px; animation: bl 1s steps(2) infinite; } @keyframes bl { 50% { opacity: 0; } }
+  .send { display: flex; align-items: center; gap: 14px; } .send b { background: #4c6fff; color: #fff; padding: 8px 18px; border-radius: 8px; }
+  .okk { color: #4ade80; font-size: 13px; font-weight: 700; }
+  .hints { margin: 6px 0 0 16px; color: #9a9ca3; font-size: 13.5px; line-height: 1.5; }
+  /* ретро */
+  .retro { padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .rt-top { display: flex; justify-content: space-between; font-size: 17px; } .rt-top span { color: #8b8d94; font-size: 13px; align-self: center; }
+  .hist { height: 66px; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid #2c2e33; } .hist i { flex: 1; background: #5f7fe0; opacity: .85; min-width: 2px; }
+  .chips2 { display: flex; gap: 8px; } .chips2 b { padding: 5px 14px; border-radius: 16px; background: #26282d; color: #aab; font-size: 13px; } .chips2 b i { margin-left: 4px; font-size: 11px; } .chips2 b.on { border: 1px solid #5f7fe0; color: #9db3ff; background: #232b44; }
+  .avrow { display: flex; gap: 14px; } .a { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; } .a .av { width: 46px; height: 46px; } .a em { position: absolute; top: -4px; right: -4px; background: #2e3036; border-radius: 10px; font-size: 10px; font-style: normal; padding: 1px 5px; } .a u { text-decoration: none; font-size: 11px; color: #9a9ca3; }
+  .avrow.people .a .av { width: 52px; height: 52px; }
+  .srt { display: flex; gap: 10px; align-items: center; font-size: 12.5px; color: #9a9ca3; } .srt b { font-weight: 600; padding: 3px 8px; } .srt b.on { color: #9db3ff; border-bottom: 2px solid #5f7fe0; }
+  .rows { display: flex; flex-direction: column; background: #202226; border-radius: 10px; overflow: hidden; }
+  .r { display: grid; grid-template-columns: 28px 170px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #2c2e33; } .r p { margin: 0; } .r em { font-style: normal; color: #8b8d94; font-size: 12.5px; }
+  .rows.big .r { grid-template-columns: 28px 140px 92px 1fr auto; padding: 10px 12px; font-size: 14.5px; } .chat { font-size: 11.5px; background: #2e3036; border-radius: 6px; padding: 2px 8px; text-align: center; color: #aab; }
+  /* pi */
+  .pi { padding: 14px 22px; display: flex; flex-direction: column; gap: 12px; font-size: 15.5px; }
+  .pi-bar { display: flex; gap: 14px; align-items: baseline; border-bottom: 1px solid #2c2e33; padding-bottom: 8px; } .pi-bar b { font-family: "JetBrains Mono", monospace; font-size: 20px; color: #9db3ff; } .pi-bar span { color: #8b8d94; font-size: 13px; }
+  .pm { padding: 12px 16px; border-radius: 10px; line-height: 1.42; max-width: 88%; }
+  .me3 { align-self: flex-end; background: #2b4aa8; color: #fff; } .sm3 { max-width: 40%; }
+  .ai3 { background: #232529; align-self: flex-start; max-width: 94%; }
+  .step { font-family: "JetBrains Mono", monospace; font-size: 12px; color: #8b8d94; margin-bottom: 8px; line-height: 1.6; }
+  .ai3 h4 { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #9db3ff; margin: 8px 0 4px; } .ai3 ul { margin: 0 0 0 18px; } .ai3 li { margin: 3px 0; }
+  /* Element */
+  .dk.lt { background: #fff; color: #1b1b1f; } .el { display: grid; grid-template-columns: 1.6fr 1fr; }
+  .el-main { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #e3e1da; overflow: hidden; }
+  .el-head { display: flex; gap: 12px; align-items: baseline; border-bottom: 1px solid #e3e1da; padding-bottom: 8px; } .el-head b { font-size: 17px; } .el-head span { font-size: 12.5px; color: #777; }
+  .em { display: grid; grid-template-columns: 28px 1fr; gap: 10px; background: #fdf6dc; border-radius: 8px; padding: 9px 12px; } .em.me4 { background: #eef1ff; }
+  .em p { color: #1b1b1f; margin: 2px 0; font-size: 14px; } .em mark { background: #d8302a; color: #fff; border-radius: 10px; padding: 0 8px; font-weight: 700; } .em u { color: #2437ed; font-size: 12.5px; margin-right: 12px; text-decoration: none; }
+  .em .okk { color: #1c8a3a; font-size: 12.5px; }
+  .el-in { margin-top: auto; border: 1px solid #d5d3cc; border-radius: 8px; padding: 9px 12px; color: #999; font-size: 14px; }
+  .el-side { padding: 16px 18px; background: #f7f6f2; display: flex; flex-direction: column; gap: 12px; } .el-side .lbl2 { color: #777; }
+  .srcs2 { display: flex; flex-wrap: wrap; gap: 8px; } .srcs2 span { padding: 6px 12px; border-radius: 16px; font-size: 13.5px; font-weight: 700; }
+  .ok2 { background: #dcf5e3; color: #17753a; border: 1px solid #8fd1a4; } .soon { background: #eceae3; color: #8a8a82; border: 1px dashed #bdbab0; }
+  .note2 { font-size: 13px; color: #666; }
+  /* архитектура */
+  .arch { display: grid; grid-template-columns: 1fr 34px 1.2fr 34px 1.2fr; align-items: center; gap: 0; margin-top: 6px; }
+  .arch .arr { display: flex; justify-content: center; font-size: 26px; font-weight: 800; color: var(--blue); }
+  .ar-out { display: flex; flex-direction: column; gap: 16px; }
+  .arch .card h3 { font-size: 22px; } .arch .card p { font-size: 15.5px; color: var(--ink); }
+  .ar-ai { margin-top: 26px; border-color: var(--blue); box-shadow: 6px 6px 0 var(--blue); } .ar-ai h3 { color: var(--blue); }
+  /* ссылки */
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .lk { display: block; text-decoration: none; color: var(--ink); border: 1px solid var(--ink); background: var(--paper); padding: 14px 18px; box-shadow: 5px 5px 0 var(--ink); }
+  .lk:hover { box-shadow: 5px 5px 0 var(--blue); } .lk b { display: block; font-family: "JetBrains Mono", monospace; font-size: 15px; color: var(--blue); margin-bottom: 4px; } .lk span { font-size: 15px; color: var(--muted); }
+.arch .card h3 { color: var(--ink); } .arch .card.blue h3 { color: var(--blue); }
+  .arch .ar-ai p { font-size: 16px; color: var(--ink); } .arch .ar-ai h3 { color: var(--blue); }
+   .ar-ai p { font-size: 16px; color: var(--ink); }
+  .slide:nth-child(9) { justify-content: center; }
+  .pi { gap: 10px; } .pi .pm { padding: 10px 14px; }
+  /* v4 */
+  .slide:nth-child(11) { justify-content: center; } .slide:nth-child(9) { justify-content: flex-start; }
+  .dimmed { filter: brightness(.45); pointer-events: none; }
+  .drawerwrap { position: relative; }
+  .drawerwrap .cols3 { position: absolute; inset: 0; box-shadow: none; border: 0; }
+  .drawer { position: absolute; right: 0; top: 0; bottom: 0; width: 47%; background: #17181a; border-left: 1px solid #3a3d44; box-shadow: -14px 0 30px rgba(0,0,0,.5); display: flex; flex-direction: column; }
+  .drawer .th-head { padding: 12px 18px 10px; border-bottom: 1px solid #2c2e33; margin: 0; }
+  .th-scroll { flex: 1; overflow-y: auto; padding: 8px 16px; scrollbar-width: thin; scrollbar-color: #4a4d55 transparent; }
+  .th-scroll .tp { padding: 9px 0; } .th-scroll .tp.s::before { bottom: 0; top: -14px; }
+  .th-compose { border-top: 1px solid #2c2e33; padding: 12px 16px; background: #1b1c1f; display: flex; flex-direction: column; gap: 10px; }
+  .composer.sm4 { min-height: 56px; padding: 10px 12px; font-size: 15px; }
+  /* агент */
+  .agent { display: grid; grid-template-columns: 230px 1fr; }
+  .ag-side { padding: 16px 16px; border-right: 1px solid #2c2e33; background: #17181a; display: flex; flex-direction: column; gap: 8px; } .ag-side > b { font-size: 16px; }
+  .mcp { display: flex; align-items: center; gap: 10px; background: #1f2a23; border: 1px solid #2f5d3f; border-radius: 8px; padding: 9px 11px; margin-top: 4px; } .mcp i { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; flex: none; } .mcp b { display: block; font-size: 14px; } .mcp span { font-size: 12px; color: #8fb59a; }
+  .ag-chat { padding: 14px 20px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; }
+  .tool { display: grid; grid-template-columns: 250px 1fr auto; gap: 12px; align-items: center; background: #202226; border: 1px solid #33363c; border-left: 3px solid #4ade80; border-radius: 6px; padding: 8px 12px; font-size: 13.5px; }
+  .tool .tn { font-weight: 700; color: #cfd3ff; } .tool code { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: #9a9ca3; } .tool .tr { color: #4ade80; font-weight: 700; font-size: 13px; }
+  .agent .pm { font-size: 15.5px; } .agent .ai3 { max-width: 100%; }
+  /* iPhone */
+  .phones { display: grid; grid-template-columns: 250px 250px 1fr; gap: 26px; align-items: center; flex: 1; min-height: 0; }
+  .phone { position: relative; width: 250px; height: 480px; border: 8px solid #111; border-radius: 38px; overflow: hidden; box-shadow: 6px 6px 0 var(--blue); background: #fff; }
+  .notch { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 84px; height: 20px; background: #111; border-radius: 0 0 14px 14px; z-index: 3; }
+  .phone.lock { background: linear-gradient(160deg, #1e2b5c, #4a2f6e 60%, #7a3b5a); color: #fff; padding: 36px 12px 12px; }
+  .lt { font-size: 56px; font-weight: 300; text-align: center; letter-spacing: -.03em; } .ld { text-align: center; font-size: 14px; opacity: .85; margin-bottom: 18px; }
+  .ntf { background: rgba(255,255,255,.2); backdrop-filter: blur(6px); border-radius: 16px; padding: 9px 12px; margin-bottom: 8px; font-size: 12.5px; } .ntf .nh { display: flex; justify-content: space-between; opacity: .8; font-size: 11px; margin-bottom: 3px; } .ntf p { margin: 1px 0 0; line-height: 1.3; }
+  .phone.chatp { background: #dbe5ec; display: flex; flex-direction: column; }
+  .ch-top { background: #f6f6f7; padding: 30px 12px 8px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #d5d7da; font-size: 15px; } .ch-top span { color: #2a7be4; font-size: 22px; } .ch-top u { width: 26px; height: 26px; border-radius: 50%; background: #2a7be4; color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .ch-body { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+  .bb { max-width: 86%; padding: 6px 9px 4px; border-radius: 14px; font-size: 12.5px; line-height: 1.3; position: relative; color: #111; }
+  .bb em { display: block; text-align: right; font-style: normal; font-size: 10px; color: #8a8f95; margin-top: 2px; }
+  .bb.in { background: #fff; align-self: flex-start; border-bottom-left-radius: 4px; } .bb.out { background: #e1ffc7; align-self: flex-end; border-bottom-right-radius: 4px; } .bb.out em { color: #5fa85a; }
+  .bb b { display: block; font-size: 12px; } .n1 { color: #c2410c; } .n2 { color: #7c3aed; } .n3 { color: #0e7490; }
+  .hlm { background: #d8302a; color: #fff; border-radius: 8px; padding: 0 6px; font-weight: 700; } .bb u { color: #2a7be4; text-decoration: none; font-size: 12px; }
+  .ch-in { background: #f6f6f7; border-top: 1px solid #d5d7da; padding: 8px 10px 14px; display: flex; gap: 8px; align-items: center; color: #8a8f95; font-size: 13px; } .ch-in div { flex: 1; background: #fff; border: 1px solid #d5d7da; border-radius: 16px; padding: 5px 10px; }
+  .ph-txt { align-self: center; }
+  .list.sm5 li { font-size: 16.5px; color: var(--ink); } ul.list.sm5 { gap: 14px; }
+  .srcs3 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; } .srcs3 span { padding: 6px 12px; border-radius: 16px; font-size: 13.5px; font-weight: 700; }
+    .note2 { font-size: 13px; color: #666; margin-top: 8px; }
+  /* архитектура */
+  .ups { display: grid; grid-template-columns: 1fr 34px 1.2fr 34px 1.3fr; margin-top: 10px; } .ups span { grid-column: 3 / 6; text-align: right; padding-right: 60px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--blue); } 
+  .ar-ai { margin-top: 8px; margin-left: 0; }
+  /* ссылки */
+  .lk-main { margin-bottom: 14px; } .lk-main .lk { border-color: var(--blue); box-shadow: 5px 5px 0 var(--blue); } .lk-main .lk b { font-size: 17px; }
+  .links { grid-template-columns: 1fr 1fr 1fr; gap: 12px; } .lk { padding: 11px 14px; } .lk b { font-size: 13px; } .lk span { font-size: 13.5px; }
+  .priv { margin-top: 18px; border: 1px dashed #8a8a82; padding: 12px 16px; font-size: 14.5px; line-height: 1.5; color: var(--ink); } .priv code { font-family: "JetBrains Mono", monospace; font-size: .92em; background: #e6e5de; padding: 1px 5px; }
+.card.ar-ai h3 { font-size: 22px; } .card.ar-ai p { font-size: 17px; color: var(--ink); }
+  .lk-main .lk span { font-size: 15.5px; } .links .lk span { font-size: 14.5px; } .priv { font-size: 15.5px; }
+.c4 { width: 100%; height: auto; display: block; margin-top: 4px; }
+  .c4leg { display: flex; gap: 22px; align-items: center; margin-top: 6px; font-size: 13px; } .c4leg .lg { display: flex; align-items: center; gap: 7px; color: var(--muted); }
+  .c4leg i { width: 16px; height: 12px; border-radius: 3px; display: inline-block; } .lp { background: #080808; } .le { background: #dcdbd5; border: 1px solid #080808; } .lc { background: #2437ed; }
+  .lord { margin-left: auto; font-size: 14px; } .lord b { color: var(--blue); }
+  /* Телефон и узкий портрет: без масштабирования, слайды идут лентой в одну колонку. */
+  @media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+    html, body { height: auto; overflow: auto; display: block; background: var(--bg); }
+    #stage { width: auto; height: auto; transform: none !important; }
+    .slide { position: relative; inset: auto; display: flex !important; padding: 34px 18px 38px; border-bottom: 1px solid #c9c8c2; }
+    .slide.tight { padding: 34px 18px 38px; }
+    #nav, #bar { display: none; }
+    h1 { font-size: 40px; }
+    h2, h2.sm { font-size: 29px; margin-bottom: 18px; }
+    .install h1 { font-size: 42px; }
+    .sub, .install .sub { font-size: 18px; margin-top: 16px; }
+    .quote { font-size: 20px; }
+    .foot.big { font-size: 17px; margin-top: 20px; }
+    .cover-layout { grid-template-columns: 1fr; gap: 24px; }
+    .cover-photo { width: 150px; height: 150px; }
+    .site { max-width: 260px; }
+    .grid.three, .grid.two, .duo, .split { grid-template-columns: 1fr; }
+    .duo { gap: 22px; }
+    .split > div + div { border-left: 0; border-top: 1px solid var(--ink); }
+    .split .t { font-size: 27px; }
+    .flow { grid-template-columns: 1fr; gap: 0; }
+    .flow .arr { height: 34px; transform: rotate(90deg); }
+    .flow.tall { grid-template-columns: 1fr; gap: 0; }
+    .srcs span { font-size: 13px; padding: 5px 9px; }
+    ul.wins li { font-size: 17px; }
+    table.ba td, table.ba th { padding: 8px 8px; font-size: 14px; }
+    table.ba td:first-child { white-space: normal; width: auto; }
+    .msg { max-width: 100%; }
+    .code { font-size: 12px; white-space: pre-wrap; }
+    .gal { grid-template-columns: 1fr; height: auto; }
+    .gal-img { aspect-ratio: 16 / 9; flex: none; }
+    .gal-cap { flex-wrap: wrap; }
+    .thumbs { flex-direction: row; overflow-x: auto; }
+    .thumbs button { flex: 0 0 74px; height: 44px; }
+    .demo { flex: none; height: 78vh; }
+    .duo .demo iframe { width: 100%; height: 100%; transform: none; }
+    .fs-btn { display: none; }
+  }
+  /* po-news-feed на телефоне: макеты в одну колонку, схема C4 — с прокруткой вбок */
+  @media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+    .slide { justify-content: flex-start !important; }
+    h2.compact-title { font-size: 29px; } h2.demo-title { font-size: 24px; }
+    .apps { grid-template-columns: 1fr 1fr; gap: 14px; } .app { padding: 20px 14px; } .app b { font-size: 18px; }
+    .dk { flex: none; } .cols3 { grid-template-columns: 1fr; } .col3 { border-left: 0; border-top: 1px solid #2c2e33; }
+    .drawerwrap .cols3 { display: none; } .drawer { position: static; width: 100%; box-shadow: none; border-left: 0; } .th-scroll { max-height: 62vh; }
+    .r, .rows.big .r { grid-template-columns: 28px 1fr; } .r p { grid-column: 2; } .r em, .r .chat { display: none; }
+    .avrow { flex-wrap: wrap; } .chips2, .srt { flex-wrap: wrap; } .hist { height: 46px; gap: 1px; } .hist i { min-width: 0; }
+    .agent { grid-template-columns: 1fr; } .ag-side { border-right: 0; border-bottom: 1px solid #2c2e33; }
+    .tool { grid-template-columns: 1fr; gap: 3px; } .pm, .sm3 { max-width: 100%; }
+    .phones { grid-template-columns: 1fr; justify-items: center; gap: 22px; } .ph-txt { justify-self: stretch; }
+    .c4wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; } .c4 { min-width: 860px; } .c4hint { display: block !important; }
+    .c4leg { flex-wrap: wrap; gap: 10px 16px; } .lord { margin-left: 0; }
+    .links { grid-template-columns: 1fr; } .priv { font-size: 14px; }
+    .st .card h3 { font-size: 20px; }
+  }
+  .c4hint { display: none; font-size: 12px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage">
+
+  <!-- 1 · hero -->
+  <section class="slide on" data-title="Лента вместо 100500 чатов">
+    <div class="cover-layout">
+      <div>
+        <h1>Лента вместо<br><span class="accent">100500 чатов</span></h1>
+        <p class="sub">Как PO наблюдать за всем вокруг<br>и не терять внимание</p>
+        <p class="quote">Утром — читать ленту.<br>Не обходить чаты.</p>
+      </div>
+      <div>
+        <img class="cover-photo" id="coverPhoto" alt="Автор">
+        <a class="site" href="https://aleksishmanov.ru/" target="_blank" rel="noopener"><span>aleksishmanov.ru</span><i>↗</i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · проблема -->
+  <section class="slide" data-title="Проблема">
+    <h2 class="compact-title">Внимание PO рассыпано.<br><span class="accent">И всё важное — «где-то там»</span></h2>
+    <div class="apps">
+      <div class="app"><b>Telegram</b><i>99+</i></div>
+      <div class="app"><b>Корп. мессенджер</b><i>99+</i></div>
+      <div class="app"><b>Почта</b><i>99+</i></div>
+      <div class="app"><b>Confluence</b><i>99+</i></div>
+      <div class="app"><b>JIRA</b><i>99+</i></div>
+      <div class="app"><b>Git</b><i>99+</i></div>
+    </div>
+    <p class="foot big">Утро уходит на обход. Упоминание тонет среди шума.</p>
+  </section>
+
+  <!-- 3 · главная -->
+  <section class="slide" data-title="Главная: три колонки">
+    <div class="tl"><span class="tag blue">01 · ГЛАВНАЯ</span><h2 class="demo-title">Три колонки: <span class="accent">подписки, упоминания, остальное</span></h2></div>
+    <div class="dk cols3 ">
+      <div class="col3"><div class="ch">Подписки</div>
+        <div class="c"><div class="av g1">ШЗ</div><div class="cb"><div class="cn"><b>Штаб запуска</b> <i>@launch_hq</i><em>7м</em></div><p class="hl">имейте в виду</p><p class="sm">Лидия Сомова · 13.10 13:01</p><div class="img"><u></u><u></u><u></u><u></u></div></div></div>
+        <div class="c"><div class="av g2">РЛ</div><div class="cb"><div class="cn"><b>Релизы</b> <i>@releases</i><em>20м</em></div><p class="hl">@Тимофей подскажи, сможешь проверить сегодня?</p><p class="sm">Дарья Лисина · 13.10 12:49</p><p class="mt">💬 1 в обсуждении · Тимофей Рыжов</p></div></div>
+        <div class="c"><div class="av g3">ПК</div><div class="cb"><div class="cn"><b>Платёжная команда</b> <i>@pay_team</i><em>42м</em></div><p class="hl">Статья по запуску автотестов <a>wiki/pages/viewpa…</a></p><p class="sm">Артур Власов · 13.10 11:57</p></div></div>
+      </div>
+      <div class="col3"><div class="ch">Упоминания</div>
+        <div class="tabs2"><b class="on">Все</b><b>Личные</b><span>☐ Только подписчики</span></div>
+        <div class="c"><div class="av g4">АВ</div><div class="cb"><div class="cn"><b>Артур Власов</b> <i>@artur_vlasov</i><em>20ч</em></div><span class="badge">ОБСУЖДЕНИЕ 2/X</span><p><mark>@вы</mark> мы сами теги ставим? или кому-то отправляем?</p><p class="sm">12.10 17:06</p></div></div>
+        <div class="c"><div class="av g5">ПБ</div><div class="cb"><div class="cn"><b>Партнёры × Бренд</b><em>12 окт.</em></div><p class="hl">📎 Условия_акции.docx</p><p><mark>@вы</mark> проверь, пожалуйста, что всё описано верно</p><p class="mt">💬 1 в обсуждении · Ника Орехова</p></div></div>
+        <div class="c"><div class="av g6">Д</div><div class="cb"><div class="cn"><b>Дейли команды</b> <i>@daily_bot</i><em>12 окт.</em></div><p class="hl">Сделано за вчера:</p><p class="sm">• Закрыто 6 задач по эпику «Оплата»<br>• 2 в работе, 1 без исполнителя — <mark>@вы</mark></p></div></div>
+      </div>
+      <div class="col3"><div class="ch">Остальные чаты</div>
+        <div class="c"><div class="av g1">КП</div><div class="cb"><div class="cn"><b>Команда продукта</b> <i>@product_team</i><em>11м</em></div><p class="hl"><a>PRJ-20998</a> Проверить доработку по сокращению номера заказа</p><p class="sm">Марк Ельцов · 13.10 12:55</p><p class="mt">💬 1 в обсуждении</p></div></div>
+        <div class="c"><div class="av g3">КИ</div><div class="cb"><div class="cn"><b>Контент и бренд</b><em>1ч</em></div><p class="hl">Подскажите, кто ведёт подарочные карты?</p><p class="sm">Ника Орехова · 13.10 11:27</p><p class="mt">💬 2 в обсуждении</p></div></div>
+        <div class="c"><div class="av g2">АН</div><div class="cb"><div class="cn"><b>Аналитика</b> <i>@analytics</i><em>2ч</em></div><p class="hl">Выгрузка по конверсии готова</p><p class="sm">Кирилл Бочаров · 13.10 10:40</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · тред -->
+  <section class="slide" data-title="Обсуждение треда">
+    <div class="tl"><span class="tag blue">02 · ТРЕД</span><h2 class="demo-title">Тема открывается сбоку. <span class="accent">Лента остаётся на месте</span></h2></div>
+    <div class="dk drawerwrap">
+      <div class="dk cols3 dimmed">
+      <div class="col3"><div class="ch">Подписки</div>
+        <div class="c"><div class="av g1">ШЗ</div><div class="cb"><div class="cn"><b>Штаб запуска</b> <i>@launch_hq</i><em>7м</em></div><p class="hl">имейте в виду</p><p class="sm">Лидия Сомова · 13.10 13:01</p><div class="img"><u></u><u></u><u></u><u></u></div></div></div>
+        <div class="c"><div class="av g2">РЛ</div><div class="cb"><div class="cn"><b>Релизы</b> <i>@releases</i><em>20м</em></div><p class="hl">@Тимофей подскажи, сможешь проверить сегодня?</p><p class="sm">Дарья Лисина · 13.10 12:49</p><p class="mt">💬 1 в обсуждении · Тимофей Рыжов</p></div></div>
+        <div class="c"><div class="av g3">ПК</div><div class="cb"><div class="cn"><b>Платёжная команда</b> <i>@pay_team</i><em>42м</em></div><p class="hl">Статья по запуску автотестов <a>wiki/pages/viewpa…</a></p><p class="sm">Артур Власов · 13.10 11:57</p></div></div>
+      </div>
+      <div class="col3"><div class="ch">Упоминания</div>
+        <div class="tabs2"><b class="on">Все</b><b>Личные</b><span>☐ Только подписчики</span></div>
+        <div class="c"><div class="av g4">АВ</div><div class="cb"><div class="cn"><b>Артур Власов</b> <i>@artur_vlasov</i><em>20ч</em></div><span class="badge">ОБСУЖДЕНИЕ 2/X</span><p><mark>@вы</mark> мы сами теги ставим? или кому-то отправляем?</p><p class="sm">12.10 17:06</p></div></div>
+        <div class="c"><div class="av g5">ПБ</div><div class="cb"><div class="cn"><b>Партнёры × Бренд</b><em>12 окт.</em></div><p class="hl">📎 Условия_акции.docx</p><p><mark>@вы</mark> проверь, пожалуйста, что всё описано верно</p><p class="mt">💬 1 в обсуждении · Ника Орехова</p></div></div>
+        <div class="c"><div class="av g6">Д</div><div class="cb"><div class="cn"><b>Дейли команды</b> <i>@daily_bot</i><em>12 окт.</em></div><p class="hl">Сделано за вчера:</p><p class="sm">• Закрыто 6 задач по эпику «Оплата»<br>• 2 в работе, 1 без исполнителя — <mark>@вы</mark></p></div></div>
+      </div>
+      <div class="col3"><div class="ch">Остальные чаты</div>
+        <div class="c"><div class="av g1">КП</div><div class="cb"><div class="cn"><b>Команда продукта</b> <i>@product_team</i><em>11м</em></div><p class="hl"><a>PRJ-20998</a> Проверить доработку по сокращению номера заказа</p><p class="sm">Марк Ельцов · 13.10 12:55</p><p class="mt">💬 1 в обсуждении</p></div></div>
+        <div class="c"><div class="av g3">КИ</div><div class="cb"><div class="cn"><b>Контент и бренд</b><em>1ч</em></div><p class="hl">Подскажите, кто ведёт подарочные карты?</p><p class="sm">Ника Орехова · 13.10 11:27</p><p class="mt">💬 2 в обсуждении</p></div></div>
+        <div class="c"><div class="av g2">АН</div><div class="cb"><div class="cn"><b>Аналитика</b> <i>@analytics</i><em>2ч</em></div><p class="hl">Выгрузка по конверсии готова</p><p class="sm">Кирилл Бочаров · 13.10 10:40</p></div></div>
+      </div>
+    </div>
+      <div class="drawer">
+        <div class="th-head"><b>Пост</b><span>✕</span></div>
+        <div class="th-scroll" id="thScroll"><div class="tp"><div class="av g1">ШЗ</div><div class="tb"><div class="cn"><b>Штаб запуска</b> <i>@launch_hq</i><em>12 окт.</em></div><p>Всем привет. Кто знает, когда Лидия вернётся из отпуска? Нужно открыть форму сбора идей на квартал, коллеги уже спрашивают. @Елена ты можешь открыть форму?</p><p class="mt">💬 6 в обсуждении · Елена, Лидия, Артур</p></div></div><div class="tp s"><div class="av g4">ЕМ</div><div class="tb"><div class="cn"><b>Елена Мирова</b> <i>@elena_mirova</i><em>12 окт.</em></div><p>Лидия завтра выходит. Постараемся открыть до конца недели.</p><p class="mt">🔥 1 · 12.10 12:32</p></div></div><div class="tp s"><div class="av g4">ЕМ</div><div class="tb"><div class="cn"><b>Елена Мирова</b><em>1ч</em></div><p>@Лидия FYI</p></div></div><div class="tp s"><div class="av g5">ЛС</div><div class="tb"><div class="cn"><b>Лидия Сомова</b> <i>@lidia_somova</i><em>1ч</em></div><p class="big">Форму откроем до конца недели. Пока коллеги могут сохранить идеи в заметки: у нас меняется процесс, нужно время его настроить.</p><p class="mt">👍 1 · 13.10 11:39</p></div></div><div class="tp s"><div class="av g2">АВ</div><div class="tb"><div class="cn"><b>Артур Власов</b> <i>@artur_vlasov</i><em>50м</em></div><p>Нужна ли отдельная форма для техдолга?</p></div></div><div class="tp s"><div class="av g5">ЛС</div><div class="tb"><div class="cn"><b>Лидия Сомова</b><em>45м</em></div><p>Да, отдельным разделом. Шаблон пришлю завтра.</p></div></div><div class="tp s"><div class="av g4">ЕМ</div><div class="tb"><div class="cn"><b>Елена Мирова</b><em>30м</em></div><p>Тогда подготовлю шаблон к четвергу и покажу на синке.</p><p class="mt">🔥 2</p></div></div><div class="tp s"><div class="av g6">ДЛ</div><div class="tb"><div class="cn"><b>Дарья Лисина</b> <i>@darya_lisina</i><em>12м</em></div><p>Подключусь на синке, у меня есть вопросы по приоритетам.</p></div></div></div>
+        <div class="th-compose"><div class="composer sm4"><span class="typed2">Спасибо, ждём до пятницы.</span><i class="caret"></i></div><div class="send"><b>Ответить</b><span class="okk">✓ доставлено в чат</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · ретроспектива -->
+  <section class="slide" data-title="Ретроспектива">
+    <div class="tl"><span class="tag blue">03 · РЕТРОСПЕКТИВА</span><h2 class="demo-title">Кто, что и где писал <span class="accent">за прошедшее время</span></h2></div>
+    <div class="dk retro">
+      <div class="rt-top"><b>Catch-up</b><span>6–13 окт.</span></div>
+      <div class="hist" id="hist"></div>
+      <div class="chips2"><b class="on">Все <i>548</i></b><b>Оригинальные <i>350</i></b><b>Ответы <i>19</i></b><b>Продвижения <i>179</i></b></div>
+      <div class="avrow"><div class="a"><div class="av g1">ПШ</div><em>59</em></div><div class="a"><div class="av g2">РЛ</div><em>57</em></div><div class="a"><div class="av g3">КП</div><em>52</em></div><div class="a"><div class="av g4">ПП</div><em>39</em></div><div class="a"><div class="av g5">АН</div><em>38</em></div><div class="a"><div class="av g6">ИН</div><em>34</em></div><div class="a"><div class="av g1">МП</div><em>33</em></div><div class="a"><div class="av g2">ТД</div><em>32</em></div></div>
+      <div class="srt"><span>СОРТИРОВКА</span><b class="on">Дата ↑</b><b>Ответы</b><b>Нравится</b><b>Плотность</b></div>
+      <div class="rows"><div class="r"><div class="av g3 xs">ПК</div><b>Платёжная команда</b><p>по ревью: ссылка на MR, нужно мнение до вечера</p><em>6 окт.</em></div><div class="r"><div class="av g2 xs">РЛ</div><b>Релизы</b><p>выкатили PRJ-20635 — ошибка при оплате картой</p><em>6 окт.</em></div><div class="r"><div class="av g4 xs">КП</div><b>Команда продукта</b><p>согласовали окно релиза: четверг после 20:00</p><em>7 окт.</em></div><div class="r"><div class="av g5 xs">АН</div><b>Аналитика</b><p>выгрузка по конверсии готова, цифры в треде</p><em>7 окт.</em></div><div class="r"><div class="av g1 xs">КИ</div><b>Контент и бренд</b><p>кто ведёт подарочные карты? нужен ответ до пятницы</p><em>8 окт.</em></div><div class="r"><div class="av g2 xs">ШЗ</div><b>Штаб запуска</b><p>форма сбора идей откроется до конца недели</p><em>12 окт.</em></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · по персоне -->
+  <section class="slide" data-title="Ретроспектива по персоне">
+    <div class="tl"><span class="tag blue">04 · ПО ЛЮДЯМ</span><h2 class="demo-title">Что писали мои техлиды, PO и PM <span class="accent">по всем чатам</span></h2></div>
+    <div class="dk retro">
+      <div class="rt-top"><b>Catch-up · мои люди</b><span>7 дней</span></div>
+      <div class="chips2"><b>Все <i>548</i></b><b>Оригинальные</b><b class="on">Ответы <i>19</i></b></div>
+      <div class="avrow people"><div class="a"><div class="av g4">АВ</div><em>7</em><u>Техлид</u></div><div class="a"><div class="av g5">ЛС</div><em>5</em><u>PO</u></div><div class="a"><div class="av g2">КБ</div><em>4</em><u>PM</u></div><div class="a"><div class="av g1">ТР</div><em>2</em><u>Техлид</u></div><div class="a"><div class="av g6">ДЛ</div><em>1</em><u>PO</u></div></div>
+      <div class="rows big"><div class="r"><div class="av g4 xs">АВ</div><b>Артур Власов</b><span class="chat">Релизы</span><p>не принципиально, давайте в следующем спринте</p><em>19ч</em></div><div class="r"><div class="av g5 xs">ЛС</div><b>Лидия Сомова</b><span class="chat">Бренд</span><p>оставь разовую встречу на 1 час</p><em>6 окт.</em></div><div class="r"><div class="av g2 xs">КБ</div><b>Кирилл Бочаров</b><span class="chat">Платежи</span><p>да, создай, пожалуйста 👀 1</p><em>6 окт.</em></div><div class="r"><div class="av g1 xs">ТР</div><b>Тимофей Рыжов</b><span class="chat">Аналитика</span><p>по анализу всё идёт по плану</p><em>6 окт.</em></div><div class="r"><div class="av g4 xs">АВ</div><b>Артур Власов</b><span class="chat">Релизы</span><p>присылайте задачи мне, стенд готов</p><em>20ч</em></div><div class="r"><div class="av g6 xs">ДЛ</div><b>Дарья Лисина</b><span class="chat">Продукт</span><p>беру коммуникацию с бизнесом на себя</p><em>7 окт.</em></div><div class="r"><div class="av g2 xs">КБ</div><b>Кирилл Бочаров</b><span class="chat">Релизы</span><p>риск по срокам вижу, обсудим на синке 👍 2</p><em>8 окт.</em></div></div>
+    </div>
+  </section>
+
+  <!-- 7 · ИИ-анализ -->
+  <section class="slide" data-title="ИИ-агент через MCP">
+    <div class="tl"><span class="tag blue">05 · ИИ-АГЕНТ + MCP</span><h2 class="demo-title">Агент ходит в ленту <span class="accent">через MCP — только на чтение</span></h2></div>
+    <div class="dk agent">
+      <div class="ag-side">
+        <div class="lbl2">АГЕНТ</div><b>Hermes · digest</b>
+        <div class="lbl2" style="margin-top:14px">ПОДКЛЮЧЁННЫЕ MCP</div>
+        <div class="mcp"><i></i><div><b>mastodon</b><span>read-only · лента</span></div></div>
+        <div class="mcp"><i></i><div><b>matrix</b><span>read-only · упоминания</span></div></div>
+      </div>
+      <div class="ag-chat">
+        <div class="pm me3">Что важного произошло за неделю и как это влияет на цели квартала?</div>
+        <div class="tool"><span class="tn">🔧 mastodon · get_home_timeline</span><code>{ "since": "7d", "limit": 200 }</code><span class="tr">✓ 548 постов</span></div>
+        <div class="tool"><span class="tn">🔧 matrix · read_room</span><code>{ "room": "📰 Лента", "since": "24h" }</code><span class="tr">✓ 9 упоминаний</span></div>
+        <div class="pm ai3"><h4>Ключевое за неделю</h4><ul><li><b>Сдвиг релиза 4.2</b> — задевает KR по срокам</li><li><b>Риск по интеграции</b> в эпике «Оплата»</li><li><b>2 вопроса</b> от техлидов ждут вашего ответа</li></ul></div>
+        <div class="pm me3 sm3">Разверни про интеграцию.</div>
+        <div class="tool"><span class="tn">🔧 mastodon · search</span><code>{ "q": "интеграция", "since": "7d" }</code><span class="tr">✓ 12 постов</span></div>
+        <div class="pm ai3"><h4>Интеграция · откуда риск</h4><ul><li>Партнёр сдвинул тестовое окно на 2 недели («Платёжная команда»)</li><li>Запас по оценке техлида — 1 неделя, KR по срокам под угрозой</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · уведомления -->
+  <section class="slide" data-title="Уведомления как в мессенджере">
+    <div class="tl"><span class="tag blue">06 · УПОМИНАНИЯ</span><h2 class="demo-title">Обычный чат, как Telegram на iPhone: <span class="accent">пуш → ответ</span></h2></div>
+    <div class="phones">
+      <div class="phone lock"><i class="notch"></i>
+        <div class="lt">9:41</div><div class="ld">понедельник, 13 октября</div>
+        <div class="ntf"><div class="nh"><b>📰 Лента</b><span>сейчас</span></div><b>Артур Власов</b><p>@вы надо продумать, как проверять и можно ли привлечь</p></div>
+        <div class="ntf"><div class="nh"><b>✉ Почта</b><span>2 мин</span></div><b>Партнёр</b><p>@вы проверьте договор до пятницы</p></div>
+        <div class="ntf"><div class="nh"><b>Telegram</b><span>5 мин</span></div><b>Ника Орехова</b><p>@вы подскажите, кто ведёт подарочные карты?</p></div>
+      </div>
+      <div class="phone chatp"><i class="notch"></i>
+        <div class="ch-top"><span>‹</span><b>📰 Лента</b><u>Ш</u></div>
+        <div class="ch-body">
+          <div class="bb in"><b class="n1">Артур Власов</b><span class="hlm">@вы</span> надо продумать, как проверять и можно ли привлечь<em>13:02</em></div>
+          <div class="bb in"><b class="n2">Почта · Партнёр</b><span class="hlm">@вы</span> проверьте договор до пятницы<br><u>✉ открыть письмо</u><em>13:04</em></div>
+          <div class="bb out">Беру договор, проверю до вечера<em>13:05 ✓✓</em></div>
+          <div class="bb in"><b class="n3">Ника Орехова</b><span class="hlm">@вы</span> кто ведёт подарочные карты?<em>13:06</em></div>
+          <div class="bb out">Веду я, расскажу после дейли<em>13:07 ✓✓</em></div>
+        </div>
+        <div class="ch-in"><span>📎</span><div>Сообщение</div><span>🎤</span></div>
+      </div>
+      <div class="ph-txt">
+        <ul class="list sm5"><li><span><b>Привычный интерфейс.</b> Пуш на экране блокировки, чат, ответ в один тап.</span></li><li><span><b>Ответ уходит в источник:</b> в чат или черновиком письма.</span></li><li><span><b>Контекст в треде</b> — «открыть в ленте».</span></li></ul>
+        <div class="lbl2" style="margin-top:14px;color:#51514b">ИСТОЧНИКИ</div>
+        <div class="srcs3"><span class="ok2">✉ Почта</span><span class="ok2">Telegram</span><span class="ok2">Корп. мессенджер</span><span class="soon">Jira</span><span class="soon">Confluence</span><span class="soon">Git</span></div>
+        <p class="note2">Зелёные работают. Серые — следующие коннекторы.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · архитектура -->
+  <section class="slide" data-title="Архитектура">
+    <div class="tl"><span class="tag blue">АРХИТЕКТУРА · C4</span><h2 class="demo-title">Что поднять у себя: <span class="accent">4 шага, один compose</span></h2></div>
+    <div class="c4wrap"><svg class="c4" viewBox="0 0 1136 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="C4: контейнеры ленты"><defs><marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#080808"/></marker><marker id="as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M10 0 L0 5 L10 10 z" fill="#080808"/></marker></defs><rect x="238" y="14" width="760" height="446" rx="10" fill="none" stroke="#080808" stroke-width="1.5" stroke-dasharray="8 6"/><text x="254" y="36.0" font-size="12" font-weight="800" fill="#080808" text-anchor="start" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ВАШ КОМПЬЮТЕР · docker compose</text><rect x="0" y="40" width="196" height="74" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5"/><text x="98.0" y="62.0" font-size="15" font-weight="800" fill="#080808" text-anchor="middle">Telegram</text><text x="98.0" y="78.0" font-size="10.5" font-weight="500" fill="#555" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[внешняя система]</text><text x="98.0" y="97.0" font-size="11.5" font-weight="400" fill="#080808" text-anchor="middle">личные и групповые чаты</text><rect x="0" y="150" width="196" height="74" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5"/><text x="98.0" y="172.0" font-size="15" font-weight="800" fill="#080808" text-anchor="middle">Корп. мессенджер</text><text x="98.0" y="188.0" font-size="10.5" font-weight="500" fill="#555" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[внешняя система]</text><text x="98.0" y="207.0" font-size="11.5" font-weight="400" fill="#080808" text-anchor="middle">рабочие чаты</text><rect x="0" y="260" width="196" height="74" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5"/><text x="98.0" y="282.0" font-size="15" font-weight="800" fill="#080808" text-anchor="middle">Почта</text><text x="98.0" y="298.0" font-size="10.5" font-weight="500" fill="#555" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[внешняя система]</text><text x="98.0" y="317.0" font-size="11.5" font-weight="400" fill="#080808" text-anchor="middle">Exchange / IMAP</text><rect x="0" y="370" width="196" height="74" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5" stroke-dasharray="6 4"/><text x="98.0" y="392.0" font-size="15" font-weight="800" fill="#080808" text-anchor="middle">Jira · Confluence · Git</text><text x="98.0" y="408.0" font-size="10.5" font-weight="500" fill="#555" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[скоро]</text><text x="98.0" y="427.0" font-size="11.5" font-weight="400" fill="#080808" text-anchor="middle">задачи, страницы, коммиты</text><rect x="264" y="178" width="170" height="114" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="349.0" y="200.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">Коннекторы</text><text x="349.0" y="216.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[код пишет Claude Code]</text><text x="349.0" y="235.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">читают источники,</text><text x="349.0" y="249.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">группируют в темы</text><circle cx="430" cy="182" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="430" y="187" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">③</text><rect x="510" y="50" width="190" height="92" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="605.0" y="72.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">Mastodon-сервер</text><text x="605.0" y="88.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[GoToSocial]</text><text x="605.0" y="107.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">лента: посты, треды,</text><text x="605.0" y="121.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">профили людей</text><circle cx="696" cy="54" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="696" y="59" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">①</text><rect x="510" y="186" width="190" height="86" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="605.0" y="208.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">MCP-серверы</text><text x="605.0" y="224.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[mastodon · matrix]</text><text x="605.0" y="243.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">доступ только на чтение</text><circle cx="696" cy="190" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="696" y="195" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">④</text><rect x="510" y="318" width="190" height="92" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="605.0" y="340.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">Matrix-сервер</text><text x="605.0" y="356.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[Synapse]</text><text x="605.0" y="375.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">чат: упоминания, пуши,</text><text x="605.0" y="389.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">ответы</text><circle cx="696" cy="322" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="696" y="327" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">②</text><rect x="790" y="50" width="190" height="92" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="885.0" y="72.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">Phanpy</text><text x="885.0" y="88.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[веб-клиент ленты]</text><text x="885.0" y="107.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">читать и отвечать</text><text x="885.0" y="121.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">в тредах</text><circle cx="976" cy="54" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="976" y="59" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">①</text><rect x="790" y="186" width="190" height="86" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="885.0" y="208.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">ИИ-агент</text><text x="885.0" y="224.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[Hermes]</text><text x="885.0" y="243.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">дайджесты, «что важно»,</text><text x="885.0" y="257.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">«как влияет на цели»</text><circle cx="976" cy="190" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="976" y="195" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">④</text><rect x="790" y="318" width="190" height="92" rx="6" fill="#2437ed" stroke="#2437ed" stroke-width="1.5"/><text x="885.0" y="340.0" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">Element</text><text x="885.0" y="356.0" font-size="10.5" font-weight="500" fill="#cdd3ff" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">[веб / iPhone]</text><text x="885.0" y="375.0" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">чат с пушами,</text><text x="885.0" y="389.5" font-size="11.5" font-weight="400" fill="#ffffff" text-anchor="middle">ответ в один тап</text><circle cx="976" cy="322" r="12" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="976" y="327" font-size="14" font-weight="800" text-anchor="middle" fill="#080808">②</text><rect x="1020" y="176" width="116" height="118" rx="6" fill="#080808"/><circle cx="1078" cy="208" r="13" fill="#fff"/><path d="M1052 250 q26 -34 52 0 v10 h-52z" fill="#fff"/><text x="1078" y="282.0" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">Вы (PO)</text><path d="M196 77 C 230 77, 236 235, 264 235" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><path d="M196 187 C 230 187, 236 235, 264 235" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><path d="M196 297 C 230 297, 236 235, 264 235" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><path d="M196 407 C 230 407, 236 235, 264 235" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><path d="M434 205 C 470 205, 470 96, 510 96" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)" marker-start="url(#as)"/><path d="M434 265 C 470 265, 470 364, 510 364" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)" marker-start="url(#as)"/><rect x="438.7" y="133.0" width="46.599999999999994" height="32" fill="#efeee8"/><text x="462" y="145.0" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">темы ⇄</text><text x="462" y="158.0" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ответы</text><rect x="426.5" y="301.0" width="71.0" height="32" fill="#efeee8"/><text x="462" y="313.0" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">упоминания</text><text x="462" y="326.0" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">⇄ ответы</text><path d="M790 96 L700 96" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><rect x="730.85" y="73.5" width="28.299999999999997" height="19" fill="#efeee8"/><text x="745" y="85.5" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">API</text><path d="M790 364 L700 364" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><rect x="730.85" y="341.5" width="28.299999999999997" height="19" fill="#efeee8"/><text x="745" y="353.5" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">API</text><path d="M790 229 L700 229" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><rect x="730.85" y="206.5" width="28.299999999999997" height="19" fill="#efeee8"/><text x="745" y="218.5" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">MCP</text><path d="M605 186 L605 142" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><rect x="587.8" y="153.5" width="34.4" height="19" fill="#efeee8"/><text x="605" y="165.5" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">read</text><path d="M605 272 L605 318" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><rect x="587.8" y="284.5" width="34.4" height="19" fill="#efeee8"/><text x="605" y="296.5" font-size="10.5" font-weight="600" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">read</text><path d="M1020 200 C 1000 200, 1000 96, 980 96" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/><path d="M1020 235 L980 235" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)" marker-start="url(#as)"/><path d="M1020 270 C 1000 270, 1000 364, 980 364" fill="none" stroke="#080808" stroke-width="1.6" marker-end="url(#ae)"/></svg></div><p class="c4hint">← схему можно листать вбок →</p>
+    <div class="c4leg"><span class="lg"><i class="lp"></i>Человек</span><span class="lg"><i class="le"></i>Внешняя система</span><span class="lg"><i class="lc"></i>Контейнер (ваш)</span><span class="lord"><b>Порядок развёртывания:</b> ① лента → ② чат → ③ коннекторы → ④ агент</span></div>
+  </section>
+
+  <!-- 10 · гайд агенты -->
+  <section class="slide" data-title="ИИ-агенты и MCP">
+    <div class="tl"><span class="tag blue">ИИ-АГЕНТЫ</span><h2 class="demo-title">Подключаем агента: <span class="accent">Hermes + MCP к Mastodon</span></h2></div>
+    <div class="grid three st">
+      <div class="card"><div class="n">01</div><h3>Токен только на чтение</h3><p>В настройках сервера лент создайте токен со scope <span class="code2">read</span>.</p></div>
+      <div class="card"><div class="n">02</div><h3>MCP-сервер Mastodon</h3><p>Готовый или тонкий свой: таймлайн, тред, поиск. Без записи.</p></div>
+      <div class="card"><div class="n">03</div><h3>Профиль Hermes</h3><p>Отдельный профиль агента с этим MCP — и больше ничего лишнего.</p></div>
+      <div class="card"><div class="n">04</div><h3>Навык «дайджест»</h3><p>Промпт: прочитай за сутки, выдели ключевое, свяжи с целями.</p></div>
+      <div class="card"><div class="n">05</div><h3>Расписание</h3><p>Ежедневный запуск — отчёт приходит в чат к утру.</p></div>
+      <div class="card blue"><div class="n">06</div><h3>Спрашивайте в чате</h3><p>«Что важного у моих техлидов за неделю?» — и ответ с источниками.</p></div>
+    </div>
+  </section>
+
+  <!-- 11 · ссылки -->
+  <section class="slide" data-title="Готовые наработки">
+    <div class="tl"><span class="tag blue">ССЫЛКИ</span><h2 class="demo-title">Что можно <span class="accent">взять готовым</span></h2></div>
+    <div class="lk-main"><a class="lk" href="https://github.com/po-helper-org/poh-feed-poc" target="_blank" rel="noopener"><b>po-helper-org/poh-feed-poc</b><span>Мой публичный PoC ленты: GoToSocial + Phanpy, Telegram → лента, метки. Начать можно с docs/playbook-telegram-to-feed.md</span></a></div>
+    <div class="links"><a class="lk" href="https://github.com/cheeaun/phanpy" target="_blank" rel="noopener"><b>cheeaun/phanpy</b><span>Клиент ленты (Mastodon API), в стиле Threads</span></a><a class="lk" href="https://codeberg.org/superseriousbusiness/gotosocial" target="_blank" rel="noopener"><b>superseriousbusiness/gotosocial</b><span>Лёгкий Mastodon-совместимый сервер</span></a><a class="lk" href="https://github.com/element-hq/synapse" target="_blank" rel="noopener"><b>element-hq/synapse</b><span>Matrix-сервер для чата с пушами</span></a><a class="lk" href="https://github.com/element-hq/element-web" target="_blank" rel="noopener"><b>element-hq/element-web</b><span>Клиент Matrix: десктоп и телефон</span></a><a class="lk" href="https://github.com/mautrix/telegram" target="_blank" rel="noopener"><b>mautrix/telegram</b><span>Мост Telegram → Matrix</span></a><a class="lk" href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener"><b>NousResearch/hermes-agent</b><span>ИИ-агенты: профили, MCP, расписание</span></a></div>
+    <div class="priv"><b>🔒 Рабочая лента собрана из приватных репозиториев po-helper-org:</b> <code>comunager-hub</code> (мосты и сборщик), <code>poh-widget-news</code> (виджет «Лента» в Element), <code>poh-widget-telegram-connector</code>, <code>poh-hermes-bridge</code> (мост к агентам). В открытом доступе пока только PoC.</div>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button id="prev" title="Назад">‹</button><span class="p mono" id="pos"></span><button id="next" title="Вперёд">›</button>
+</div>
+
+<script>
+  var PHOTO = "/okr-quarter-planning/img/photo.webp";
+  var slides = [].slice.call(document.querySelectorAll('.slide'));
+  var cur = 0;
+  var narrow = window.matchMedia('(max-width: 700px), (orientation: portrait) and (max-width: 900px)');
+  function fit() {
+    if (narrow.matches) { document.getElementById('stage').style.transform = 'none'; if (typeof loadDemos === 'function') slides.forEach(loadDemos); return; }
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    document.getElementById('stage').style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+  /* гистограмма активности — декоративная, из детерминированных значений */
+  (function () {
+    var h = document.getElementById('hist'), html = '';
+    for (var i = 0; i < 110; i++) {
+      var burst = (i > 12 && i < 30) || (i > 52 && i < 66) || (i > 88 && i < 100);
+      var v = burst ? 20 + Math.abs(Math.sin(i * 1.7)) * 70 : 3 + Math.abs(Math.sin(i * 2.3)) * 14;
+      html += '<i style="height:' + Math.round(v) + '%"></i>';
+    }
+    h.innerHTML = html;
+  })();
+  /* демо: диалог в сайдбаре сам листается вверх и вниз */
+  (function () {
+    var el = document.getElementById('thScroll'), down = true;
+    setInterval(function () {
+      if (!slides[cur] || slides[cur].getAttribute('data-title') !== 'Обсуждение треда') return;
+      el.scrollTo({ top: down ? el.scrollHeight : 0, behavior: 'smooth' }); down = !down;
+    }, 2600);
+  })();
+  function show(i, push) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+    document.getElementById('pos').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('bar').style.width = ((cur + 1) / slides.length * 100) + '%';
+    if (push !== false) history.replaceState(null, '', '#slide=' + (cur + 1));
+    else if (narrow.matches && cur > 0) slides[cur].scrollIntoView();
+  }
+  document.getElementById('prev').onclick = function () { show(cur - 1); };
+  document.getElementById('next').onclick = function () { show(cur + 1); };
+  document.getElementById('coverPhoto').src = PHOTO;
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+  function fromHash() { var m = location.hash.match(/slide=(\d+)/); return m ? parseInt(m[1], 10) - 1 : 0; }
+  window.addEventListener('hashchange', function () { show(fromHash(), false); });
+  show(fromHash(), false);
+  /* В ленте браузер после загрузки возвращает прокрутку на 0 — дойти до слайда из ссылки уже после load. */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.addEventListener('load', function () { if (narrow.matches && cur > 0) slides[cur].scrollIntoView(); });
+</script>
+</body>
+</html>

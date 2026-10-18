@@ -35,6 +35,17 @@ const material = z.object({
 const coll = (name: string) => defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema: material });
 
 /** Узел методологии (ADR 0006): проблема → области → темы. Связь с материалами хранится в узле (`materials`). */
+/** Узел диаграммы процесса: шаг (кто делает — who), развилка с вариантами, гейт, начало или конец. */
+const flowNode = z.object({
+  title: z.string(),
+  kind: z.enum(['start', 'step', 'fork', 'gate', 'end']).default('step'),
+  who: z.enum(['po', 'agent', 'team', 'business']).optional(),
+  step: z.number().optional(),
+  /** 1–3 предложения: описание узла под диаграммой. */
+  text: z.string().optional(),
+  options: z.array(z.string()).default([]),
+});
+
 const methodNode = z.object({
   title: z.string().min(3),
   /** Ключевой вопрос, на который отвечает узел. */
@@ -50,6 +61,18 @@ const methodNode = z.object({
   materials: z.array(z.string()).default([]),
   date: z.coerce.date(),
   updated: z.coerce.date().optional(),
+  /** Место области в процессе (ADR 0006): стадия потока, ответвление или основание под всеми стадиями. */
+  role: z.enum(['stage', 'branch', 'foundation']).optional(),
+  /** Номер стадии на сквозной диаграмме. */
+  stage: z.number().optional(),
+  /** Короткое имя для диаграмм: «Вход», «Решение». */
+  short: z.string().optional(),
+  /** Абзац «Общий каркас процесса» над диаграммой. */
+  summary: z.string().optional(),
+  /** Диаграмма процесса узла: узлы слева направо. step — номер шага, он связывает узел с разделом «## Шаг N. …». */
+  flow: z.array(flowNode).default([]),
+  /** Гейт на выходе стадии: когда стадия пройдена. */
+  gate: z.object({ title: z.string(), criteria: z.array(z.string()).default([]) }).optional(),
 });
 
 export const collections = {

@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Утро 2026-10-12 · Витрина</title><style>
+:root{--bg:#0f1012;--card:#141518;--ink:#e6e7ea;--muted:#8b8f96;--line:#2a2b2f;--soft:#1a1b1f;--red:#e5484d;--green:#1f9d55;--blue:#4c8dff;--amber:#e0a538;--amber-bg:#2a2210}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
+.deck{height:100%;overflow-y:auto;scroll-snap-type:y mandatory}
+.slide{position:relative;box-sizing:border-box;min-height:100vh;scroll-snap-align:start;background:var(--card);padding:48px 64px;display:flex;flex-direction:column;border-bottom:8px solid var(--bg)}
+.slide>header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:22px}
+.slide h2{font-size:28px;margin:0}.slide .n{color:var(--muted);font-size:14px}
+h1{font-size:44px;margin:0 0 8px}.sub{color:var(--muted);font-size:18px;margin-bottom:40px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:18px 20px;background:var(--soft)}
+.kpi b{display:block;font-size:40px;line-height:1;margin-bottom:6px}.kpi span{color:var(--muted);font-size:14px}
+.kpi.red b{color:var(--red)}
+table{border-collapse:collapse;width:100%;font-size:16px;margin:4px 0 14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;background:var(--soft);font-size:14px}
+.id{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.late{display:inline-block;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;font-size:12px;margin-left:6px;vertical-align:middle}
+.high{color:var(--red);font-weight:600}
+.nodata{background:var(--amber-bg);color:var(--amber);padding:10px 14px;border-radius:6px;margin:0 0 14px}
+.kr{font-weight:600;margin:8px 0 6px}
+h3{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px}
+ul{margin:0 0 12px;padding-left:20px}li{margin:4px 0}
+.decisions li{font-size:20px;margin:10px 0}
+.foot{margin-top:auto;padding-top:24px;color:var(--muted);font-size:14px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:14px;background:var(--soft);padding:1px 4px;border-radius:3px}
+/* виджеты слайда: строки открывают заметки */
+.widgets{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:22px}
+.widget{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--soft)}
+.widget>h4{margin:0;padding:10px 14px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg);display:flex;justify-content:space-between}
+.widget .empty{padding:14px;color:var(--muted);font-size:14px}
+.row{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:9px 14px;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;cursor:pointer;font:inherit;color:var(--ink);text-decoration:none}
+.row:hover{background:#1e1f23}
+.row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{color:var(--muted);font-size:13px;white-space:nowrap}
+.check{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--muted);display:inline-flex;align-items:center;justify-content:center}
+.check[data-done]{background:var(--muted);border-color:var(--muted)}
+.check[data-done]::after{content:"";width:9px;height:5px;margin-top:-2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
+.check[data-priority=high]{border-color:var(--red)}.check[data-priority=medium]{border-color:var(--blue)}
+/* вкладки на левом краю слайда: видны только на своём слайде */
+.edge{position:absolute;left:0;z-index:40;text-decoration:none;display:block;box-sizing:border-box;writing-mode:vertical-rl;transform:rotate(180deg);background:var(--red);color:#fff;border:0;padding:16px 8px;font:600 13px/1 -apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:0 6px 6px 0}
+.edge[data-color=green]{background:var(--green)}.edge[data-color=blue]{background:var(--blue)}.edge[data-color=amber]{background:#b8860b}.edge[data-color=gray]{background:#4b4f58}
+.widgets.one{grid-template-columns:1fr}.widget.wide{grid-column:1/-1}
+.row.cols{display:grid;align-items:start;gap:14px}.row.cols>span{white-space:normal;overflow:hidden}
+.row.cols .c{color:#c9ccd2;font-size:14px}.row.cols .h{font-weight:600}
+.widget .cols-head{display:grid;gap:14px;padding:8px 14px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-top:1px solid var(--line)}
+.row .ag{display:block;color:var(--muted);font-size:13px;white-space:normal;margin-top:2px}
+.edge:hover{filter:brightness(1.15)}
+/* явные разделы: цветная полоса и подпись над заголовком */
+.slide{border-left:6px solid var(--line)}
+.slide[data-kind=retro]{border-left-color:var(--red)}.slide[data-kind=today]{border-left-color:var(--green)}.slide[data-kind=risks]{border-left-color:#b8860b}
+.slide[data-kind=team]{border-left-color:#4b4f58}.slide[data-kind=decisions]{border-left-color:var(--blue)}.slide[data-kind=controls]{border-left-color:#7c6fd8}
+.kicker{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.slide.tail{min-height:0;padding:28px 64px 40px}.tail-box{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.tail-box .edge{position:static;writing-mode:horizontal-tb;transform:none;display:inline-block;border-radius:8px;padding:12px 18px;font-size:13px}
+.tail-hint{color:var(--muted);font-size:14px;margin:0}
+.sheet .btn{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-size:13px;color:#d5d6da;cursor:pointer;background:transparent;font-family:inherit}
+.sheet .btn:hover{background:#1e1f23}.sheet .btn.close{margin-left:auto}.sheet .foot .saved+.btn.close{margin-left:12px}
+.prompt{width:100%;box-sizing:border-box;min-height:60vh;resize:vertical;border:1px solid var(--line);border-radius:6px;background:#0b0c0e;color:#f0f0f2;font:13px/1.5 ui-monospace,Menlo,monospace;padding:10px 12px;outline:0}
+.sheet{position:fixed;top:0;bottom:0;width:440px;max-width:92vw;display:none;flex-direction:column;z-index:44;background:#111214;color:#f0f0f2;box-shadow:0 0 24px rgba(0,0,0,.35);font-size:15px}
+.toggle{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.toggle:checked~.sheet{display:flex}
+.item{display:contents}
+/* открытая панель не накрывает виджеты: слайд ретро ужимается на её ширину */
+/* панель поверх экрана: подложка закрывает её кликом, задний слайд не меняется */
+.scrim{display:none;position:fixed;inset:0;z-index:43;background:rgba(0,0,0,.45);cursor:pointer}
+.toggle:checked~.scrim{display:block}
+label.row,label.edge,label.ib{cursor:pointer}.sheet.right{right:0;border-left:1px solid #2a2b2f}.sheet.left{left:0;border-right:1px solid #2a2b2f}
+.sheet .head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #2a2b2f}
+.sheet .body{flex:1;overflow-y:auto;padding:14px 18px}
+.sheet .title{font-size:20px;font-weight:700;line-height:1.3;padding-bottom:8px}
+.sheet .foot{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #2a2b2f;font-size:12px;color:#8b8f96}
+.sheet a.ib{text-decoration:none}
+.sheet .ib{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:#8b8f96;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center}
+.sheet .ib:hover{background:#1e1f23;color:#f0f0f2}
+.sheet .saved{font-size:12px;color:#8b8f96;margin-left:auto}
+.sheet .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:8px;color:#4c8dff;font-size:14px}
+.sheet .flag{color:#e5484d;font-size:16px}.sheet .flag[data-p=medium]{color:#4c8dff}.sheet .flag[data-p=low]{color:#2F9E6E}.sheet .flag[data-p=none]{color:#8b8f96}
+.sheet .check{border-color:#8b8f96}.sheet .check[data-done]{background:#8b8f96;border-color:#8b8f96}
+.nojs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#8a5a00;color:#fff;padding:8px 14px;font-size:13px;text-align:center}
+.note-view[contenteditable]{outline:none;min-height:40vh}
+/* календарь дня в левой панели */
+.cal{padding:6px 0}.cal .ev{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line)}
+.cal .ev .tm{color:var(--blue);font-size:14px;white-space:nowrap}.cal .ev .tt{font-size:15px;color:var(--ink)}.cal .ev .wh{font-size:13px;color:var(--muted);margin-top:2px}.cal .ev .ag{font-size:13px;color:#b9bcc3;margin-top:4px;white-space:pre-wrap}
+.cal .empty{padding:14px 18px;color:var(--muted)}
+/* заметка: блочный редактор (порт BlockEditor poh-okr-plugin); без JS — статичный рендер .md */
+.md{font-size:15px;line-height:1.55;color:#e6e7ea}.md h1{font-size:20px;margin:0 0 10px}.md h2{font-size:17px;margin:14px 0 6px}.md h3{font-size:15px;margin:12px 0 4px;color:#b9bcc3}
+.md p{margin:6px 0}.md ul,.md ol{margin:4px 0 8px;padding-left:22px}.md li{margin:3px 0}.md ul.todo{list-style:none;padding-left:0}
+.md li.todo{display:flex;align-items:flex-start;gap:8px}.md li.todo input{margin:5px 0 0;accent-color:#4c8dff}.md li.todo:has(input:checked) span{color:#8b8f96;text-decoration:line-through}
+.md code{background:#1e1f23;padding:1px 4px;border-radius:3px;font-size:13px}.md blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #3a3b40;color:#b9bcc3}
+.md hr{border:0;height:1px;background:#2a2b2f;margin:12px 0}.md .empty{color:#8b8f96}
+.editor{outline:none;font-size:15px;line-height:1.6;color:#e6e7ea;counter-reset:num;min-height:40vh}
+.editor>*{margin:0;padding:2px 0;position:relative;min-height:1.6em}
+.editor [data-block=title]{font-size:20px;font-weight:700;line-height:1.3;padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid #2a2b2f}
+.editor [data-block=title]:empty::before{content:"Название";color:#8b8f96}
+.editor[data-empty] [data-block=text]:empty::before{content:attr(data-placeholder);color:#8b8f96}
+.editor [data-block=h1]{font-size:20px;font-weight:700;padding-top:10px}.editor [data-block=h2]{font-size:17px;font-weight:700;padding-top:8px}.editor [data-block=h3]{font-size:15px;font-weight:600;padding-top:6px;color:#b9bcc3}
+.editor [data-block=bullet],.editor [data-block=number]{padding-left:22px}
+.editor [data-block=bullet]::before{content:"•";position:absolute;left:6px;color:#4c8dff}
+.editor [data-block=number]{counter-increment:num}.editor [data-block=number]::before{content:counter(num) ".";position:absolute;left:2px;color:#8b8f96;font-size:13px}
+.editor [data-block=quote]{padding-left:12px;color:#b9bcc3;border-left:2px solid #3a3b40}
+.editor [data-block=divider]{padding:0;height:1px;background:#2a2b2f;margin:12px 0;min-height:1px}
+.editor [data-block=todo]{position:relative;padding-left:26px;min-height:24px}
+.editor .box{position:absolute;left:0;top:5px;width:16px;height:16px;border-radius:4px;border:1.5px solid #8b8f96;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;user-select:none}
+.editor .box[data-on]{background:#4c8dff;border-color:#4c8dff}.editor .box[data-on]::after{content:"";width:8px;height:4px;margin-top:-2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
+.editor [data-block=todo][data-done]{color:#8b8f96;text-decoration:line-through}.editor [data-block=todo][data-done] .box{text-decoration:none}
+.menu{position:absolute;z-index:60;min-width:260px;background:#1a1b1f;border:1px solid #2a2b2f;border-radius:10px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.menu button{display:flex;align-items:center;gap:14px;width:100%;border:0;background:transparent;color:#e6e7ea;font:15px/1.2 inherit;padding:9px 12px;border-radius:6px;text-align:left;cursor:pointer}
+.menu button:hover,.menu button[data-active]{background:#26272c}.menu .g{width:22px;color:#8b8f96;font-size:13px;text-align:center}
+@media(max-width:800px){.widgets{grid-template-columns:1fr}.slide{padding:28px 20px}.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:32px}}
+@media print{.deck{overflow:visible}.slide{page-break-after:always;min-height:auto;border:0}}
+.mnav{display:none}
+/* ——— узкий экран (панель dsh, телефон): лента карточек, навигация чипами сверху, панели на весь экран ——— */
+@media(max-width:760px){
+html,body{height:100dvh;font-size:15px}
+.deck{scroll-snap-type:none;height:100dvh;-webkit-overflow-scrolling:touch}
+.mnav{display:flex;gap:6px;position:sticky;top:0;z-index:35;background:rgba(15,16,18,.94);backdrop-filter:blur(6px);padding:8px 10px;overflow-x:auto;white-space:nowrap;border-bottom:1px solid var(--line);scrollbar-width:none}
+.mnav::-webkit-scrollbar{display:none}
+.mnav a{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;line-height:1.2}
+.mnav a.d{font-weight:700;border-color:transparent;padding-left:4px}
+.slide{display:block;min-height:0;scroll-snap-align:none;padding:16px 14px 20px;border-bottom:0;margin:10px 8px;border-radius:10px;border-left-width:5px}
+.slide.tail{padding:16px 14px 24px}.tail-box .edge{margin:0}
+.slide>header{margin-bottom:12px;padding-bottom:6px}.slide h2{font-size:20px}.slide .n{display:none}
+.kpis{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.kpis::-webkit-scrollbar{display:none}
+.kpi{flex:0 0 auto;min-width:120px;padding:10px 12px}.kpi b{font-size:24px}.kpi span{font-size:12px}
+.widgets{grid-template-columns:1fr;gap:12px;margin-bottom:12px}.widget.wide{grid-column:auto}
+.row{min-height:48px;padding:10px 12px;flex-wrap:wrap}.row .t{white-space:normal;flex:1 1 60%}.row .m{font-size:12px}.row .ag{font-size:13px}
+.cols-head{display:none!important}
+.row.cols{display:block}.row.cols>span{display:block;white-space:normal}.row.cols .h{font-size:15px;margin-bottom:4px}
+.row.cols .c{font-size:13px;color:#c9ccd2;margin-top:2px}.row.cols .c::before{content:attr(data-label) ": ";color:var(--muted)}
+table,thead,tbody,tr{display:block;width:100%}th{display:none}tr{border:1px solid var(--line);border-radius:8px;margin:0 0 8px;padding:6px 10px;background:var(--soft)}
+td{display:block;border:0;padding:2px 0;font-size:14px}td[data-label]::before{content:attr(data-label) ": ";color:var(--muted);font-size:12px}
+tr:first-child{display:none}
+.edge{position:static;writing-mode:horizontal-tb;transform:none;display:inline-block;border-radius:999px;padding:8px 14px;margin:0 8px 12px 0;font-size:12px;letter-spacing:.04em;top:auto!important}
+.sheet{width:100%;max-width:100%;left:0;right:0;border:0;box-shadow:none}.sheet .head{position:sticky;top:0;background:#111214;z-index:2}
+.scrim{display:none!important}
+.decisions li{font-size:17px;margin:8px 0}
+.nodata{font-size:14px}.foot{padding-top:12px;font-size:13px}
+.editor{font-size:16px}.editor [data-block=title]{font-size:18px}.menu{left:12px!important;right:12px;min-width:0}
+.cal .ev{grid-template-columns:78px 1fr;padding:10px 14px}
+}
+</style></head><body><noscript><div class="nojs">Скрипты отключены: заметки только для чтения, правка и меню «/» недоступны. Откройте файл в Safari или Chrome.</div></noscript><div class="deck">
+<nav class="mnav"><a href="#retro" class="d">2026-10-12 · Витрина</a><a href="#retro">Ретро</a><a href="#today">Сегодня</a><a href="#s-3">Договорённости</a><a href="#risks">Риски</a><a href="#team-0">Витрина</a><a href="#s-6">Решения</a></nav>
+<section class="slide" data-kind="retro" id="retro" data-widgets data-retro><header><div><span class="kicker">Ретро</span><h2>Ретро 09–11.10 (выходные тихие)</h2></div><span class="n">1 / 6</span></header><label class="edge" data-color="red" style="top:50%" for="retro-note" role="button">Описать ретро</label><div class="widgets"><div class="widget"><h4><span>Activity</span><span>4</span></h4><div class="item"><input class="toggle" type="radio" name="sheet" id="event-0"><label class="row" for="event-0"><span class="m">10:00</span><span class="t">Daily команды</span><span class="m">Витрина</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-event-0" data-row="event-0" data-section="Ретро 2026-10-11 · Activity"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-11">&#128197; Вчера</span><span class="chip">10:00–10:30</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Daily команды
+## Итог
+- день 4 спринта 2026Q4-S2
+
+## Источники
+- календарь Exchange, событие 2026-10-09 10:00 (cal_today.py)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Daily команды</h1><h2>Итог</h2><ul><li>день 4 спринта 2026Q4-S2</li></ul><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-09 10:00 (cal_today.py)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="event-1"><label class="row" for="event-1"><span class="m">13:30</span><span class="t">Зоны ответственности команд по External API</span><span class="m">Витрина</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-event-1" data-row="event-1" data-section="Ретро 2026-10-11 · Activity"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-11">&#128197; Вчера</span><span class="chip">13:30–14:15</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Зоны ответственности команд по External API
+## Итог
+- стык команд: периметр внешних интеграций
+
+## Источники
+- календарь Exchange, событие 2026-10-09 13:30 (cal_today.py)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Зоны ответственности команд по External API</h1><h2>Итог</h2><ul><li>стык команд: периметр внешних интеграций</li></ul><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-09 13:30 (cal_today.py)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="event-2"><label class="row" for="event-2"><span class="m">14:00</span><span class="t">Модерация картинок и описаний при помощи ИИ</span><span class="m">ИТ-кластер</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-event-2" data-row="event-2" data-section="Ретро 2026-10-11 · Activity"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-11">&#128197; Вчера</span><span class="chip">14:00–14:30</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Модерация картинок и описаний при помощи ИИ
+## Итог
+- тема близка к AI-Harness OBJ 3
+
+## Источники
+- календарь Exchange, событие 2026-10-09 14:00 (cal_today.py)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Модерация картинок и описаний при помощи ИИ</h1><h2>Итог</h2><ul><li>тема близка к AI-Harness OBJ 3</li></ul><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-09 14:00 (cal_today.py)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="event-3"><label class="row" for="event-3"><span class="m">16:30</span><span class="t">Технопятница ИТ-кластера</span><span class="m">ИТ-кластер</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-event-3" data-row="event-3" data-section="Ретро 2026-10-11 · Activity"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-11">&#128197; Вчера</span><span class="chip">16:30–18:00</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Технопятница ИТ-кластера
+## Итог
+- техзрелость департамента
+
+## Источники
+- календарь Exchange, событие 2026-10-09 16:30 (cal_today.py)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Технопятница ИТ-кластера</h1><h2>Итог</h2><ul><li>техзрелость департамента</li></ul><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-09 16:30 (cal_today.py)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div><div class="widget"><h4><span>Tasks</span><span>7</span></h4><div class="item"><input class="toggle" type="radio" name="sheet" id="task-0"><label class="row" for="task-0"><span class="check" data-done></span><span class="id">SHOP-1504</span><span class="t">Паритет extapi GET /ticket: партия закрыта</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-0" data-row="task-0" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-09">&#128197; 09.10</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Паритет extapi GET /ticket: партия закрыта
+Закрыты SHOP-1504, 1505, 1506, 1509, 1511, 1512, 1513 + оверлей-реестр собственных броней SHOP-2029 (writer мутаций + reader-фильтр).
+
+- [x] все методы extapi паритетны PHP
+
+## Источники
+- JIRA MCP: SHOP-1504/1505/1506/1509/1511/1512/1513/2029, status Закрыт, updated 2026-10-09 15:28–15:30 (Гордеев)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Паритет extapi GET /ticket: партия закрыта</h1><p>Закрыты SHOP-1504, 1505, 1506, 1509, 1511, 1512, 1513 + оверлей-реестр собственных броней SHOP-2029 (writer мутаций + reader-фильтр).</p><ul class="todo"><li class="todo"><input type="checkbox" checked><span>все методы extapi паритетны PHP</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1504/1505/1506/1509/1511/1512/1513/2029, status Закрыт, updated 2026-10-09 15:28–15:30 (Гордеев)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-1"><label class="row" for="task-1"><span class="check" data-done></span><span class="id">SHOP-2034</span><span class="t">CDC-удаления мест по прошедшим мероприятиям</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-1" data-row="task-1" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-09">&#128197; 09.10</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>CDC-удаления мест по прошедшим мероприятиям
+content-api больше не обрабатывает CDC-удаления мест по прошедшим мероприятиям.
+
+- [x] закрыт без замечаний ревью
+
+## Источники
+- JIRA MCP: SHOP-2034, status Закрыт, updated 2026-10-09 16:55 (Орлова)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">CDC-удаления мест по прошедшим мероприятиям</h1><p>content-api больше не обрабатывает CDC-удаления мест по прошедшим мероприятиям.</p><ul class="todo"><li class="todo"><input type="checkbox" checked><span>закрыт без замечаний ревью</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2034, status Закрыт, updated 2026-10-09 16:55 (Орлова)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-2"><label class="row" for="task-2"><span class="check" data-done></span><span class="id">SHOP-1502</span><span class="t">Миграция кэша ExtAPI с Memcached на Redis</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-2" data-row="task-2" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-09">&#128197; 09.10</span><span class="flag" data-p="low" title="приоритет low">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Миграция кэша ExtAPI с Memcached на Redis
+
+- [x] закрыт
+
+## Источники
+- JIRA MCP: SHOP-1502, status Закрыт, updated 2026-10-09 15:31 (Морозов)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Миграция кэша ExtAPI с Memcached на Redis</h1><ul class="todo"><li class="todo"><input type="checkbox" checked><span>закрыт</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1502, status Закрыт, updated 2026-10-09 15:31 (Морозов)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-3"><label class="row" for="task-3"><span class="check" data-done></span><span class="id">SHOP-1903</span><span class="t">Драфт СТ по передаче инвентаря и конструктива в CloudBox через BI</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-3" data-row="task-3" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-09">&#128197; 09.10</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Драфт СТ по передаче инвентаря и конструктива в CloudBox через BI
+Закрыт Кравченко. Экспертиза BI-шлюзов осела на уходящем в Q4 SA.
+
+- [x] драфт готов
+- [ ] передача экспертизы — план не зафиксирован
+
+## Источники
+- JIRA MCP: SHOP-1903, status Закрыт, updated 2026-10-09 08:52 (Кравченко)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Драфт СТ по передаче инвентаря и конструктива в CloudBox через BI</h1><p>Закрыт Кравченко. Экспертиза BI-шлюзов осела на уходящем в Q4 SA.</p><ul class="todo"><li class="todo"><input type="checkbox" checked><span>драфт готов</span></li><li class="todo"><input type="checkbox"><span>передача экспертизы — план не зафиксирован</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1903, status Закрыт, updated 2026-10-09 08:52 (Кравченко)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-4"><label class="row" for="task-4"><span class="check" data-done></span><span class="id">SHOP-2001</span><span class="t">MCR конструктива: много соединений к PG</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-4" data-row="task-4" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-09">&#128197; 09.10</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>MCR конструктива: много соединений к PG
+
+- [x] закрыт
+
+## Источники
+- JIRA MCP: SHOP-2001, status Закрыт, updated 2026-10-09 09:33 (Смирнов)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">MCR конструктива: много соединений к PG</h1><ul class="todo"><li class="todo"><input type="checkbox" checked><span>закрыт</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2001, status Закрыт, updated 2026-10-09 09:33 (Смирнов)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-5"><label class="row" for="task-5"><span class="check"></span><span class="t">Заведены 8 тикетов</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-5" data-row="task-5" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" aria-label="открыто"></span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Заведены 8 тикетов
+1. SHOP-2041/2042/2043 — FAQ subdomain (Смирнов)
+2. SHOP-2044–2047 — AI-Harness aif-handoff: пауза стадий, upstream sync, дистрибуция скиллов, CI/CD (без исполнителя)
+3. SHOP-2048 — DLQ-топик COS в прод Kafka (DevOps Лебедев)
+
+- [ ] назначить исполнителей на 2044–2047
+
+## Источники
+- JIRA MCP: SHOP-2041–2048, created 2026-10-09 (jira_search updated &gt;= 2026-10-09)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Заведены 8 тикетов</h1><ol><li>SHOP-2041/2042/2043 — FAQ subdomain (Смирнов)</li><li>SHOP-2044–2047 — AI-Harness aif-handoff: пауза стадий, upstream sync, дистрибуция скиллов, CI/CD (без исполнителя)</li><li>SHOP-2048 — DLQ-топик COS в прод Kafka (DevOps Лебедев)</li></ol><ul class="todo"><li class="todo"><input type="checkbox"><span>назначить исполнителей на 2044–2047</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2041–2048, created 2026-10-09 (jira_search updated &gt;= 2026-10-09)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="task-6"><label class="row" for="task-6"><span class="check"></span><span class="t">Выходные тихие: правки без смены статусов</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-11-task-6" data-row="task-6" data-section="Ретро 2026-10-11 · Tasks"><div class="head"><span class="check" aria-label="открыто"></span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Выходные тихие: правки без смены статусов
+SHOP-2015 список работ импорт CloudBox→Web (Антонов, вс 21:08), SHOP-2038 LoaderService метаданные (Власенко, вс 21:08), SHOP-1989 Babelfish 24 ХП (Власенко, пн 00:06).
+
+## Источники
+- JIRA MCP: jira_search updated &gt;= -1d, SHOP-1989/2038/2015</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Выходные тихие: правки без смены статусов</h1><p>SHOP-2015 список работ импорт CloudBox→Web (Антонов, вс 21:08), SHOP-2038 LoaderService метаданные (Власенко, вс 21:08), SHOP-1989 Babelfish 24 ХП (Власенко, пн 00:06).</p><h2>Источники</h2><ul><li>JIRA MCP: jira_search updated &gt;= -1d, SHOP-1989/2038/2015</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div></div></section>
+<section class="slide" data-kind="today" id="today" data-widgets data-today><header><div><span class="kicker">Сегодня</span><h2>Сегодня</h2></div><span class="n">2 / 6</span></header><label class="edge" data-color="green" style="top:38%" for="plan-note" role="button">План на сегодня</label><label class="edge" data-color="blue" style="top:62%" for="today-calendar" role="button">Календарь</label><div class="widgets"><div class="widget"><h4><span>Мои задачи</span><span>4</span></h4><div class="item"><input class="toggle" type="radio" name="sheet" id="todo-0"><label class="row" for="todo-0"><span class="check" data-priority="medium"></span><span class="id">SHOP-2036</span><span class="t">Чистка пути шоу: шаг 1 — ветка 52361 и дефолт «мр»</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-todo-0" data-row="todo-0" data-section="Сегодня · Мои задачи"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Чистка пути шоу: шаг 1 — ветка 52361 и дефолт «мр»
+Кому: —. Что: назначить исполнителя (Гордеев перегружен паритетом extapi).
+
+- [ ] назначить исполнителя на дейлике
+
+## Источники
+- JIRA MCP: SHOP-2036/2037, status Открыто, assignee Гордеев, updated 2026-10-09</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Чистка пути шоу: шаг 1 — ветка 52361 и дефолт «мр»</h1><p>Кому: —. Что: назначить исполнителя (Гордеев перегружен паритетом extapi).</p><ul class="todo"><li class="todo"><input type="checkbox"><span>назначить исполнителя на дейлике</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2036/2037, status Открыто, assignee Гордеев, updated 2026-10-09</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="todo-1"><label class="row" for="todo-1"><span class="check" data-priority="medium"></span><span class="id">SHOP-2047</span><span class="t">[aif-handoff] CI/CD pipeline: build + deploy</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-todo-1" data-row="todo-1" data-section="Сегодня · Мои задачи"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>[aif-handoff] CI/CD pipeline: build + deploy
+Кому: —. Что: назначить исполнителя из 4 задач aif-handoff (2044–2047).
+
+- [ ] определить судьбу задач в S2
+
+## Источники
+- JIRA MCP: SHOP-2044–2047, status Бэклог, assignee Unassigned, updated 2026-10-09</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">[aif-handoff] CI/CD pipeline: build + deploy</h1><p>Кому: —. Что: назначить исполнителя из 4 задач aif-handoff (2044–2047).</p><ul class="todo"><li class="todo"><input type="checkbox"><span>определить судьбу задач в S2</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2044–2047, status Бэклог, assignee Unassigned, updated 2026-10-09</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="todo-2"><label class="row" for="todo-2"><span class="check" data-priority="medium"></span><span class="id">SHOP-2010</span><span class="t">Согласовать план рефакторинга BI (для подключения CloudBox)</span><span class="m">Сегодня</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-todo-2" data-row="todo-2" data-section="Сегодня · Мои задачи"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Согласовать план рефакторинга BI (для подключения CloudBox)
+Кому: PO. Что: проверить план (статус «Готово к проверке» с пт).
+
+- [ ] проверить и утвердить план
+
+## Источники
+- JIRA MCP: SHOP-2010, status Готово к проверке, updated 2026-10-09 15:27 (Гордеев)</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Согласовать план рефакторинга BI (для подключения CloudBox)</h1><p>Кому: PO. Что: проверить план (статус «Готово к проверке» с пт).</p><ul class="todo"><li class="todo"><input type="checkbox"><span>проверить и утвердить план</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2010, status Готово к проверке, updated 2026-10-09 15:27 (Гордеев)</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="todo-3"><label class="row" for="todo-3"><span class="check" data-priority="medium"></span><span class="id">SHOP-2048</span><span class="t">Создать DLQ-топик customer-order-dlq в прод Kafka</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-todo-3" data-row="todo-3" data-section="Сегодня · Мои задачи"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Создать DLQ-топик customer-order-dlq в прод Kafka
+Кому: Лебедев (DevOps). Что: создать топик (зависимость COS SHOP-1470).
+
+- [ ] топик создан в прод
+
+## Источники
+- JIRA MCP: SHOP-2048, status Бэклог, assignee Лебедев, updated 2026-10-09 23:31</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Создать DLQ-топик customer-order-dlq в прод Kafka</h1><p>Кому: Лебедев (DevOps). Что: создать топик (зависимость COS SHOP-1470).</p><ul class="todo"><li class="todo"><input type="checkbox"><span>топик создан в прод</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2048, status Бэклог, assignee Лебедев, updated 2026-10-09 23:31</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div><div class="widget"><h4><span>Договорённости</span><span>4</span></h4><div class="item"><input class="toggle" type="radio" name="sheet" id="ctl-0"><label class="row" for="ctl-0"><span class="check"></span><span class="id">SHOP-2034</span><span class="t">CDC-удаления мест по прошедшим</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-ctl-0" data-row="ctl-0" data-section="Сегодня · Договорённости"><div class="head"><span class="check" aria-label="открыто"></span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>CDC-удаления мест по прошедшим
+У кого: Орлова. Проверить: демо на дейлике. How-to-demo: удаление места по прошедшему событию не лагает контур.
+
+- [ ] спросить статус
+
+## Источники
+- JIRA MCP: SHOP-2034, status Закрыт, updated 2026-10-09 16:55</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">CDC-удаления мест по прошедшим</h1><p>У кого: Орлова. Проверить: демо на дейлике. How-to-demo: удаление места по прошедшему событию не лагает контур.</p><ul class="todo"><li class="todo"><input type="checkbox"><span>спросить статус</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2034, status Закрыт, updated 2026-10-09 16:55</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="ctl-1"><label class="row" for="ctl-1"><span class="check"></span><span class="id">SHOP-2033</span><span class="t">Метрика лага CDC пушей по билетке</span><span class="m">спринт</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-ctl-1" data-row="ctl-1" data-section="Сегодня · Договорённости"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="спринт">&#128197; спринт</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Метрика лага CDC пушей по билетке
+У кого: Смирнов. Проверить: ревью пройдено? How-to-demo: метрика лага в Grafana.
+
+- [ ] спросить статус ревью
+
+## Источники
+- JIRA MCP: SHOP-2033, status Ревью, updated 2026-10-09 10:06</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Метрика лага CDC пушей по билетке</h1><p>У кого: Смирнов. Проверить: ревью пройдено? How-to-demo: метрика лага в Grafana.</p><ul class="todo"><li class="todo"><input type="checkbox"><span>спросить статус ревью</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2033, status Ревью, updated 2026-10-09 10:06</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="ctl-2"><label class="row" for="ctl-2"><span class="check"></span><span class="id">SHOP-2010</span><span class="t">План BI-рефакторинга для CloudBox</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-ctl-2" data-row="ctl-2" data-section="Сегодня · Договорённости"><div class="head"><span class="check" aria-label="открыто"></span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>План BI-рефакторинга для CloudBox
+У кого: Гордеев. Проверить: план утверждён? Связка с SHOP-2035 (граница слоя доступа).
+
+- [ ] проверить
+
+## Источники
+- JIRA MCP: SHOP-2010 Готово к проверке, SHOP-2035 Бэклог</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">План BI-рефакторинга для CloudBox</h1><p>У кого: Гордеев. Проверить: план утверждён? Связка с SHOP-2035 (граница слоя доступа).</p><ul class="todo"><li class="todo"><input type="checkbox"><span>проверить</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2010 Готово к проверке, SHOP-2035 Бэклог</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="ctl-3"><label class="row" for="ctl-3"><span class="check"></span><span class="id">SHOP-1903</span><span class="t">СТ инвентарь/конструктив → CloudBox через BI</span><span class="m"></span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-ctl-3" data-row="ctl-3" data-section="Сегодня · Договорённости"><div class="head"><span class="check" aria-label="открыто"></span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>СТ инвентарь/конструктив → CloudBox через BI
+У кого: Кравченко (уходит Q4). Проверить: передача экспертизы после закрытия.
+
+- [ ] зафиксировать план передачи
+
+## Источники
+- JIRA MCP: SHOP-1903, status Закрыт, updated 2026-10-09 08:52</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">СТ инвентарь/конструктив → CloudBox через BI</h1><p>У кого: Кравченко (уходит Q4). Проверить: передача экспертизы после закрытия.</p><ul class="todo"><li class="todo"><input type="checkbox"><span>зафиксировать план передачи</span></li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1903, status Закрыт, updated 2026-10-09 08:52</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div><div class="widget wide"><h4><span>Ключевые встречи</span><span>3</span></h4><div class="item"><input class="toggle" type="radio" name="sheet" id="meet-0"><label class="row" for="meet-0"><span class="m">12:00–13:00</span><span class="t">Перезапуск акции с сетью ресторанов<span class="ag">рестораны OBJ 2</span></span><span class="m">Рестораны</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-meet-0" data-row="meet-0" data-section="Сегодня · Ключевые встречи"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="chip">12:00–13:00</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Перезапуск акции с сетью ресторанов
+## Повестка
+рестораны OBJ 2
+
+## Что получить
+условия перезапуска акции ресторанов
+
+## Источники
+- календарь Exchange, событие 2026-10-12 12:00
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Перезапуск акции с сетью ресторанов</h1><h2>Повестка</h2><p>рестораны OBJ 2</p><h2>Что получить</h2><p>условия перезапуска акции ресторанов</p><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-12 12:00</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="meet-1"><label class="row" for="meet-1"><span class="m">15:00–15:45</span><span class="t">Синк с маркетплейсом: бизнес<span class="ag">маркетплейс, бизнес</span></span><span class="m">Маркетплейс, Витрина</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-meet-1" data-row="meet-1" data-section="Сегодня · Ключевые встречи"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="chip">15:00–15:45</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Синк с маркетплейсом: бизнес
+## Повестка
+маркетплейс, бизнес
+
+## Что получить
+договорённости по маркетплейсу с бизнес-стороной
+
+## Источники
+- календарь Exchange, событие 2026-10-12 15:00
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Синк с маркетплейсом: бизнес</h1><h2>Повестка</h2><p>маркетплейс, бизнес</p><h2>Что получить</h2><p>договорённости по маркетплейсу с бизнес-стороной</p><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-12 15:00</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="meet-2"><label class="row" for="meet-2"><span class="m">16:00–16:30</span><span class="t">Декомпозиция и сроки: MSSQL → web_db (SHOP-1828)<span class="ag">отказ от лицензии MSSQL, OBJ 1</span></span><span class="m">DBA, Витрина</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-meet-2" data-row="meet-2" data-section="Сегодня · Ключевые встречи"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="chip">16:00–16:30</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Декомпозиция и сроки: MSSQL → web_db (SHOP-1828)
+## Повестка
+отказ от лицензии MSSQL, OBJ 1
+
+## Что получить
+декомпозиция и сроки этапа MSSQL → web_db
+
+## Источники
+- календарь Exchange, событие 2026-10-12 16:00
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Декомпозиция и сроки: MSSQL → web_db (SHOP-1828)</h1><h2>Повестка</h2><p>отказ от лицензии MSSQL, OBJ 1</p><h2>Что получить</h2><p>декомпозиция и сроки этапа MSSQL → web_db</p><h2>Источники</h2><ul><li>календарь Exchange, событие 2026-10-12 16:00</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div></div></section>
+<section class="slide" data-kind="controls" id="s-3"><header><div><span class="kicker">Договорённости</span><h2>Ближайшие договорённости</h2></div><span class="n">3 / 6</span></header><table><tr><th>Договорённость</th><th>У кого</th><th>Проверить</th><th>How-to-demo</th><th>Срок</th></tr>
+<tr><td data-label="Договорённость">SHOP-2034 CDC-удаления мест</td><td data-label="У кого">Орлова</td><td data-label="Проверить">демо результата на дейлике</td><td data-label="How-to-demo">удаление места по прошедшему событию не лагает контур</td><td data-label="Срок">—</td></tr>
+<tr><td data-label="Договорённость">SHOP-2033 лаг CDC пушей</td><td data-label="У кого">Смирнов</td><td data-label="Проверить">ревью пройдено?</td><td data-label="How-to-demo">метрика лага в Grafana</td><td data-label="Срок">спринт</td></tr>
+<tr><td data-label="Договорённость">SHOP-2010/2035 BI-рефакторинг CloudBox</td><td data-label="У кого">Гордеев</td><td data-label="Проверить">план утверждён?</td><td data-label="How-to-demo">—</td><td data-label="Срок">спринт</td></tr>
+<tr><td data-label="Договорённость">SHOP-1903 СТ инвентарь→CloudBox</td><td data-label="У кого">Кравченко</td><td data-label="Проверить">передача экспертизы после закрытия</td><td data-label="How-to-demo">—</td><td data-label="Срок">—</td></tr>
+</table></section>
+<section class="slide" data-kind="risks" id="risks" data-widgets data-risks><header><div><span class="kicker">Риски</span><h2>Риски по OKR</h2></div><span class="n">4 / 6</span></header><label class="edge" data-color="amber" style="top:50%" for="risks-note" role="button">Актуализация рисков</label><div class="widgets one"><div class="widget wide"><h4><span>Риски по OKR</span><span>3</span></h4><div class="cols-head" style="grid-template-columns:1fr 2fr 2fr"><span>OKR</span><span>Название</span><span>Последствия</span></div><div class="item"><input class="toggle" type="radio" name="sheet" id="risk-0"><label class="row cols" style="grid-template-columns:1fr 2fr 2fr" for="risk-0"><span class="t h">OBJ 1: отделение витрины от легаси-ядра</span><span class="c" data-label="Название">Уход Кравченко (SA) в Q4 без замены — экспертиза BI-шлюзов осела на нём</span><span class="c" data-label="Последствия">потеря экспертизы по BI-шлюзам и СТ инвентарь/конструктив → CloudBox в разгар инициативы</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-risk-0" data-row="risk-0" data-section="Риски по OKR"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="high" title="приоритет high">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Уход Кравченко (SA) в Q4 без замены — экспертиза BI-шлюзов осела на нём
+## Описание
+Кравченко закрыл SHOP-1903 (драфт СТ по передаче инвентаря и конструктива в CloudBox через BI) в пятницу 09.10. Замена не нанята; план передачи экспертизы не зафиксирован.
+
+## Последствия
+потеря экспертизы по BI-шлюзам и СТ инвентарь/конструктив → CloudBox в разгар инициативы
+
+## Владелец
+— (не назначен)
+
+## Статус
+открыт
+
+## Источники
+- JIRA MCP: SHOP-1903 Закрыт 2026-10-09 08:52, assignee Кравченко
+- память PO-агента: Кравченко уходит в Q4-2026 без замены
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Уход Кравченко (SA) в Q4 без замены — экспертиза BI-шлюзов осела на нём</h1><h2>Описание</h2><p>Кравченко закрыл SHOP-1903 (драфт СТ по передаче инвентаря и конструктива в CloudBox через BI) в пятницу 09.10. Замена не нанята; план передачи экспертизы не зафиксирован.</p><h2>Последствия</h2><p>потеря экспертизы по BI-шлюзам и СТ инвентарь/конструктив → CloudBox в разгар инициативы</p><h2>Владелец</h2><p>— (не назначен)</p><h2>Статус</h2><p>открыт</p><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1903 Закрыт 2026-10-09 08:52, assignee Кравченко</li><li>память PO-агента: Кравченко уходит в Q4-2026 без замены</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="risk-1"><label class="row cols" style="grid-template-columns:1fr 2fr 2fr" for="risk-1"><span class="t h">OBJ 1: передача шлюзов от легаси-ядра в CloudBox</span><span class="c" data-label="Название">Юробвязка по передаче шлюзов в CloudBox: ADR в работе с 08.10</span><span class="c" data-label="Последствия">без ADR нет юрсхемы перевода шлюзовых объектов — блок на путь к CloudBox</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-risk-1" data-row="risk-1" data-section="Риски по OKR"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="high" title="приоритет high">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Юробвязка по передаче шлюзов в CloudBox: ADR в работе с 08.10
+## Описание
+ADR «возможный способ переезда шлюзовых объектов в CloudBox» (Алексеев) в работе, последняя правка 08.10 17:01. Связано с активной инициативой БФТ BI/CloudBox.
+
+## Последствия
+без ADR нет юрсхемы перевода шлюзовых объектов — блок на путь к CloudBox
+
+## Владелец
+Алексеев
+
+## Статус
+открыт
+
+## Источники
+- JIRA MCP: SHOP-2026, status В работе, updated 2026-10-08 17:01
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Юробвязка по передаче шлюзов в CloudBox: ADR в работе с 08.10</h1><h2>Описание</h2><p>ADR «возможный способ переезда шлюзовых объектов в CloudBox» (Алексеев) в работе, последняя правка 08.10 17:01. Связано с активной инициативой БФТ BI/CloudBox.</p><h2>Последствия</h2><p>без ADR нет юрсхемы перевода шлюзовых объектов — блок на путь к CloudBox</p><h2>Владелец</h2><p>Алексеев</p><h2>Статус</h2><p>открыт</p><h2>Источники</h2><ul><li>JIRA MCP: SHOP-2026, status В работе, updated 2026-10-08 17:01</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="risk-2"><label class="row cols" style="grid-template-columns:1fr 2fr 2fr" for="risk-2"><span class="t h">спринт 2026Q4-S2</span><span class="c" data-label="Название">8 задач спринта без исполнителя или движения</span><span class="c" data-label="Последствия">просадка velocity S2: скоуп стоит, перегрузка Гордеева паритетом extapi</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-risk-2" data-row="risk-2" data-section="Риски по OKR"><div class="head"><span class="check" aria-label="открыто"></span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>8 задач спринта без исполнителя или движения
+## Описание
+2036/2037 (чистка пути шоу, Открыто), 2014 (API конструктива internal ошибки), 1479 (COS-мониторинг) + новые 2044–2047 aif-handoff без исполнителя.
+
+## Последствия
+просадка velocity S2: скоуп стоит, перегрузка Гордеева паритетом extapi
+
+## Владелец
+—
+
+## Статус
+открыт
+
+## Источники
+- JIRA MCP: jira_search sprint in openSprints(), SHOP-2036/2037/2014/1479/2044–2047
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">8 задач спринта без исполнителя или движения</h1><h2>Описание</h2><p>2036/2037 (чистка пути шоу, Открыто), 2014 (API конструктива internal ошибки), 1479 (COS-мониторинг) + новые 2044–2047 aif-handoff без исполнителя.</p><h2>Последствия</h2><p>просадка velocity S2: скоуп стоит, перегрузка Гордеева паритетом extapi</p><h2>Владелец</h2><p>—</p><h2>Статус</h2><p>открыт</p><h2>Источники</h2><ul><li>JIRA MCP: jira_search sprint in openSprints(), SHOP-2036/2037/2014/1479/2044–2047</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div></div></section>
+<section class="slide" data-kind="team" id="team-0" data-widgets data-team><header><div><span class="kicker">Витрина</span><h2>Команда Витрина</h2></div><span class="n">5 / 6</span></header><label class="edge" data-color="green" style="top:38%" for="team-0-comment" role="button">Комментарий</label><label class="edge" data-color="gray" style="top:62%" for="team-0-agree" role="button">Договорённости</label><div class="widgets one"><div class="widget wide"><h4><span>Истории 2026Q4-S2</span><span>3</span></h4><div class="cols-head" style="grid-template-columns:1.6fr 1.4fr 1.4fr 1.6fr"><span>История</span><span>Что сделано</span><span>Что осталось</span><span>Следующий шаг</span></div><div class="item"><input class="toggle" type="radio" name="sheet" id="story-0-0"><label class="row cols" style="grid-template-columns:1.6fr 1.4fr 1.4fr 1.6fr" for="story-0-0"><span class="t h">SHOP-1147 Витрина CloudBox в обход uat_db (Epic High)</span><span class="c" data-label="Что сделано">партия паритета extapi GET /ticket закрыта (1504–1513, 2029), SHOP-2035 BI-рефакторинг заведен, план на проверке (2010)</span><span class="c" data-label="Что осталось">методы театра (2013), serviceFee партнёра (2012), DLQ-топик в прод (2048), утверждение плана BI</span><span class="c" data-label="Следующий шаг">2026-10-12 · проверить план BI-рефакторинга (Готово к проверке) · PO</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-story-0-0" data-row="story-0-0" data-section="Команда Витрина"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="flag" data-p="high" title="приоритет high">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>SHOP-1147 Витрина CloudBox в обход uat_db (Epic High)
+## Что сделано
+партия паритета extapi GET /ticket закрыта (1504–1513, 2029), SHOP-2035 BI-рефакторинг заведен, план на проверке (2010)
+
+## Что осталось
+методы театра (2013), serviceFee партнёра (2012), DLQ-топик в прод (2048), утверждение плана BI
+
+## Блокаторы
+нет
+
+## Следующий шаг
+2026-10-12 · проверить план BI-рефакторинга (Готово к проверке) · PO
+
+## Пульс спринта
+- [Факт] 09.10 закрыто 1504/1505/1506/1509/1511/1512/1513 + 2029 (Гордеев)
+- [Факт] 09.10 2010 → Готово к проверке
+
+## Источники
+- JIRA MCP: SHOP-1147 В работе, подзадачи 1502–1513/2029/2035/2010
+- sprint-registry consolidated 12.10
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">SHOP-1147 Витрина CloudBox в обход uat_db (Epic High)</h1><h2>Что сделано</h2><p>партия паритета extapi GET /ticket закрыта (1504–1513, 2029), SHOP-2035 BI-рефакторинг заведен, план на проверке (2010)</p><h2>Что осталось</h2><p>методы театра (2013), serviceFee партнёра (2012), DLQ-топик в прод (2048), утверждение плана BI</p><h2>Блокаторы</h2><p>нет</p><h2>Следующий шаг</h2><p>2026-10-12 · проверить план BI-рефакторинга (Готово к проверке) · PO</p><h2>Пульс спринта</h2><ul><li>[Факт] 09.10 закрыто 1504/1505/1506/1509/1511/1512/1513 + 2029 (Гордеев)</li><li>[Факт] 09.10 2010 → Готово к проверке</li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1147 В работе, подзадачи 1502–1513/2029/2035/2010</li><li>sprint-registry consolidated 12.10</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="story-0-1"><label class="row cols" style="grid-template-columns:1.6fr 1.4fr 1.4fr 1.6fr" for="story-0-1"><span class="t h">SHOP-1989 БД web в Babelfish: 24 ХП, этап 2 отказа от MSSQL</span><span class="c" data-label="Что сделано">правки ночью пн 00:06 (Власенко); связанная встреча «Декомпозиция MSSQL → web_db» сегодня 16:00</span><span class="c" data-label="Что осталось">переписывание и сверка 24 ХП с MSSQL</span><span class="c" data-label="Следующий шаг">2026-10-12 · декомпозиция и сроки на созвоне 16:00 · Власенко/PO</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-story-0-1" data-row="story-0-1" data-section="Команда Витрина"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>SHOP-1989 БД web в Babelfish: 24 ХП, этап 2 отказа от MSSQL
+## Что сделано
+правки ночью пн 00:06 (Власенко); связанная встреча «Декомпозиция MSSQL → web_db» сегодня 16:00
+
+## Что осталось
+переписывание и сверка 24 ХП с MSSQL
+
+## Блокаторы
+нет
+
+## Следующий шаг
+2026-10-12 · декомпозиция и сроки на созвоне 16:00 · Власенко/PO
+
+## Пульс спринта
+- [Факт] 12.10 00:06 правки (Власенко)
+
+## Источники
+- JIRA MCP: SHOP-1989 В работе, updated 2026-10-12 00:06
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">SHOP-1989 БД web в Babelfish: 24 ХП, этап 2 отказа от MSSQL</h1><h2>Что сделано</h2><p>правки ночью пн 00:06 (Власенко); связанная встреча «Декомпозиция MSSQL → web_db» сегодня 16:00</p><h2>Что осталось</h2><p>переписывание и сверка 24 ХП с MSSQL</p><h2>Блокаторы</h2><p>нет</p><h2>Следующий шаг</h2><p>2026-10-12 · декомпозиция и сроки на созвоне 16:00 · Власенко/PO</p><h2>Пульс спринта</h2><ul><li>[Факт] 12.10 00:06 правки (Власенко)</li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1989 В работе, updated 2026-10-12 00:06</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle" type="radio" name="sheet" id="story-0-2"><label class="row cols" style="grid-template-columns:1.6fr 1.4fr 1.4fr 1.6fr" for="story-0-2"><span class="t h">SHOP-1737 AI HARNESS для витрины (Epic)</span><span class="c" data-label="Что сделано">заведены 4 задачи aif-handoff: 2044 пауза стадий, 2045 upstream sync, 2046 дистрибуция скиллов, 2047 CI/CD</span><span class="c" data-label="Что осталось">все 4 без исполнителя, статус Бэклог</span><span class="c" data-label="Следующий шаг">2026-10-12 · распределить на дейлике · PO</span></label><label class="scrim" for="sheet-none" aria-hidden="true"></label><aside class="sheet right note" role="dialog" data-key="2026-10-12-story-0-2" data-row="story-0-2" data-section="Команда Витрина"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span class="flag" data-p="medium" title="приоритет medium">&#9873;</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="sheet-none" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>SHOP-1737 AI HARNESS для витрины (Epic)
+## Что сделано
+заведены 4 задачи aif-handoff: 2044 пауза стадий, 2045 upstream sync, 2046 дистрибуция скиллов, 2047 CI/CD
+
+## Что осталось
+все 4 без исполнителя, статус Бэклог
+
+## Блокаторы
+нет исполнителя
+
+## Следующий шаг
+2026-10-12 · распределить на дейлике · PO
+
+## Пульс спринта
+- [Факт] 09.10 заведены SHOP-2044–2047
+
+## Источники
+- JIRA MCP: SHOP-1737 Бэклог, 2044–2047 Бэклог Unassigned
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">SHOP-1737 AI HARNESS для витрины (Epic)</h1><h2>Что сделано</h2><p>заведены 4 задачи aif-handoff: 2044 пауза стадий, 2045 upstream sync, 2046 дистрибуция скиллов, 2047 CI/CD</p><h2>Что осталось</h2><p>все 4 без исполнителя, статус Бэклог</p><h2>Блокаторы</h2><p>нет исполнителя</p><h2>Следующий шаг</h2><p>2026-10-12 · распределить на дейлике · PO</p><h2>Пульс спринта</h2><ul><li>[Факт] 09.10 заведены SHOP-2044–2047</li></ul><h2>Источники</h2><ul><li>JIRA MCP: SHOP-1737 Бэклог, 2044–2047 Бэклог Unassigned</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="sheet-none" role="button">Закрыть</label></div></aside></div></div></div></section>
+<section class="slide" data-kind="decisions" id="s-6"><header><div><span class="kicker">Решения</span><h2>Нужны решения</h2></div><span class="n">6 / 6</span></header><ul class="decisions"><li>SHOP-2036/2037 (чистка пути шоу) — кому? Гордеев заблокирован паритетом extapi; также 2014 API конструктива, 1479 COS-мониторинг</li><li>SHOP-2044–2047 aif-handoff (4 задачи без исполнителя) — в S2 или перенос?</li><li>передача экспертизы Кравченко после закрытия 1903 — план до конца Q4?</li><li>@po-агент: прогрев cron-скрипта сломан 2-й запуск подряд — комментарий склеился с командой в файле прогрева; починить</li></ul>
+<div class="foot">Прочее: PO-задач открытых 6 (1147, 1374, 1921, 1757, 1755, 1063) · тикетов тронуто с пт 45</div></section>
+<section class="slide tail" id="llm" data-kind="llm"><div class="tail-box"><label class="edge" data-color="blue" for="llm-note" role="button">Комментарии для LLM</label><p class="tail-hint">Собирает все правки заметок и чеклистов на этой странице в промт для перегенерации отчёта.</p></div></section>
+</div><input class="toggle" type="radio" name="sheet" id="sheet-none" checked><div class="item"><input class="toggle left-toggle" type="checkbox" id="retro-note"><label class="scrim" for="retro-note" aria-hidden="true"></label><aside class="sheet left note" id="retro-note-sheet" role="dialog" data-key="2026-10-11-retro" data-section="Ретро 2026-10-11"><div class="head"><span class="check" data-done aria-label="сделано"></span><span class="chip" title="2026-10-11">&#128197; Вчера</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="retro-note" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Ретро 09–11.10
+## Что было сделано
+- [x] Партия паритета extapi GET /ticket закрыта: SHOP-1504/1505/1506/1509/1511/1512/1513 + оверлей-реестр 2029 (Гордеев)
+- [x] SHOP-2034 CDC-удаления мест по прошедшим закрыт (Орлова)
+- [x] SHOP-1502 кэш ExtAPI Memcached→Redis закрыт (Морозов)
+- [x] SHOP-1903 драфт СТ инвентарь/конструктив → CloudBox через BI закрыт (Кравченко)
+
+## Как это влияет на цели спринта
+- 2026Q4-S2: закрыто 11 за 3 дня, 187/255 по эпикам — темп выше среднего
+- паритет GET /ticket — главный диск одержимости спринта — вышел из ревью
+
+## Как это влияет на цели квартала
+- OBJ 1: оверлей-реестр собственных броней = шаг к переводу B2B/B2C-трафика с легаси-ядра
+- OBJ 1: СТ по инвентарю в CloudBox через BI готова, но экспертиза осела на уходящем Кравченко
+
+## Что не получилось сделать
+- [ ] SHOP-2033 метрика лага CDC не вышла из ревью
+- [ ] 4 задачи aif-handoff (2044–2047) заведены без исполнителя
+- [ ] чистка пути шоу 2036/2037 стоит без движения
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Ретро 09–11.10</h1><h2>Что было сделано</h2><ul class="todo"><li class="todo"><input type="checkbox" checked><span>Партия паритета extapi GET /ticket закрыта: SHOP-1504/1505/1506/1509/1511/1512/1513 + оверлей-реестр 2029 (Гордеев)</span></li><li class="todo"><input type="checkbox" checked><span>SHOP-2034 CDC-удаления мест по прошедшим закрыт (Орлова)</span></li><li class="todo"><input type="checkbox" checked><span>SHOP-1502 кэш ExtAPI Memcached→Redis закрыт (Морозов)</span></li><li class="todo"><input type="checkbox" checked><span>SHOP-1903 драфт СТ инвентарь/конструктив → CloudBox через BI закрыт (Кравченко)</span></li></ul><h2>Как это влияет на цели спринта</h2><ul><li>2026Q4-S2: закрыто 11 за 3 дня, 187/255 по эпикам — темп выше среднего</li><li>паритет GET /ticket — главный диск одержимости спринта — вышел из ревью</li></ul><h2>Как это влияет на цели квартала</h2><ul><li>OBJ 1: оверлей-реестр собственных броней = шаг к переводу B2B/B2C-трафика с легаси-ядра</li><li>OBJ 1: СТ по инвентарю в CloudBox через BI готова, но экспертиза осела на уходящем Кравченко</li></ul><h2>Что не получилось сделать</h2><ul class="todo"><li class="todo"><input type="checkbox"><span>SHOP-2033 метрика лага CDC не вышла из ревью</span></li><li class="todo"><input type="checkbox"><span>4 задачи aif-handoff (2044–2047) заведены без исполнителя</span></li><li class="todo"><input type="checkbox"><span>чистка пути шоу 2036/2037 стоит без движения</span></li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="retro-note" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="plan-note"><label class="scrim" for="plan-note" aria-hidden="true"></label><aside class="sheet left note" id="plan-note-sheet" role="dialog" data-key="2026-10-12-plan" data-section="Сегодня"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="plan-note" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>План на сегодня 2026-10-12
+## Задачи
+- [ ] SHOP-2036/2037 чистка пути шоу — назначить исполнителя
+- [ ] SHOP-2010 план BI-рефакторинга — проверить (Готово к проверке)
+- [ ] SHOP-2044–2047 aif-handoff — определить судьбу в S2
+
+## Созвоны
+- 16:00 Декомпозиция MSSQL → web_db (SHOP-1828) — этап 2 отказа от MSSQL
+- 13:00/15:00 маркетплейс tech + бизнес — стык по маркетплейсу
+
+## Договорённости
+- [ ] SHOP-2033 лаг CDC — статус ревью у Смирнова
+- [ ] SHOP-2034 CDC-удаления — демо на дейлике
+
+## Риски
+- уход Кравченко: экспертиза BI-шлюзов без преемника (1903 закрыт)
+- 8 задач без исполнителя: 2036/2037/2014/1479 + 2044–2047
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">План на сегодня 2026-10-12</h1><h2>Задачи</h2><ul class="todo"><li class="todo"><input type="checkbox"><span>SHOP-2036/2037 чистка пути шоу — назначить исполнителя</span></li><li class="todo"><input type="checkbox"><span>SHOP-2010 план BI-рефакторинга — проверить (Готово к проверке)</span></li><li class="todo"><input type="checkbox"><span>SHOP-2044–2047 aif-handoff — определить судьбу в S2</span></li></ul><h2>Созвоны</h2><ul><li>16:00 Декомпозиция MSSQL → web_db (SHOP-1828) — этап 2 отказа от MSSQL</li><li>13:00/15:00 маркетплейс tech + бизнес — стык по маркетплейсу</li></ul><h2>Договорённости</h2><ul class="todo"><li class="todo"><input type="checkbox"><span>SHOP-2033 лаг CDC — статус ревью у Смирнова</span></li><li class="todo"><input type="checkbox"><span>SHOP-2034 CDC-удаления — демо на дейлике</span></li></ul><h2>Риски</h2><ul><li>уход Кравченко: экспертиза BI-шлюзов без преемника (1903 закрыт)</li><li>8 задач без исполнителя: 2036/2037/2014/1479 + 2044–2047</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="plan-note" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="today-calendar"><label class="scrim" for="today-calendar" aria-hidden="true"></label><aside class="sheet left" role="dialog" id="today-calendar-sheet" aria-label="Календарь"><div class="head"><span class="chip">&#128197; 2026-10-12</span><span class="chip">10 созвон.</span><span style="flex:1"></span><label class="ib" for="today-calendar" role="button" aria-label="закрыть">&#10005;</label></div><div class="body" style="padding:0"><div class="cal"><div class="ev"><div class="tm">10:00–10:30</div><div><div class="tt">Daily команды</div><div class="wh">Витрина</div><div class="ag">дейлик</div></div></div><div class="ev"><div class="tm">10:00–11:00</div><div><div class="tt">Дейлик платформы</div><div class="wh">Платформа</div><div class="ag">дейлик платформы</div></div></div><div class="ev"><div class="tm">11:00–11:30</div><div><div class="tt">Daily смежной команды</div><div class="wh">Смежная команда</div></div></div><div class="ev"><div class="tm">12:00–12:05</div><div><div class="tt">Напоминание: подайте продуктовые инициативы</div><div class="ag">дедлайн подачи инициатив</div></div></div><div class="ev"><div class="tm">12:00–13:00</div><div><div class="tt">Перезапуск акции с сетью ресторанов</div><div class="wh">Рестораны</div><div class="ag">рестораны OBJ 2</div></div></div><div class="ev"><div class="tm">13:00–13:30</div><div><div class="tt">Маркетплейс × Витрина: tech</div><div class="wh">Маркетплейс</div><div class="ag">маркетплейс, техстык</div></div></div><div class="ev"><div class="tm">14:00–14:30</div><div><div class="tt">Продолжим</div></div></div><div class="ev"><div class="tm">14:30–15:00</div><div><div class="tt">Требования к задачам смежной команды</div><div class="wh">Смежная команда</div><div class="ag">процесс со смежной командой</div></div></div><div class="ev"><div class="tm">15:00–15:45</div><div><div class="tt">Синк с маркетплейсом: бизнес</div><div class="wh">Маркетплейс, Витрина</div><div class="ag">маркетплейс, бизнес</div></div></div><div class="ev"><div class="tm">16:00–16:30</div><div><div class="tt">Декомпозиция и сроки: MSSQL → web_db (SHOP-1828)</div><div class="wh">DBA, Витрина</div><div class="ag">отказ от лицензии MSSQL, OBJ 1</div></div></div></div></div><div class="foot"><span style="flex:1"></span><label class="btn close" for="today-calendar" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="risks-note"><label class="scrim" for="risks-note" aria-hidden="true"></label><aside class="sheet left note" id="risks-note-sheet" role="dialog" data-key="2026-10-12-risks" data-section="Риски по OKR"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="risks-note" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Актуализация рисков 2026-10-12
+## Новые
+- SHOP-2044–2047 aif-handoff: 4 задачи AI-Harness заведены без исполнителя (пт вечер)
+
+## Изменились
+- SHOP-1903 СТ инвентарь→CloudBox закрыт (пт) — риск сместился с доставки драфта на потерю экспертизы (Кравченко уходит)
+- SHOP-2033 лаг CDC дошёл до ревью — риск отставания метрики снижен
+
+## Сняты
+- SHOP-2034 CDC-удаления: закрыт, «ждут внимания» в SHOP = 0
+
+## Нужно решение
+- 8 задач без исполнителя/движения (2036/2037/2014/1479 + 2044–2047) — распределение на дейлике
+- преемник экспертизы BI-шлюзов после ухода Кравченко
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Актуализация рисков 2026-10-12</h1><h2>Новые</h2><ul><li>SHOP-2044–2047 aif-handoff: 4 задачи AI-Harness заведены без исполнителя (пт вечер)</li></ul><h2>Изменились</h2><ul><li>SHOP-1903 СТ инвентарь→CloudBox закрыт (пт) — риск сместился с доставки драфта на потерю экспертизы (Кравченко уходит)</li><li>SHOP-2033 лаг CDC дошёл до ревью — риск отставания метрики снижен</li></ul><h2>Сняты</h2><ul><li>SHOP-2034 CDC-удаления: закрыт, «ждут внимания» в SHOP = 0</li></ul><h2>Нужно решение</h2><ul><li>8 задач без исполнителя/движения (2036/2037/2014/1479 + 2044–2047) — распределение на дейлике</li><li>преемник экспертизы BI-шлюзов после ухода Кравченко</li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="risks-note" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="team-0-comment"><label class="scrim" for="team-0-comment" aria-hidden="true"></label><aside class="sheet left note" id="team-0-comment-sheet" role="dialog" data-key="2026-10-12-team-0-comment" data-section="Команда Витрина"><div class="head"><span class="check" aria-label="открыто"></span><span class="chip" title="2026-10-12">&#128197; Сегодня</span><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="team-0-comment" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Комментарий по команде Витрина 2026-10-12
+## SHOP-1147 Витрина CloudBox в обход uat_db (Epic High)
+Что уже сделано: партия паритета extapi GET /ticket закрыта (1504–1513, 2029), SHOP-2035 BI-рефакторинг заведен, план на проверке (2010)
+Что осталось: методы театра (2013), serviceFee партнёра (2012), DLQ-топик в прод (2048), утверждение плана BI
+Какие есть блокаторы: нет
+Какой следующий шаг: 2026-10-12 · проверить план BI-рефакторинга (Готово к проверке) · PO
+
+## SHOP-1989 БД web в Babelfish: 24 ХП, этап 2 отказа от MSSQL
+Что уже сделано: правки ночью пн 00:06 (Власенко); связанная встреча «Декомпозиция MSSQL → web_db» сегодня 16:00
+Что осталось: переписывание и сверка 24 ХП с MSSQL
+Какие есть блокаторы: нет
+Какой следующий шаг: 2026-10-12 · декомпозиция и сроки на созвоне 16:00 · Власенко/PO
+
+## SHOP-1737 AI HARNESS для витрины (Epic)
+Что уже сделано: заведены 4 задачи aif-handoff: 2044 пауза стадий, 2045 upstream sync, 2046 дистрибуция скиллов, 2047 CI/CD
+Что осталось: все 4 без исполнителя, статус Бэклог
+Какие есть блокаторы: нет исполнителя
+Какой следующий шаг: 2026-10-12 · распределить на дейлике · PO
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Комментарий по команде Витрина 2026-10-12</h1><h2>SHOP-1147 Витрина CloudBox в обход uat_db (Epic High)</h2><p>Что уже сделано: партия паритета extapi GET /ticket закрыта (1504–1513, 2029), SHOP-2035 BI-рефакторинг заведен, план на проверке (2010)</p><p>Что осталось: методы театра (2013), serviceFee партнёра (2012), DLQ-топик в прод (2048), утверждение плана BI</p><p>Какие есть блокаторы: нет</p><p>Какой следующий шаг: 2026-10-12 · проверить план BI-рефакторинга (Готово к проверке) · PO</p><h2>SHOP-1989 БД web в Babelfish: 24 ХП, этап 2 отказа от MSSQL</h2><p>Что уже сделано: правки ночью пн 00:06 (Власенко); связанная встреча «Декомпозиция MSSQL → web_db» сегодня 16:00</p><p>Что осталось: переписывание и сверка 24 ХП с MSSQL</p><p>Какие есть блокаторы: нет</p><p>Какой следующий шаг: 2026-10-12 · декомпозиция и сроки на созвоне 16:00 · Власенко/PO</p><h2>SHOP-1737 AI HARNESS для витрины (Epic)</h2><p>Что уже сделано: заведены 4 задачи aif-handoff: 2044 пауза стадий, 2045 upstream sync, 2046 дистрибуция скиллов, 2047 CI/CD</p><p>Что осталось: все 4 без исполнителя, статус Бэклог</p><p>Какие есть блокаторы: нет исполнителя</p><p>Какой следующий шаг: 2026-10-12 · распределить на дейлике · PO</p></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="team-0-comment" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="team-0-agree"><label class="scrim" for="team-0-agree" aria-hidden="true"></label><aside class="sheet left note" id="team-0-agree-sheet" role="dialog" data-key="2026-10-12-team-0-agree" data-section="Команда Витрина"><div class="head"><span style="flex:1"></span><noscript><span class="chip" style="color:#e0a538;font-size:12px" title="Откройте файл в Safari или Chrome">без скриптов: только текст, меню «/» недоступно</span></noscript><label class="ib" for="team-0-agree" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><textarea class="src" hidden>Договорённости с командой Витрина
+- [ ] план BI-рефакторинга для CloudBox — на проверку PO · от Гордеев · 2026-10-09 · для PO
+- [ ] демо CDC-удалений мест по прошедшим (SHOP-2034 закрыт) · от Орлова · 2026-10-09 · для PO
+</textarea><div class="note-view md" contenteditable="true" spellcheck="false"><h1 class="title">Договорённости с командой Витрина</h1><ul class="todo"><li class="todo"><input type="checkbox"><span>план BI-рефакторинга для CloudBox — на проверку PO · от Гордеев · 2026-10-09 · для PO</span></li><li class="todo"><input type="checkbox"><span>демо CDC-удалений мест по прошедшим (SHOP-2034 закрыт) · от Орлова · 2026-10-09 · для PO</span></li></ul></div></div><div class="foot"><span class="saved"></span><label class="btn close" for="team-0-agree" role="button">Закрыть</label></div></aside></div><div class="item"><input class="toggle left-toggle" type="checkbox" id="llm-note"><label class="scrim" for="llm-note" aria-hidden="true"></label><aside class="sheet right" role="dialog" id="llm-sheet" aria-label="Комментарии для LLM" data-date="2026-10-12 · Витрина"><div class="head"><span class="chip">Комментарии для LLM</span><span style="flex:1"></span><label class="ib" for="llm-note" role="button" aria-label="закрыть">&#10005;</label></div><div class="body"><p class="tail-hint" id="llm-status"><noscript>Без скриптов правки не отслеживаются: откройте файл в браузере.</noscript></p><textarea class="prompt" id="llm-prompt" spellcheck="false" placeholder="Правок нет — отчёт принят без изменений."></textarea></div><div class="foot"><button type="button" class="btn" id="llm-copy">Скопировать</button><span class="saved" id="llm-copied"></span><label class="btn close" for="llm-note" role="button">Закрыть</label></div></aside></div><script>
+const deck=document.querySelector('.deck');const slides=[...document.querySelectorAll('.slide')];
+document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('textarea,input,[contenteditable]'))return;const i=Math.round(deck.scrollTop/window.innerHeight);
+if(['ArrowDown','ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();slides[Math.min(i+1,slides.length-1)].scrollIntoView({behavior:'smooth'})}
+if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();slides[Math.max(i-1,0)].scrollIntoView({behavior:'smooth'})}
+if(e.key==='Escape'){document.querySelectorAll('.sheet[data-open]').forEach(s=>s.removeAttribute('data-open'))}});
+// ——— Блочный редактор заметки (порт BlockEditor из poh-okr-plugin, без React) ———
+const TYPES=[['text','T','Текст'],['h1','H1','Заголовок 1'],['h2','H2','Заголовок 2'],['h3','H3','Заголовок 3'],['bullet','•','Маркированный список'],['number','1.','Нумерованный список'],['todo','☑','Пункт с галочкой'],['quote','❝','Цитата'],['divider','—','Разделитель']];
+const CONT=new Set(['bullet','number','todo']);
+function parseLine(l){if(/^(-{3,}|\*{3,}|_{3,})$/.test(l.trim()))return{type:'divider',text:'',done:false};let m;
+if((m=/^[-*]\s+\[([ xX])\]\s?(.*)$/.exec(l)))return{type:'todo',text:m[2],done:m[1].toLowerCase()==='x'};
+for(const [re,t] of [[/^###\s+(.*)$/,'h3'],[/^##\s+(.*)$/,'h2'],[/^#\s+(.*)$/,'h1'],[/^>\s?(.*)$/,'quote'],[/^[-*]\s+(.*)$/,'bullet'],[/^\d+[.)]\s+(.*)$/,'number']]){if((m=re.exec(l)))return{type:t,text:m[1],done:false}}
+return{type:'text',text:l,done:false}}
+function fmt(b){switch(b.type){case'title':return b.text;case'divider':return'---';case'h1':return'# '+b.text;case'h2':return'## '+b.text;case'h3':return'### '+b.text;case'bullet':return'- '+b.text;case'number':return'1. '+b.text;case'quote':return'> '+b.text;case'todo':return`- [${b.done?'x':' '}] `+b.text;default:return b.text}}
+function shortcut(t){for(const [re,type] of [[/^###\s(.*)$/,'h3'],[/^##\s(.*)$/,'h2'],[/^#\s(.*)$/,'h1'],[/^>\s(.*)$/,'quote'],[/^[-*]\s\[[ xX]?\]\s?(.*)$/,'todo'],[/^\[[ xX]?\]\s?(.*)$/,'todo'],[/^[-*]\s(.*)$/,'bullet'],[/^\d+[.)]\s(.*)$/,'number']]){const m=re.exec(t);if(m)return{type,rest:m[1]}}return null}
+function mountEditor(host,markdown,onChange){
+const root=document.createElement('div');root.className='editor';root.contentEditable='true';root.spellcheck=false;
+const lines=String(markdown||'').replace(/\r\n?/g,'\n').split('\n');
+// Первая строка — название: неделимая часть заметки, любой длины.
+const title=lines.shift()||'';const rest=lines.length?lines.map(parseLine):[{type:'text',text:'',done:false}];
+const node=(b)=>{const n=document.createElement('div');n.setAttribute('data-block',b.type);
+if(b.type==='divider'){n.contentEditable='false';return n}
+if(b.type==='todo'){if(b.done)n.setAttribute('data-done','');const box=document.createElement('button');box.type='button';box.className='box';box.contentEditable='false';if(b.done)box.setAttribute('data-on','');
+box.addEventListener('mousedown',e=>e.preventDefault());box.addEventListener('click',()=>{const on=!n.hasAttribute('data-done');n.toggleAttribute('data-done',on);box.toggleAttribute('data-on',on);emit()});
+n.append(document.createTextNode(b.text),box);return n}
+if(b.type==='text')n.setAttribute('data-placeholder','Текст, «/» — блоки');n.textContent=b.text;return n};
+root.append(node({type:'title',text:title.replace(/^#\s+/,''),done:false}),...rest.map(node));
+const text=n=>n.textContent||'';
+const read=()=>[...root.children].map(n=>({type:n.getAttribute('data-block')||'text',text:text(n),done:n.hasAttribute('data-done')}));
+const serialize=()=>{const ls=read().map(fmt);while(ls.length>1&&ls[ls.length-1].trim()==='')ls.pop();return ls.join('\n')};
+const markEmpty=()=>{const only=root.children.length===2?root.children[1]:null;root.toggleAttribute('data-empty',!!only&&only.getAttribute('data-block')==='text'&&text(only).trim()==='')};
+const emit=()=>{markEmpty();onChange(serialize(),text(root.firstElementChild))};
+const cur=()=>{const sel=getSelection();if(!sel||!sel.rangeCount)return null;let n=sel.getRangeAt(0).startContainer;while(n&&n.parentElement&&n.parentElement!==root)n=n.parentElement;return n&&n.parentElement===root?n:null};
+const focus=n=>{const r=document.createRange();const sel=getSelection();if(n.getAttribute('data-block')==='todo'){let t=n.firstChild;if(!t||t.nodeType!==3){t=document.createTextNode('');n.prepend(t)}r.setStart(t,t.textContent.length);r.collapse(true)}else{r.selectNodeContents(n);r.collapse(false)}sel.removeAllRanges();sel.addRange(r)};
+let menu=null;const closeMenu=()=>{if(menu){menu.remove();menu=null}};
+const setType=(n,type)=>{if(n.getAttribute('data-block')==='title')return;const rep=node({type,text:type==='divider'?'':text(n),done:false});n.replaceWith(rep);
+if(type==='divider'){const after=node({type:'text',text:'',done:false});rep.after(after);focus(after)}else focus(rep);emit()};
+const openMenu=(n)=>{closeMenu();menu=document.createElement('div');menu.className='menu';let active=0;
+TYPES.forEach(([type,g,label],i)=>{const b=document.createElement('button');b.type='button';b.innerHTML=`<span class="g">${g}</span><span>${label}</span>`;if(i===0)b.setAttribute('data-active','');
+b.addEventListener('mousedown',e=>e.preventDefault());b.addEventListener('click',()=>{n.textContent='';closeMenu();setType(n,type)});menu.append(b)});
+menu.style.top=(n.offsetTop+n.offsetHeight+4)+'px';menu.style.left=n.offsetLeft+'px';host.append(menu);
+const key=e=>{if(!menu){document.removeEventListener('keydown',key,true);return}const items=[...menu.querySelectorAll('button')];
+if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();e.stopPropagation();items[active].removeAttribute('data-active');active=(active+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items[active].setAttribute('data-active','')}
+else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();items[active].click();document.removeEventListener('keydown',key,true)}
+else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeMenu();if(text(n)==='/'){n.textContent='';focus(n);emit()}document.removeEventListener('keydown',key,true)}};
+document.addEventListener('keydown',key,true)};
+root.addEventListener('input',()=>{const n=cur();if(n){const t=text(n);const type=n.getAttribute('data-block');
+if(type==='todo'){const box=n.querySelector('.box');if(box&&box.textContent){const stray=box.textContent;box.textContent='';let tn=n.firstChild;if(!tn||tn.nodeType!==3){tn=document.createTextNode('');n.prepend(tn)}tn.textContent+=stray;focus(n)}}
+if(type!=='title'){if(t==='/'){openMenu(n);return}
+if(menu&&t!=='/')closeMenu();
+if(type==='text'){if(/^-{3,}$/.test(t.trim())){setType(n,'divider');return}const sc=shortcut(t);if(sc){n.textContent=sc.rest;setType(n,sc.type);return}}}}
+emit()});
+root.addEventListener('beforeinput',e=>{const n=cur();if(!n)return;const type=n.getAttribute('data-block')||'text';
+if(e.inputType==='insertParagraph'||e.inputType==='insertLineBreak'){e.preventDefault();if(menu)return;
+if(CONT.has(type)&&text(n).trim()===''){setType(n,'text');return}
+const created=node({type:CONT.has(type)?type:'text',text:'',done:false});n.after(created);focus(created);emit();return}
+if(e.inputType==='deleteContentBackward'&&type!=='title'&&text(n).trim()===''){e.preventDefault();
+if(type!=='text'){setType(n,'text');return}const prev=n.previousElementSibling;if(!prev)return;n.remove();focus(prev);emit()}});
+markEmpty();host.removeAttribute('contenteditable');host.replaceChildren(root);return{serialize}}
+// при смене слайда открытые панели закрываются: вкладки принадлежат своему слайду
+(()=>{let active=null;const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting&&active!==en.target){if(active!==null){document.querySelectorAll('.toggle:checked').forEach(t=>{t.checked=false});const none=document.getElementById('sheet-none');if(none)none.checked=true}active=en.target}})},{threshold:.6});slides.forEach(sl=>io.observe(sl))})();
+// ——— «Комментарии для LLM»: промт из правок (исходник заметки vs localStorage) ———
+function lineDiff(a,b){const A=a.split('\n'),B=b.split('\n');const setA=new Set(A),setB=new Set(B);const out=[];
+A.forEach(l=>{if(!setB.has(l)&&l.trim())out.push('- '+l)});B.forEach(l=>{if(!setA.has(l)&&l.trim())out.push('+ '+l)});return out}
+function buildPrompt(){const sheet=document.getElementById('llm-sheet');if(!sheet)return;const date=sheet.dataset.date;const parts=[];let n=0;
+document.querySelectorAll('.note').forEach(note=>{const src=note.querySelector('textarea.src');if(!src)return;let cur=null;try{cur=localStorage.getItem('morning-note-'+note.dataset.key)}catch(_){}
+if(cur===null||cur===src.value)return;const d=lineDiff(src.value,cur);if(!d.length)return;n++;
+const title=cur.split('\n')[0]||src.value.split('\n')[0];parts.push(`## ${note.dataset.section||'Заметка'} · «${title}»\n${d.join('\n')}`)});
+const ta=document.getElementById('llm-prompt');const st=document.getElementById('llm-status');
+if(!n){ta.value='';st.textContent='Правок нет — отчёт принят без изменений.';return}
+st.textContent=`Правок: ${n}. Скопируй промт в чат dsh и запусти /morning.`;
+ta.value=[`Скорректируй утренний отчёт от ${date} по правкам PO ниже и перегенерируй его по актуальным данным Backlog.md и календаря (/morning). Правки PO имеют приоритет над данными; если правка противоречит данным — сохрани правку и вынеси расхождение в «Нужны решения». Строки «-» удалены PO, «+» добавлены PO (чеклист «[x]» — отмечено сделанным).`,'',...parts,'',`Правок: ${n}. Формат отчёта и разделы не менять.`].join('\n')}
+(()=>{const t=document.getElementById('llm-note');if(!t)return;t.addEventListener('change',()=>{if(t.checked)buildPrompt()});
+const copy=document.getElementById('llm-copy');copy&&copy.addEventListener('click',async()=>{const ta=document.getElementById('llm-prompt');try{await navigator.clipboard.writeText(ta.value);document.getElementById('llm-copied').textContent='скопировано'}catch(_){ta.select();document.execCommand&&document.execCommand('copy');document.getElementById('llm-copied').textContent='выделено — Cmd+C'}})})();
+document.querySelectorAll('.note').forEach(note=>{const key='morning-note-'+note.dataset.key;const src=note.querySelector('textarea.src');const host=note.querySelector('.note-view');const saved=note.querySelector('.saved');
+let stored=null;try{stored=localStorage.getItem(key)}catch(_){}
+const initial=stored??(src?src.value:'');
+const rowTitle=note.dataset.row?document.querySelector(`label.row[for="${note.dataset.row}"] .t`):null;
+mountEditor(host,initial,(mdText,title)=>{try{localStorage.setItem(key,mdText);saved.textContent='сохранено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}catch(_){saved.textContent='localStorage недоступен'}
+if(rowTitle)rowTitle.textContent=title});
+if(stored!==null&&rowTitle)rowTitle.textContent=initial.split('\n')[0]});
+</script></body></html>

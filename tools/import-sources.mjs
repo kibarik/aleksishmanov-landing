@@ -359,7 +359,7 @@ function importPrompts() {
 const SLIDE_REWRITES = [
   [/https:\/\/slides\.aleksishmanov\.ru\/?/g, 'https://aleksishmanov.ru/slides/'],
   // абсолютные пути каталога (в атрибутах, строках JS и url() CSS) — под /slides/
-  [/(["'(])\/(okr-quarter-planning|po-workspace-bft-plugin|sprint-under-manager|claude-desktop-zai-macos|instructions|i|components)\//g, '$1/slides/$2/'],
+  [/(["'(])\/(okr-quarter-planning|po-workspace-bft-plugin|sprint-under-manager|claude-desktop-zai-macos|po-news-feed|sprint-business-report|po-morning-brief|sprint-blockers-report|cortex-second-brain|instructions|i|components)\//g, '$1/slides/$2/'],
 ];
 
 function copyTree(from, to, rewrite) {

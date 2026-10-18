@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Бизнес-отчёт спринта: ценность от целей квартала</title>
+
+<!-- Превью ссылки. Краулеры не выполняют JS, поэтому блок статический.
+     Живёт в шаблоне, а не дописывается руками: иначе теряется при пересборке. -->
+<meta name="description" content="Какую бизнес-ценность команда создала за спринт в контексте целей квартала — и как чистота отчёта наводит порядок в JIRA разговором с ИИ-агентом.">
+<link rel="canonical" href="https://aleksishmanov.ru/slides/sprint-business-report/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Каталог презентаций · Алексей Ишманов">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="https://aleksishmanov.ru/slides/sprint-business-report/">
+<meta property="og:title" content="Бизнес-отчёт спринта: ценность от целей квартала">
+<meta property="og:description" content="Какую бизнес-ценность команда создала за спринт в контексте целей квартала — и как чистота отчёта наводит порядок в JIRA разговором с ИИ-агентом.">
+<meta property="og:image" content="https://aleksishmanov.ru/slides/sprint-business-report/cover.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="Первый слайд презентации «Бизнес-отчёт спринта: ценность от целей квартала»">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Бизнес-отчёт спринта: ценность от целей квартала">
+<meta name="twitter:description" content="Какую бизнес-ценность команда создала за спринт в контексте целей квартала — и как чистота отчёта наводит порядок в JIRA разговором с ИИ-агентом.">
+<meta name="twitter:image" content="https://aleksishmanov.ru/slides/sprint-business-report/cover.png">
+<meta name="twitter:image:alt" content="Первый слайд презентации «Бизнес-отчёт спринта: ценность от целей квартала»">
+<style>
+  :root { --bg:#efeee8; --ink:#080808; --blue:#2437ed; --muted:#51514b; --line:#c9c8c2; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #d9d8d3; }
+  body { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); overflow: hidden; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  /* Стейдж закреплён в окне: центр и масштаб считает fit() по видимой области (без полосы прокрутки). */
+  #stage { position: fixed; left: 0; top: 0; width: 1280px; height: 720px; flex: none; transform-origin: 0 0; }
+  .slide { position: absolute; inset: 0; padding: 84px 72px 64px; display: none; flex-direction: column; justify-content: flex-start; background: var(--bg); overflow: hidden; }
+  .slide.on { display: flex; }
+  .slide.center { justify-content: center; padding-top: 64px; }
+  .accent { color: var(--blue); }
+  h1 { font-size: 72px; line-height: 1.02; letter-spacing: -.045em; font-weight: 800; }
+  h1 .nw { white-space: nowrap; }
+  .cover h1 { font-size: 62px; }
+  h2 { font-size: 54px; line-height: 1.06; letter-spacing: -.04em; font-weight: 800; margin-bottom: 36px; }
+  .label { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 15px; font-weight: 700; letter-spacing: .08em; color: var(--blue); margin-bottom: 26px; }
+  .lead { font-size: 24px; line-height: 1.4; margin-top: 26px; max-width: 760px; }
+  .quote { border-left: 5px solid var(--blue); padding: 4px 0 4px 22px; font-size: 26px; line-height: 1.34; font-weight: 700; margin-top: 30px; }
+  .line { font-size: 22px; line-height: 1.4; color: var(--muted); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  /* титул */
+  .cover { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 56px; align-items: center; }
+  .photo { width: 300px; height: 300px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 8px 8px 0 var(--blue); display: block; }
+  .site { display: flex; justify-content: space-between; margin-top: 22px; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); text-decoration: none; color: var(--ink); }
+  .site span { font-family: "JetBrains Mono", monospace; font-size: 17px; font-weight: 700; padding: 13px 16px; }
+  .site i { display: flex; align-items: center; justify-content: center; width: 46px; background: var(--blue); color: #fff; font-style: normal; }
+  /* числа */
+  .nums { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 40px; margin-top: 18px; }
+  .num b { display: block; font-size: 220px; line-height: .9; letter-spacing: -.06em; font-weight: 800; }
+  .num.was b { color: #9a9890; }
+  .num.now b { color: var(--blue); }
+  .num span { display: block; font-size: 22px; color: var(--muted); margin-top: 16px; }
+  .nums .arr { font-size: 80px; color: var(--blue); font-weight: 800; padding-bottom: 96px; }
+  .slide.mid { align-items: center; text-align: center; }
+  .big { font-size: 200px; line-height: .9; letter-spacing: -.06em; font-weight: 800; color: var(--blue); }
+  .big small { font-size: 72px; letter-spacing: -.03em; margin-left: 12px; }
+  .big + .line { font-size: 28px; color: var(--ink); margin-top: 30px; line-height: 1.35; }
+  /* слайд 2: факты + мой день */
+  .grow { display: grid; grid-template-columns: 380px minmax(0,1fr); gap: 48px; align-items: start; flex: 1; min-height: 0; }
+  .facts p { display: grid; grid-template-columns: 70px 150px 1fr; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+  .facts s { font-size: 40px; font-weight: 800; color: #9a9890; text-decoration-thickness: 3px; }
+  .facts b { font-size: 76px; line-height: 1; font-weight: 800; letter-spacing: -.05em; color: var(--blue); }
+  .facts span { font-size: 22px; color: var(--muted); }
+  .facts .line { display: block; font-size: 22px; color: var(--ink); margin-top: 22px; line-height: 1.4; }
+  .days { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .day { position: relative; }
+  .dh { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 700; letter-spacing: .08em; margin-bottom: 8px; text-transform: uppercase; }
+  .dg { position: relative; height: 300px; border: 1px solid var(--ink); background: #fff; box-shadow: 5px 5px 0 var(--ink); }
+  .dg > i { position: absolute; left: 6px; font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 10px; color: #9a9890; transform: translateY(-50%); }
+  .dg > i:first-child { transform: none; top: 2px !important; }
+  .ev { position: absolute; left: 48px; right: 8px; border-radius: 4px; padding: 2px 8px; overflow: hidden; display: flex; align-items: center; }
+  .ev b { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .ev.m { background: #dfe3ff; color: var(--blue); border-left: 3px solid var(--blue); }
+  .ev.f { background: #e3f3e7; color: #17753a; border-left: 3px solid #1c8a3a; }
+  .ev.b { background: #fdf0d5; color: #8a5a00; border-left: 3px solid #d29b1f; }
+  .ev.r { background: #fde2e1; color: #b3261e; border-left: 3px solid #d8302a; }
+  .day:last-child .dg { box-shadow: 5px 5px 0 var(--blue); border-color: var(--blue); }
+  .ovr { margin-top: 10px; background: #d8302a; color: #fff; font-size: 14px; font-weight: 700; padding: 7px 10px; display: inline-block; }
+  .dnote { position: absolute; right: 0; bottom: -26px; margin: 0; }
+  /* слайд 3: мини-схемы в карточках */
+  .cards.vis .card { display: flex; flex-direction: column; }
+  .viz { height: 120px; margin-bottom: 20px; border-bottom: 1px dashed var(--line); position: relative; }
+  .tl { position: absolute; left: 0; right: 0; top: 70px; height: 2px; }
+  .tl u { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--ink); }
+  .pin { position: absolute; top: -40px; font-style: normal; font-size: 13px; font-weight: 700; padding: 3px 8px; transform: translateX(-50%); }
+  .pin::after { content: ""; position: absolute; left: 50%; top: 100%; height: 18px; border-left: 2px dashed currentColor; }
+  .pin.a { left: 18%; color: #9a9890; border: 1px dashed #9a9890; } .pin.b { left: 50%; color: #c76b00; border: 1px dashed #c76b00; } .pin.c { left: 82%; color: #fff; background: #d8302a; } .pin.c::after { border-left-style: solid; border-color: #d8302a; }
+  .wait { display: flex; flex-direction: column; gap: 9px; padding-top: 8px; }
+  .wait span { display: block; height: 24px; background: #fdf0d5; color: #8a5a00; font-size: 12px; font-weight: 700; padding: 4px 8px; white-space: nowrap; }
+  .wait span.red { background: #d8302a; color: #fff; }
+  .said { display: inline-block; background: var(--ink); color: #fff; font-size: 15px; padding: 8px 12px; border-radius: 12px 12px 12px 2px; }
+  .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 16px; }
+  .board i { height: 34px; background: #dfe3ff; border-radius: 3px; } .board i.st { background: #d8302a; }
+  /* карточки */
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; }
+  .card { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); padding: 26px 26px 28px; background: var(--bg); }
+  .card.blue { border-color: var(--blue); box-shadow: 6px 6px 0 var(--blue); }
+  .card h3 { font-size: 26px; line-height: 1.15; letter-spacing: -.025em; margin-bottom: 12px; }
+  .card p { font-size: 19px; line-height: 1.4; color: var(--muted); }
+  .steps { display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; align-items: stretch; }
+  .steps > .arr { display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: var(--blue); }
+  .tag { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; letter-spacing: .08em; background: var(--ink); color: var(--bg); padding: 5px 10px; margin-bottom: 18px; }
+  .card.blue .tag { background: var(--blue); }
+  .card .k { display: block; font-size: 58px; line-height: 1; letter-spacing: -.045em; font-weight: 800; margin-bottom: 14px; }
+  .card .k.t { font-size: 40px; }
+  .card.blue .k { color: var(--blue); }
+  ul.rows { list-style: none; display: flex; flex-direction: column; gap: 26px; margin-top: 10px; }
+  ul.rows li { font-size: 32px; line-height: 1.25; letter-spacing: -.02em; display: grid; grid-template-columns: 44px 1fr; }
+  ul.rows li::before { content: "→"; color: var(--blue); font-weight: 800; }
+  /* галерея */
+  .gal { display: grid; grid-template-columns: minmax(0,1fr) 236px; gap: 26px; flex: 1; min-height: 0; }
+  .gmain { position: relative; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--blue); background: #fff; overflow: hidden; cursor: zoom-in; display: flex; flex-direction: column; }
+  .gmain .gimg { flex: 1; min-height: 0; }
+  .gmain img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+  .gcap { background: var(--ink); color: #fff; padding: 12px 18px; display: flex; gap: 14px; align-items: baseline; }
+  .gcap span { font-family: "JetBrains Mono", monospace; font-size: 13px; color: #9fb0ff; }
+  .gcap b { font-size: 19px; } .gcap em { font-style: normal; font-size: 17px; opacity: .85; }
+  .glist { display: flex; flex-direction: column; gap: 4px; }
+  .glist button { font: inherit; text-align: left; background: none; border: 1px solid transparent; padding: 9px 12px; cursor: pointer; display: flex; gap: 12px; align-items: baseline; font-size: 18px; color: var(--muted); }
+  .glist button i { font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
+  .glist button.on { border-color: var(--blue); color: var(--ink); font-weight: 700; box-shadow: 4px 4px 0 var(--blue); background: #fff; }
+  .glist button.on i { color: var(--blue); }
+  /* демо */
+  .demo { position: relative; flex: 1; min-height: 0; border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--blue); background: #fff; overflow: hidden; margin-top: 18px; }
+  .demo iframe { width: 142.86%; height: 142.86%; transform: scale(.7); transform-origin: 0 0; border: 0; display: block; }
+  .fs-btn { position: absolute; right: 16px; bottom: 16px; z-index: 3; font: inherit; font-size: 15px; font-weight: 700; padding: 10px 16px; cursor: pointer; background: var(--blue); color: #fff; border: none; }
+  .demo-loader { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--muted); transition: opacity .25s; }
+  .demo-loader.done { opacity: 0; pointer-events: none; }
+  .spin { width: 28px; height: 28px; border: 3px solid #d9d8d0; border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* чат агента */
+  .agentrow { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 40px; align-items: end; }
+  .chatw { border: 1px solid var(--ink); box-shadow: 6px 6px 0 var(--blue); background: #fff; }
+  .cw-h { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #e3e1da; }
+  .cw-h b { font-size: 18px; } .cw-h span { font-size: 14px; background: #f0f3f7; padding: 4px 12px; border-radius: 14px; }
+  .cw-b { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; font-size: 17px; line-height: 1.4; }
+  .cw-m { align-self: flex-end; background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 12px 12px 2px 12px; max-width: 86%; }
+  .cw-card { border: 1px solid #d5d3cc; border-radius: 10px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .cw-card > b { font-size: 15px; }
+  .cw-card label { display: flex; gap: 10px; align-items: baseline; font-size: 16px; }
+  .ck { display: inline-flex; width: 18px; height: 18px; flex: none; border: 1.5px solid #9a9890; border-radius: 4px; font-style: normal; font-size: 12px; align-items: center; justify-content: center; }
+  .ck.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .cw-btns { display: flex; gap: 10px; margin-top: 4px; }
+  .cw-btns u { text-decoration: none; background: var(--blue); color: #fff; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+  .cw-btns s { text-decoration: none; background: #f0f3f7; padding: 7px 14px; border-radius: 6px; font-size: 14px; }
+  .cw-s { font-family: "JetBrains Mono", monospace; font-size: 13px; color: #1c8a3a; line-height: 1.6; } .cw-s b { color: var(--ink); }
+  .agentrow .line { font-size: 24px; color: var(--ink); line-height: 1.35; padding-bottom: 8px; }
+  /* hero «Факт спринта» */
+  .fact { display: grid; grid-template-columns: 500px minmax(0,1fr); gap: 40px; align-items: center; height: 100%; }
+  .fact h1 { font-size: 104px; line-height: .96; }
+  .fan { position: relative; height: 430px; }
+  .fan img { position: absolute; width: 560px; aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; border: 1px solid var(--ink); background: #fff; }
+  .fan .f1 { right: 0; top: 0; box-shadow: 6px 6px 0 var(--ink); }
+  .fan .f2 { right: 30px; top: 30px; box-shadow: 6px 6px 0 var(--ink); }
+  .fan .f3 { right: 60px; top: 60px; box-shadow: 10px 10px 0 var(--blue); }
+  /* C4 */
+  .c4 { width: 100%; height: auto; display: block; margin-top: -4px; }
+  .c4list { display: none; }
+  /* финал */
+  .final { display: grid; grid-template-columns: minmax(0,1fr) 430px; gap: 50px; align-items: center; height: 100%; }
+  .final h1 { font-size: 88px; }
+  .repo { display: inline-block; margin-top: 34px; font-size: 24px; font-weight: 700; color: var(--blue); text-decoration: none; border-bottom: 3px solid var(--blue); padding-bottom: 4px; }
+  .term { background: var(--ink); color: #e9e8e2; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 21px; line-height: 2; padding: 26px 30px; box-shadow: 8px 8px 0 var(--blue); }
+  .term i { font-style: normal; color: #9fb0ff; }
+  .term span { color: #7d7c76; font-size: 15px; display: block; line-height: 1.4; margin-bottom: 10px; }
+  /* 4 шага */
+  .steps.four { grid-template-columns: 1fr 30px 1fr 30px 1fr 30px 1fr; }
+  .steps.four .card { padding: 22px 20px 24px; } .steps.four .card .k { font-size: 48px; } .steps.four .card p { font-size: 17px; }
+  /* нарезка: комментарий → синхронизация */
+  .story { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 22px; flex: 1; min-height: 0; }
+  .shot { display: flex; flex-direction: column; min-height: 0; }
+  .fr { flex: 1; min-height: 0; border: 1px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); background: #fff; overflow: hidden; padding: 14px; font-size: 13.5px; line-height: 1.45; }
+  .fr.img { padding: 0; display: flex; align-items: center; justify-content: center; background: #f7f6f2; }
+  .fr.img img { width: 100%; height: 100%; object-fit: contain; }
+  .fr.mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12px; white-space: pre-wrap; color: #333; background: #fbfbf8; }
+  .fr.term { background: #111; color: #e6e5df; border-color: #111; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12.5px; white-space: pre-wrap; }
+  .fr.term b { color: #9fb0ff; font-weight: 700; } .fr.term em { font-style: normal; color: #f2c14e; } .fr.term u { text-decoration: none; color: #4ade80; }
+  .fr.done { display: flex; flex-direction: column; gap: 12px; justify-content: center; font-size: 16px; box-shadow: 5px 5px 0 var(--blue); border-color: var(--blue); }
+  .fr.done p { display: flex; gap: 10px; } .fr.done i { font-style: normal; color: #1c8a3a; font-weight: 800; }
+  .cap { margin-top: 14px; font-size: 17px; line-height: 1.35; } .cap b { display: block; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--blue); margin-bottom: 4px; }
+  .sub2 { font-size: 20px; color: var(--muted); margin: -20px 0 22px; }
+  /* «живой отчёт» в галерее */
+  .glist .glive { margin-top: auto; display: block; color: #fff; box-shadow: 4px 4px 0 var(--ink); font: inherit; font-size: 16px; font-weight: 700; background: var(--blue); color: #fff; border: 0; padding: 12px 14px; cursor: pointer; text-align: left; }
+  /* hero «на поток»: кольцо */
+  .ring { width: 100%; height: auto; display: block; }
+  /* диаграммы */
+  .proc { width: 100%; height: auto; display: block; }
+  .proclist { display: none; }
+  /* навигация и оверлеи */
+  #nav { position: fixed; right: 18px; bottom: 16px; z-index: 40; display: flex; align-items: center; gap: 8px; background: rgba(239,238,232,.95); border: 1px solid var(--ink); padding: 5px 9px; }
+  #nav button { font: inherit; font-size: 16px; width: 26px; height: 24px; cursor: pointer; background: none; border: none; }
+  #nav .p { font-family: "JetBrains Mono", monospace; font-size: 12px; min-width: 46px; text-align: center; }
+  #bar { position: fixed; left: 0; top: 0; height: 3px; background: var(--blue); z-index: 41; transition: width .18s; }
+  #lb, #dfs { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; }
+  #lb.on, #dfs.on { display: flex; }
+  #lb { background: rgba(10,10,10,.95); } #dfs { background: #fff; }
+  .ov-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; }
+  #lb .ov-top { color: #fff; } #dfs .ov-top { background: var(--ink); color: #fff; }
+  .ov-x { background: none; border: 1px solid currentColor; color: inherit; font: inherit; font-size: 12px; padding: 5px 11px; cursor: pointer; }
+  #lb .body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 22px 22px; }
+  #lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .dfs-body { position: relative; flex: 1; display: flex; } .dfs-body iframe { flex: 1; border: 0; }
+
+  /* Телефон и узкий портрет: без масштаба, слайды идут лентой в одну колонку. */
+  @media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+    html, body { height: auto; overflow: auto; display: block; background: var(--bg); }
+    #stage { position: static; width: auto; height: auto; transform: none !important; }
+    .slide { position: relative; inset: auto; display: flex !important; padding: 40px 18px 44px; border-bottom: 1px solid var(--line); }
+    .slide.center { padding-top: 40px; }
+    #nav, #bar { display: none; }
+    h1, .final h1, .cover h1 { font-size: 40px; } .fact h1 { font-size: 56px; }
+    h2 { font-size: 32px; margin-bottom: 22px; }
+    .lead { font-size: 18px; } .quote { font-size: 20px; } .line, .agentrow .line { font-size: 18px; }
+    h1 .nw { white-space: normal; }
+    .cover, .fact, .final, .agentrow { grid-template-columns: 1fr; gap: 26px; height: auto; }
+    .photo { width: 150px; height: 150px; } .site { max-width: 260px; }
+    .nums { gap: 12px; } .num b { font-size: 84px; } .num span { font-size: 15px; } .nums .arr { font-size: 36px; padding-bottom: 40px; }
+    .big { font-size: 110px; } .big small { font-size: 40px; } .big + .line { font-size: 20px; }
+    .cards { grid-template-columns: 1fr; gap: 18px; }
+    .steps { grid-template-columns: 1fr; } .steps > .arr { height: 34px; transform: rotate(90deg); }
+    .card .k { font-size: 44px; } .card h3 { font-size: 22px; } .card p { font-size: 17px; }
+    ul.rows li { font-size: 22px; grid-template-columns: 32px 1fr; } ul.rows { gap: 16px; }
+    .gal { grid-template-columns: 1fr; } .gmain .gimg { aspect-ratio: 16 / 10; flex: none; }
+    .glist { flex-direction: row; overflow-x: auto; gap: 6px; } .glist button { flex: none; font-size: 15px; padding: 7px 10px; white-space: nowrap; }
+    .gcap { flex-wrap: wrap; } .gcap em { font-size: 15px; }
+    .demo { flex: none; height: 110px; } .demo iframe, .demo .demo-loader { display: none; }
+    .fs-btn { left: 16px; right: 16px; top: 50%; bottom: auto; transform: translateY(-50%); padding: 14px; }
+    .cw-b { font-size: 15px; } .cw-m { max-width: 100%; }
+    .fan { height: auto; } .fan img { position: static; width: 100%; } .fan .f1, .fan .f2 { display: none; }
+    .c4 { display: none; } .c4list { display: flex; flex-direction: column; gap: 14px; }
+    .term { font-size: 16px; padding: 20px; }
+    .steps.four { grid-template-columns: 1fr; }
+    .story { grid-template-columns: 1fr; } .fr { min-height: 220px; }
+    .sub2 { margin: -10px 0 16px; font-size: 16px; }
+    .ring { max-width: 340px; margin: 0 auto; }
+    .proc { display: none; } .proclist { display: flex; flex-direction: column; gap: 14px; }
+    .glist .glive { margin-top: 10px; }
+    .grow, .days { grid-template-columns: 1fr; gap: 24px; } .facts b { font-size: 56px; } .facts p { grid-template-columns: 50px 110px 1fr; }
+    .dnote { position: static; } .viz { height: 110px; }
+  }
+  /* слайд 2: два зрителя одного отчёта */
+  .aud { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+  .ap .dh { margin-bottom: 12px; }
+  .ap .said { margin-bottom: 14px; font-size: 18px; }
+  .ap.biz .said { background: var(--blue); }
+  .scr { border: 1px solid var(--ink); background: #fff; box-shadow: 5px 5px 0 var(--ink); padding: 18px 20px; height: 196px; }
+  .ap.biz .scr { border-color: var(--blue); box-shadow: 5px 5px 0 var(--blue); }
+  .scr .board { margin-top: 0; } .scr .board i { height: 30px; }
+  .scr .cap2 { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); margin-top: 14px; letter-spacing: .04em; }
+  .gb p { display: grid; grid-template-columns: 62px 1fr 46px; gap: 12px; align-items: center; margin-bottom: 14px; font-size: 14px; font-weight: 700; }
+  .gb u { display: block; height: 14px; background: #e7e6df; position: relative; }
+  .gb u i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); }
+  .gb em { font-style: normal; color: var(--blue); text-align: right; }
+  .gb p.cap2 { display: block; margin: 18px 0 0; font-weight: 400; }
+  .aud + .line { margin-top: 30px; color: var(--ink); }
+  /* слайд 3: слайд статуса, собранный руками */
+  .sl { border: 1px solid var(--ink); background: #fff; height: 64px; margin-top: 12px; padding: 10px 12px; position: relative; }
+  .sl i { display: block; height: 7px; background: #dcdbd5; margin-bottom: 7px; } .sl i:nth-child(2) { width: 70%; } .sl i:nth-child(3) { width: 45%; }
+  .sl b { position: absolute; right: 8px; top: -11px; background: #d8302a; color: #fff; font-size: 12px; padding: 2px 8px; }
+  /* слайд 11: беспорядок в JIRA → место на слайде */
+  .map { display: grid; grid-template-columns: minmax(0,1fr) 54px minmax(0,1fr); gap: 12px 0; align-items: stretch; }
+  .map .mh { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--muted); padding-bottom: 2px; }
+  .map .mh.r { color: var(--blue); }
+  .map .j, .map .d { border: 1px solid var(--ink); background: #fff; padding: 14px 18px; font-size: 21px; line-height: 1.25; }
+  .map .j { box-shadow: 4px 4px 0 var(--ink); }
+  .map .d { border-color: var(--blue); box-shadow: 4px 4px 0 var(--blue); font-weight: 700; }
+  .map .d small { display: block; font-size: 15px; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  .map .a { display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--blue); }
+  /* слайд 12: доля задач к целям растёт от спринта к спринту */
+  .grow2 { display: grid; grid-template-columns: minmax(0,1fr) 400px; gap: 46px; align-items: end; flex: 1; min-height: 0; }
+  .trend { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; align-items: end; height: 300px; border-bottom: 2px solid var(--ink); }
+  .trend .c { display: flex; flex-direction: column; height: 100%; justify-content: flex-end; }
+  .trend .c i { display: block; } .trend .c .g { background: var(--blue); } .trend .c .o { background: #b9b8b0; } .trend .c .e { background: #d8302a; }
+  .tlab { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); text-align: center; margin-top: 8px; }
+  .leg { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; font-size: 15px; color: var(--muted); }
+  .leg span::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 7px; vertical-align: -1px; background: var(--c); }
+  .grow2 .cards { grid-template-columns: 1fr; gap: 20px; }
+  .grow2 .card { padding: 20px 22px 22px; } .grow2 .card h3 { font-size: 23px; } .grow2 .card p { font-size: 17px; }
+  /* слайд 8: чат агента внутри кадра */
+  .fr.chat { padding: 0; display: flex; flex-direction: column; box-shadow: 5px 5px 0 var(--blue); border-color: var(--blue); }
+  .fr.chat .cw-h { padding: 10px 12px; } .fr.chat .cw-h b { font-size: 14px; } .fr.chat .cw-h span { font-size: 11px; padding: 3px 8px; }
+  .fr.chat .cw-b { padding: 10px 12px; gap: 9px; font-size: 13px; }
+  .fr.chat .cw-m { font-size: 12.5px; padding: 8px 10px; max-width: 100%; }
+  .fr.chat .cw-card { padding: 9px 10px; gap: 6px; } .fr.chat .cw-card > b { font-size: 12.5px; } .fr.chat .cw-card label { font-size: 12.5px; gap: 7px; }
+  .fr.chat .ck { width: 15px; height: 15px; font-size: 10px; }
+  .fr.chat .cw-btns u, .fr.chat .cw-btns s { font-size: 12px; padding: 5px 10px; }
+  @media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+    .aud { grid-template-columns: 1fr; gap: 26px; } .scr { height: auto; } .ap .said { font-size: 15px; }
+    .map { grid-template-columns: 1fr; gap: 6px; } .map .a { transform: rotate(90deg); height: 26px; } .map .mh.r { display: none; }
+    .map .j, .map .d { font-size: 17px; } .map .d small { font-size: 14px; } .map .mh:first-child { margin-bottom: 4px; }
+    .grow2 { grid-template-columns: 1fr; gap: 28px; } .trend { height: 200px; gap: 8px; } .tlab { gap: 8px; font-size: 10px; }
+    .fr.chat { min-height: 300px; }
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage">
+
+  <!-- 1 · титул -->
+  <section class="slide center on" data-title="Бизнес-отчёт спринта">
+    <div class="cover">
+      <div>
+        <h1><span class="nw">Бизнес-отчёт спринта:</span><br><span class="accent">ценность от целей</span></h1>
+        <p class="lead">Что команда сделала за спринт для целей квартала — одной колодой, без ручных слайдов.</p>
+        <p class="quote">Бизнесу не нужны статусы подзадач.<br>Ему важно, насколько ближе цель квартала.</p>
+      </div>
+      <div>
+        <img class="photo" id="coverPhoto" alt="Автор">
+        <a class="site" href="https://aleksishmanov.ru/" target="_blank" rel="noopener"><span>aleksishmanov.ru</span><i>↗</i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · ситуация -->
+  <section class="slide" data-title="У отчёта появился второй зритель">
+    <h2>У отчёта появился<br><span class="accent">второй зритель</span></h2>
+    <div class="aud">
+      <div class="ap">
+        <div class="dh">Техлиды</div>
+        <div class="said">Что застряло и у кого?</div>
+        <div class="scr"><div class="board"><i></i><i class="st"></i><i></i><i></i><i class="st"></i><i></i><i></i><i></i><i class="st"></i><i></i><i></i><i></i></div><p class="cap2">ЭПИКИ · СТАТУСЫ · ПОДЗАДАЧИ</p></div>
+      </div>
+      <div class="ap biz">
+        <div class="dh accent">Бизнес и комитет</div>
+        <div class="said">Насколько ближе цель квартала?</div>
+        <div class="scr gb"><p>OBJ 1<u><i style="width:70%"></i></u><em>70%</em></p><p>OBJ 2<u><i style="width:40%"></i></u><em>40%</em></p><p>OBJ 3<u><i style="width:85%"></i></u><em>85%</em></p><p class="cap2">ЦЕЛИ · РЕЗУЛЬТАТ · МЕТРИКИ · ИЛЛЮСТРАЦИЯ</p></div>
+      </div>
+    </div>
+    <p class="line">Данные одни и те же. Вопросы — разные.</p>
+  </section>
+
+  <!-- 3 · проблема -->
+  <section class="slide" data-title="Технический отчёт бизнесу не отвечает">
+    <h2>Технический отчёт<br><span class="accent">бизнесу не отвечает</span></h2>
+    <div class="cards vis">
+      <div class="card"><div class="viz"><div class="said">А это к какой цели?</div><div class="board"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><h3>Цель квартала не видна</h3><p>На доске задачи, а не цель, к которой они ведут.</p></div>
+      <div class="card"><div class="viz"><div class="said">Всё по плану 👍</div><div class="sl"><i></i><i></i><i></i><b>устарел</b></div></div><h3>Итог — пересказом</h3><p>Слайды статуса собирают руками, цифры устаревают сразу.</p></div>
+      <div class="card"><div class="viz"><div class="wait"><span style="width:20%">1 день</span><span style="width:55%">3 дня</span><span class="red" style="width:92%">5 дней в ожидании</span></div></div><h3>Блокеры тонут в статусах</h3><p>Где нужна помощь руководства — видно на срыве.</p></div>
+    </div>
+  </section>
+
+  <!-- 4 · цена -->
+  <section class="slide center mid" data-title="Цена ручного статуса для бизнеса">
+    <div class="big">2<small>часа</small></div>
+    <p class="line">каждый спринт на слайды статуса для бизнеса —<br>и цифры расходятся с трекером в момент сборки</p>
+  </section>
+
+  <!-- 5 · hero «Факт спринта» -->
+  <section class="slide center" data-title="Факт спринта">
+    <div class="fact">
+      <div>
+        <div class="label">ДЛЯ КОМИТЕТА И БИЗНЕСА</div>
+        <h1>Факт<br><span class="accent">спринта</span></h1>
+        <p class="lead">Колода от целей квартала из тех же данных, что отчёт PO. Цифры — из трекера, тексты — агент.</p>
+      </div>
+      <div class="fan"><img class="f1" src="img/06-ops.webp" alt="" loading="lazy"><img class="f2" src="img/02-team.webp" alt="" loading="lazy"><img class="f3" src="img/03-obj.webp" alt="Колода «ФАКТ | спринт»" loading="lazy"></div>
+    </div>
+  </section>
+
+  <!-- 6 · решение -->
+  <section class="slide" data-title="Решение">
+    <h2>Итог собирается<br><span class="accent">от целей, а не от задач</span></h2>
+    <div class="steps four">
+      <div class="card"><div class="tag">СБОРЩИК</div><span class="k">08:30</span><p>тот же снимок, что у отчёта PO</p></div>
+      <div class="arr">+</div>
+      <div class="card"><div class="tag">ЦЕЛИ</div><span class="k">OKR</span><p>OBJ и KR — раз в квартал у PO-агента</p></div>
+      <div class="arr">→</div>
+      <div class="card"><div class="tag">АГЕНТ</div><span class="k">ИИ</span><p>итог, блокер и шаг по каждому KR</p></div>
+      <div class="arr">→</div>
+      <div class="card blue"><div class="tag">КОЛОДА</div><span class="k">1 цель</span><p>= 1 слайд, результат светофором</p></div>
+    </div>
+  </section>
+
+  <!-- 7 · экраны «ФАКТ | спринт» -->
+  <section class="slide" data-title="«ФАКТ | спринт»: экраны">
+    <h2>«ФАКТ | спринт»: <span class="accent">8 экранов</span></h2>
+    <div class="gal"><div class="gmain"><div class="gimg"><img class="gpic" src="img/01-title.webp" alt="Титул" decoding="async"></div><div class="gcap"><span class="gn">01 / 08</span><b class="gt">Титул</b><em class="gd">Закрыто, SP и блокеры по каждой команде</em></div></div><div class="glist"><button data-src="img/01-title.webp" data-t="Титул" data-d="Закрыто, SP и блокеры по каждой команде" class=on><i>01</i>Титул</button><button data-src="img/02-team.webp" data-t="Команда" data-d="Цели квартала, которым служил спринт"><i>02</i>Команда</button><button data-src="img/03-obj.webp" data-t="Цель" data-d="Итог, следующий шаг и светофор по KR"><i>03</i>Цель</button><button data-src="img/04-stories.webp" data-t="Истории спринта" data-d="Задачи спринта по статусам, блокер и активность"><i>04</i>Истории спринта</button><button data-src="img/05-epic.webp" data-t="Эпик / инициатива" data-d="Весь эпик: сгорание, прогноз, что осталось"><i>05</i>Эпик / инициатива</button><button data-src="img/06-ops.webp" data-t="Операционка" data-d="Производительность, сгорание, cycle time"><i>06</i>Операционка</button><button data-src="img/07-plans.webp" data-t="Планы" data-d="Взять, доделать, эскалировать"><i>07</i>Планы</button><button data-src="img/08-members.webp" data-t="Участники" data-d="Прошлый, текущий спринт и работа вне его"><i>08</i>Участники</button><button class="glive fs-btn2" data-src="demo/business.html" data-title="Колода «ФАКТ | спринт» · демо-данные">Открыть живую колоду ↗</button></div></div>
+  </section>
+
+  <!-- 8 · замечание → правка в JIRA -->
+  <section class="slide" data-title="Замечание → правка в JIRA">
+    <h2>Замечание к отчёту → <span class="accent">правка в JIRA</span></h2>
+    <p class="sub2">ИИ-агент рядом с колодой читает Jira; пишет в неё сервис — только после ✅ PO.</p>
+    <div class="story">
+      <div class="shot"><div class="fr img"><img src="img/comment.webp" alt="Замечание к строке колоды" loading="lazy"></div><p class="cap"><b>01</b>Замечание к строке — правым кликом</p></div>
+      <div class="shot"><div class="fr mono">Комментарии к отчёту · Каталог · Спринт 41
+
+1. [KR 2.3 · INIT-219] Сервис приёма событий вторую неделю в ожидании. Это блокер? Кто эскалирует?
+2. [Без привязки к OKR · INIT-241] «Очередь модерации» дважды: INIT-242 и INIT-220.
+3. [Вне эпиков] Рефакторинг и мониторинг — это наблюдаемость, INIT-227.</div><p class="cap"><b>02</b>Замечания уходят агенту одной пачкой</p></div>
+      <div class="shot"><div class="fr chat"><div class="cw-h"><b>🤖 ИИ-агент</b><span>Каталог</span></div><div class="cw-b"><div class="cw-m">Разбери замечания к отчёту</div><div class="cw-card"><b>План правок</b><label><i class="ck on">✓</i>INIT-225 → «Заблокировано», блокер — в комментарий</label><label><i class="ck on">✓</i>INIT-242 дублирует INIT-220 — связь</label><label><i class="ck on">✓</i>INIT-249, INIT-250 → эпик INIT-227</label><div class="cw-btns"><u>Применить</u><s>Отмена</s></div></div></div></div><p class="cap"><b>03</b>Агент сверяет с доской и предлагает план</p></div>
+      <div class="shot"><div class="fr done"><p><i>✓</i>INIT-225 — статус и комментарий</p><p><i>✓</i>INIT-242 — связь с INIT-220</p><p><i>✓</i>2 истории — в эпике INIT-227</p><p><i>↻</i>колода собрана на свежих данных</p></div><p class="cap"><b>04</b>JIRA и колода снова совпадают</p></div>
+    </div>
+  </section>
+
+  <!-- 9 · на практике -->
+  <section class="slide" data-title="На практике">
+    <h2>На <span class="accent">практике</span></h2>
+    <ul class="rows">
+      <li><span>Слайды статуса <b>руками не собираются</b></span></li>
+      <li><span>Комитет видит <b>ценность по целям, а не задачи</b></span></li>
+      <li><span>Блокеры с эскалацией — <b>на виду до срыва</b></span></li>
+      <li><span>Вопрос комитета — <b>сразу правка в JIRA</b></span></li>
+    </ul>
+  </section>
+
+  <!-- 10 · hero «Чистота JIRA» -->
+  <section class="slide center" data-title="Чистота отчёта = чистота JIRA">
+    <div class="fact">
+      <div>
+        <div class="label">ДОПОЛНИТЕЛЬНАЯ ПОЛЬЗА</div>
+        <h1>Чистота<br><span class="accent">JIRA</span></h1>
+        <p class="lead">Чистота отчёта = чистота JIRA. Каждый беспорядок в трекере виден на слайде — и правится разговором.</p>
+      </div>
+      <div class="fan"><img class="f1" src="img/07-plans.webp" alt="" loading="lazy"><img class="f2" src="img/08-members.webp" alt="" loading="lazy"><img class="f3" src="img/05-epic.webp" alt="Эпик целиком" loading="lazy"></div>
+    </div>
+  </section>
+
+  <!-- 11 · беспорядок виден на слайде -->
+  <section class="slide" data-title="Беспорядок в JIRA виден на слайде">
+    <h2>Беспорядок в JIRA<br><span class="accent">виден на слайде</span></h2>
+    <div class="map">
+      <div class="mh">В JIRA</div><div></div><div class="mh r">НА СЛАЙДЕ</div>
+      <div class="j">Эпик не привязан к цели квартала</div><div class="a">→</div><div class="d">«Без привязки к OKR»<small>отдельный слайд — его видно сразу</small></div>
+      <div class="j">История без эпика</div><div class="a">→</div><div class="d">Строка «Вне эпиков»<small>работа есть, ценности не видно</small></div>
+      <div class="j">Статус не двигали неделю</div><div class="a">→</div><div class="d">Результат вниз, строка краснеет<small>проще поправить, чем объяснять</small></div>
+      <div class="j">На доске люди не из команды</div><div class="a">→</div><div class="d">[EXT] на «Участниках»<small>и работа мимо спринта</small></div>
+    </div>
+  </section>
+
+  <!-- 12 · маленькие правки → большая перестройка -->
+  <section class="slide" data-title="Маленькие правки → большая перестройка">
+    <h2>Маленькие правки каждый спринт —<br><span class="accent">большая перестройка JIRA</span></h2>
+    <div class="grow2">
+      <div><div class="trend"><div class="c"><i class="e" style="height:25%"></i><i class="o" style="height:30%"></i><i class="g" style="height:45%"></i></div><div class="c"><i class="e" style="height:18%"></i><i class="o" style="height:27%"></i><i class="g" style="height:55%"></i></div><div class="c"><i class="e" style="height:15%"></i><i class="o" style="height:22%"></i><i class="g" style="height:63%"></i></div><div class="c"><i class="e" style="height:11%"></i><i class="o" style="height:17%"></i><i class="g" style="height:72%"></i></div><div class="c"><i class="e" style="height:8%"></i><i class="o" style="height:12%"></i><i class="g" style="height:80%"></i></div><div class="c"><i class="e" style="height:5%"></i><i class="o" style="height:8%"></i><i class="g" style="height:87%"></i></div></div><div class="tlab"><span>С1</span><span>С2</span><span>С3</span><span>С4</span><span>С5</span><span>С6</span></div><div class="leg"><span style="--c:#2437ed">к целям квартала</span><span style="--c:#b9b8b0">без привязки к OKR</span><span style="--c:#d8302a">вне эпиков</span></div><p class="note">Доля задач спринта · иллюстрация</p></div>
+      <div class="cards">
+        <div class="card"><div class="tag">БЕЗ АГЕНТА</div><h3>Отдельный проект</h3><p>Реструктуризацию JIRA делают руками в браузере — и откладывают.</p></div>
+        <div class="card blue"><div class="tag">С ИИ-АГЕНТОМ</div><h3>Пара правок к каждому отчёту</h3><p>Разговором в чате рядом с колодой. Доска перестраивается по ходу.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · hero «Как поставить на поток» -->
+  <section class="slide center" data-title="Как поставить на поток">
+    <div class="fact">
+      <div>
+        <div class="label">ДЛЯ ВНЕДРЕНИЯ</div>
+        <h1>Как поставить<br><span class="accent">на поток</span></h1>
+        <p class="lead">Один раз задать цели квартала — дальше колода и JIRA чистятся на каждом цикле.</p>
+      </div>
+      <div><svg class="ring" viewBox="-30 -10 520 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Цикл: сбор, колода, замечания, правки в JIRA"><defs><marker id="rae" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2437ed"/></marker></defs><path d="M281 91 A148 148 0 0 1 369 179" fill="none" stroke="#2437ed" stroke-width="5" marker-end="url(#rae)"/><path d="M369 281 A148 148 0 0 1 281 369" fill="none" stroke="#2437ed" stroke-width="5" marker-end="url(#rae)"/><path d="M179 369 A148 148 0 0 1 91 281" fill="none" stroke="#2437ed" stroke-width="5" marker-end="url(#rae)"/><path d="M91 179 A148 148 0 0 1 179 91" fill="none" stroke="#2437ed" stroke-width="5" marker-end="url(#rae)"/><text x="230" y="224" font-size="22" font-weight="700" fill="#51514b" text-anchor="middle">каждый</text><text x="230" y="252" font-size="22" font-weight="700" fill="#51514b" text-anchor="middle">день</text><rect x="152" y="48" width="156" height="68" rx="34" fill="#080808"/><text x="230.0" y="78" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">08:30</text><text x="230.0" y="100" font-size="13" font-weight="400" fill="#bdbcb5" text-anchor="middle">сбор</text><rect x="300" y="196" width="156" height="68" rx="34" fill="#080808"/><text x="378.0" y="226" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">Факт</text><text x="378.0" y="248" font-size="13" font-weight="400" fill="#bdbcb5" text-anchor="middle">колода</text><rect x="152" y="344" width="156" height="68" rx="34" fill="#080808"/><text x="230.0" y="374" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">Замечания</text><text x="230.0" y="396" font-size="13" font-weight="400" fill="#bdbcb5" text-anchor="middle">PO и комитета</text><rect x="4" y="196" width="156" height="68" rx="34" fill="#2437ed"/><text x="82.0" y="226" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">ИИ</text><text x="82.0" y="248" font-size="13" font-weight="400" fill="#d8d8ff" text-anchor="middle">правки в JIRA</text></svg></div>
+    </div>
+  </section>
+
+  <!-- 14 · техническая архитектура -->
+  <section class="slide" data-title="Техническая архитектура">
+    <h2>Техническая <span class="accent">архитектура</span></h2>
+    <svg class="c4" viewBox="0 0 1136 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="C4: регулярный сбор спринтов у себя"><defs><marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#080808"/></marker><marker id="as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M10 0 L0 5 L10 10 z" fill="#080808"/></marker></defs><rect x="222" y="34" width="884" height="372" rx="10" fill="none" stroke="#080808" stroke-width="1.5" stroke-dasharray="8 6"/><text x="1090" y="56" font-size="13" font-weight="800" fill="#080808" text-anchor="end" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ВАШ СЕРВЕР</text><rect x="0" y="74" width="176" height="104" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5"/><text x="88.0" y="110" font-size="19" font-weight="800" fill="#080808" text-anchor="middle">Jira</text><text x="88.0" y="136" font-size="14" font-weight="400" fill="#080808" text-anchor="middle">доски, спринты,</text><text x="88.0" y="154" font-size="14" font-weight="400" fill="#080808" text-anchor="middle">задачи</text><rect x="0" y="268" width="176" height="104" rx="6" fill="#dcdbd5" stroke="#080808" stroke-width="1.5"/><text x="88.0" y="304" font-size="19" font-weight="800" fill="#080808" text-anchor="middle">Confluence</text><text x="88.0" y="330" font-size="14" font-weight="400" fill="#080808" text-anchor="middle">цели квартала,</text><text x="88.0" y="348" font-size="14" font-weight="400" fill="#080808" text-anchor="middle">состав команд</text><rect x="258" y="74" width="230" height="104" rx="6" fill="#2437ed" stroke="#080808" stroke-width="0"/><text x="373.0" y="110" font-size="19" font-weight="800" fill="#fff" text-anchor="middle">Сборщик</text><text x="373.0" y="136" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">по таймеру 08:30</text><text x="373.0" y="154" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">и по кнопке, без ИИ</text><circle cx="486" cy="76" r="15" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="486" y="82" font-size="16" font-weight="800" fill="#080808" text-anchor="middle">①</text><rect x="568" y="74" width="230" height="104" rx="6" fill="#2437ed" stroke="#080808" stroke-width="0"/><text x="683.0" y="110" font-size="19" font-weight="800" fill="#fff" text-anchor="middle">Отчёт PO</text><text x="683.0" y="136" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">эпики, риски,</text><text x="683.0" y="154" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">метрики, заметки</text><circle cx="796" cy="76" r="15" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="796" y="82" font-size="16" font-weight="800" fill="#080808" text-anchor="middle">②</text><rect x="568" y="268" width="230" height="104" rx="6" fill="#2437ed" stroke="#080808" stroke-width="0"/><text x="683.0" y="304" font-size="19" font-weight="800" fill="#fff" text-anchor="middle">Факт спринта</text><text x="683.0" y="330" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">итог по целям —</text><text x="683.0" y="348" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">для комитета</text><circle cx="796" cy="270" r="15" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="796" y="276" font-size="16" font-weight="800" fill="#080808" text-anchor="middle">③</text><rect x="860" y="74" width="222" height="104" rx="6" fill="#2437ed" stroke="#080808" stroke-width="0"/><text x="971.0" y="110" font-size="19" font-weight="800" fill="#fff" text-anchor="middle">ИИ-агент</text><text x="971.0" y="136" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">план правок</text><text x="971.0" y="154" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">по заметкам</text><circle cx="1080" cy="76" r="15" fill="#fff" stroke="#080808" stroke-width="1.5"/><text x="1080" y="82" font-size="16" font-weight="800" fill="#080808" text-anchor="middle">④</text><rect x="860" y="268" width="222" height="104" rx="6" fill="#080808" stroke="#080808" stroke-width="0"/><text x="971.0" y="304" font-size="19" font-weight="800" fill="#fff" text-anchor="middle">Мессенджер</text><text x="971.0" y="330" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">PO, техлиды, комитет —</text><text x="971.0" y="348" font-size="14" font-weight="400" fill="#fff" text-anchor="middle">в комнатах и на телефоне</text><path d="M258 126 H176" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><rect x="188" y="101" width="58" height="20" fill="#efeee8"/><text x="217" y="116" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">читает</text><path d="M488 126 H568" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><rect x="499" y="101" width="58" height="20" fill="#efeee8"/><text x="528" y="116" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">данные</text><path d="M373 178 V300 H568" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><rect x="441" y="277" width="58" height="20" fill="#efeee8"/><text x="470" y="292" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">данные</text><path d="M176 342 H568" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><rect x="448" y="319" width="44" height="20" fill="#efeee8"/><text x="470" y="334" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">цели</text><path d="M860 126 H798" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)" marker-start="url(#as)"/><rect x="811" y="101" width="36" height="20" fill="#efeee8"/><text x="829" y="116" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">чат</text><path d="M971 74 V18 H88 V74" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><rect x="407" y="7" width="243" height="20" fill="#efeee8"/><text x="529" y="22" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">пишет в Jira — после ✅ человека</text><path d="M798 320 H860" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/><path d="M760 178 L860 280" fill="none" stroke="#080808" stroke-width="1.8" marker-end="url(#ae)"/></svg>
+    <div class="c4list"><div class="card"><h3>① Сборщик</h3><p>Читает Jira по таймеру 08:30 и по кнопке. Без ИИ.</p></div><div class="card blue"><h3>② Отчёт PO</h3><p>Эпики, риски, метрики, заметки — в мессенджере.</p></div><div class="card"><h3>③ Факт спринта</h3><p>Итог по целям квартала из Confluence — для комитета.</p></div><div class="card"><h3>④ ИИ-агент</h3><p>План правок по заметкам. В Jira пишет сервис после ✅.</p></div></div>
+  </section>
+
+  <!-- 15 · бизнес-процесс -->
+  <section class="slide" data-title="Процесс: PO, комитет и ИИ">
+    <h2>Процесс: <span class="accent">PO, комитет и ИИ</span></h2>
+    <svg class="proc" viewBox="0 0 1136 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Процесс: PO, комитет и ИИ-агент"><defs><marker id="pe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#080808"/></marker></defs><text x="212" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">КАЖДОЕ УТРО</text><text x="380" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">УТРО</text><text x="548" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ДО ПОКАЗА</text><text x="716" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">КОМИТЕТ</text><text x="884" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ПОСЛЕ ПОКАЗА</text><text x="1052" y="20" font-size="11.5" font-weight="700" fill="#2437ed" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">ПОДТВЕРЖДЕНИЕ</text><rect x="0" y="32" width="1136" height="100" fill="#efeee8"/><rect x="0" y="32" width="116" height="100" fill="#080808"/><text x="58" y="88" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">PO</text><rect x="0" y="136" width="1136" height="100" fill="#e6e5de"/><rect x="0" y="136" width="116" height="100" fill="#080808"/><text x="58" y="192" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">Комитет</text><rect x="0" y="240" width="1136" height="100" fill="#efeee8"/><rect x="0" y="240" width="116" height="100" fill="#080808"/><text x="58" y="287" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">Сборщик</text><text x="58" y="305" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">и ИИ</text><rect x="138" y="258" width="148" height="64" rx="6" fill="#2437ed" stroke="#080808" stroke-width="1.4"/><text x="212" y="286" font-size="14.5" font-weight="800" fill="#fff" text-anchor="middle">① Сбор</text><text x="212" y="305" font-size="12" font-weight="400" fill="#dfe3ff" text-anchor="middle">трекер → снимок</text><rect x="306" y="258" width="148" height="64" rx="6" fill="#2437ed" stroke="#080808" stroke-width="1.4"/><text x="380" y="286" font-size="14.5" font-weight="800" fill="#fff" text-anchor="middle">② Итог по целям</text><text x="380" y="305" font-size="12" font-weight="400" fill="#dfe3ff" text-anchor="middle">текст пишет агент</text><rect x="474" y="50" width="148" height="64" rx="6" fill="#ffffff" stroke="#080808" stroke-width="1.4"/><text x="548" y="78" font-size="14.5" font-weight="800" fill="#080808" text-anchor="middle">③ Правка текста</text><text x="548" y="97" font-size="12" font-weight="400" fill="#51514b" text-anchor="middle">и публикация</text><rect x="642" y="154" width="148" height="64" rx="6" fill="#ffffff" stroke="#080808" stroke-width="1.4"/><text x="716" y="182" font-size="14.5" font-weight="800" fill="#080808" text-anchor="middle">④ Показ</text><text x="716" y="201" font-size="12" font-weight="400" fill="#51514b" text-anchor="middle">ценность и вопросы</text><rect x="810" y="258" width="148" height="64" rx="6" fill="#2437ed" stroke="#080808" stroke-width="1.4"/><text x="884" y="286" font-size="14.5" font-weight="800" fill="#fff" text-anchor="middle">⑤ План правок</text><text x="884" y="305" font-size="12" font-weight="400" fill="#dfe3ff" text-anchor="middle">по замечаниям</text><rect x="978" y="50" width="148" height="64" rx="6" fill="#ffffff" stroke="#080808" stroke-width="1.4"/><text x="1052" y="78" font-size="14.5" font-weight="800" fill="#080808" text-anchor="middle">⑥ ✅ PO</text><text x="1052" y="97" font-size="12" font-weight="400" fill="#51514b" text-anchor="middle">правки в JIRA</text><path d="M286 290 L306 290" fill="none" stroke="#080808" stroke-width="1.5" marker-end="url(#pe)"/><path d="M454 290 L474 82" fill="none" stroke="#080808" stroke-width="1.5" marker-end="url(#pe)"/><path d="M622 82 L642 186" fill="none" stroke="#080808" stroke-width="1.5" marker-end="url(#pe)"/><path d="M790 186 L810 290" fill="none" stroke="#080808" stroke-width="1.5" marker-end="url(#pe)"/><path d="M958 290 L978 82" fill="none" stroke="#080808" stroke-width="1.5" marker-end="url(#pe)"/><path d="M1052 114 V362 H212 V322" fill="none" stroke="#2437ed" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#pe)"/><rect x="482" y="352" width="300" height="20" fill="#efeee8"/><text x="632" y="367" font-size="12.5" font-weight="700" fill="#080808" text-anchor="middle" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">следующий сбор — уже по чистой JIRA</text></svg>
+    <div class="proclist"><div class="card blue"><h3>① 08:30 — сбор</h3><p>Тот же снимок трекера, что у отчёта PO.</p></div><div class="card blue"><h3>② Итог по целям</h3><p>Агент пишет итог, блокер и шаг по каждому KR.</p></div><div class="card"><h3>③ Правка текста</h3><p>PO поправляет слова прямо на слайде и публикует.</p></div><div class="card"><h3>④ Показ комитету</h3><p>Ценность по целям; вопросы — правым кликом.</p></div><div class="card blue"><h3>⑤ План правок</h3><p>Агент сверяет замечания с доской и предлагает правки.</p></div><div class="card"><h3>⑥ ✅ PO</h3><p>Правки уходят в JIRA, колода собирается заново.</p></div></div>
+  </section>
+
+  <!-- 16 · запуск -->
+  <section class="slide center" data-title="Запустить у себя">
+    <div class="final">
+      <div>
+        <div class="label">POH-SPRINT-AGENTS</div>
+        <h1>Запустить<br><span class="accent">у себя</span></h1>
+        <p class="lead">Бизнес-колода — из того же снимка, что отчёт PO. Цели квартала — раз в квартал.</p>
+        <a class="repo" href="https://github.com/po-helper-org/poh-sprint-agents" target="_blank" rel="noopener">github.com/po-helper-org/poh-sprint-agents ↗</a>
+      </div>
+      <div class="term"><span># Claude Code, в папке проекта</span><i>/</i>sprint-setup<br><i>/</i>actual-sprint<br><i>/</i>sprint-business</div>
+    </div>
+  </section>
+</div>
+
+<div id="lb">
+  <div class="ov-top"><b id="lbTitle"></b><button class="ov-x" id="lbX">Esc</button></div>
+  <div class="body"><img id="lbImg" alt=""></div>
+</div>
+<div id="dfs">
+  <div class="ov-top"><b id="dfsTitle"></b><button class="ov-x" id="dfsX">Esc</button></div>
+  <div class="dfs-body"><div class="demo-loader" id="dfsLoader"><div class="spin"></div>Загружаем живое демо…</div><iframe id="dfsFrame" title="Демо на весь экран"></iframe></div>
+</div>
+<div id="nav">
+  <button id="prev" title="Назад">‹</button><span class="p mono" id="pos"></span><button id="next" title="Вперёд">›</button>
+</div>
+
+<script>
+  var PHOTO = "/okr-quarter-planning/img/photo.webp";
+  var slides = [].slice.call(document.querySelectorAll('.slide'));
+  var cur = 0;
+  var narrow = window.matchMedia('(max-width: 700px), (orientation: portrait) and (max-width: 900px)');
+  /* Живые демо: iframe получает src, когда открыт его слайд или предыдущий; на телефоне — только по кнопке. */
+  function loaded(f) { try { return f.contentWindow.location.href !== 'about:blank'; } catch (e) { return true; } }
+  function loadDemos(slide) {
+    if (!slide || narrow.matches) return;
+    slide.querySelectorAll('iframe[data-src]:not([src])').forEach(function (f) {
+      var l = f.parentNode.querySelector('.demo-loader');
+      f.onload = function () { if (l && loaded(f)) l.classList.add('done'); };
+      f.src = f.getAttribute('data-src');
+    });
+  }
+  /* Снимки ленивые; после загрузки страницы догружаются в фоне, чтобы листание шло без пауз. */
+  window.addEventListener('load', function () {
+    setTimeout(function () { document.querySelectorAll('img[loading="lazy"]').forEach(function (im) { im.loading = 'eager'; }); }, 300);
+    if (narrow.matches && cur > 0) slides[cur].scrollIntoView();
+  });
+  function fit() {
+    var st = document.getElementById('stage');
+    if (narrow.matches) { st.style.transform = 'none'; st.style.left = st.style.top = ''; return; }
+    /* clientWidth/Height — видимая область без полосы прокрутки: слайд не съезжает вбок. */
+    var w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
+    var s = Math.min(w / 1280, h / 720);
+    st.style.left = Math.round((w - 1280 * s) / 2) + 'px';
+    st.style.top = Math.round((h - 720 * s) / 2) + 'px';
+    st.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+  function show(i, push) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+    loadDemos(slides[cur]); loadDemos(slides[cur + 1]);
+    document.getElementById('pos').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('bar').style.width = ((cur + 1) / slides.length * 100) + '%';
+    if (push !== false) history.replaceState(null, '', '#slide=' + (cur + 1));
+    else if (narrow.matches && cur > 0) slides[cur].scrollIntoView();
+  }
+  document.getElementById('prev').onclick = function () { show(cur - 1); };
+  document.getElementById('next').onclick = function () { show(cur + 1); };
+  document.getElementById('coverPhoto').src = PHOTO;
+
+  /* Галереи: пункт справа меняет снимок, клик по снимку — на весь экран. */
+  var lb = document.getElementById('lb');
+  document.querySelectorAll('.gal').forEach(function (gal) {
+    var gb = [].slice.call(gal.querySelectorAll('.glist button[data-t]'));
+    var pic = gal.querySelector('.gpic');
+    gb.forEach(function (b, k) {
+      b.onclick = function () {
+        gb.forEach(function (x) { x.classList.toggle('on', x === b); });
+        pic.src = b.getAttribute('data-src'); pic.alt = b.getAttribute('data-t');
+        pic.style.objectFit = /mobile/.test(pic.src) ? 'contain' : '';
+        gal.querySelector('.gn').textContent = ('0' + (k + 1)).slice(-2) + ' / ' + ('0' + gb.length).slice(-2);
+        gal.querySelector('.gt').textContent = b.getAttribute('data-t');
+        gal.querySelector('.gd').textContent = b.getAttribute('data-d');
+      };
+    });
+    gal.querySelector('.gmain').onclick = function () {
+      document.getElementById('lbImg').src = pic.src;
+      document.getElementById('lbTitle').textContent = pic.alt;
+      lb.classList.add('on');
+    };
+  });
+  function closeLb() { lb.classList.remove('on'); }
+  document.getElementById('lbX').onclick = closeLb;
+  lb.addEventListener('click', function (e) { if (e.target === lb || e.target.className === 'body') closeLb(); });
+
+  var dfs = document.getElementById('dfs');
+  document.querySelectorAll('.fs-btn, .fs-btn2').forEach(function (b) {
+    b.onclick = function (e) {
+      e.stopPropagation();
+      var f = b.getAttribute('data-frame') && document.getElementById(b.getAttribute('data-frame'));
+      document.getElementById('dfsTitle').textContent = b.getAttribute('data-title') || f.title;
+      var dl = document.getElementById('dfsLoader'); dl.classList.remove('done');
+      var df = document.getElementById('dfsFrame');
+      df.onload = function () { if (loaded(df)) dl.classList.add('done'); };
+      df.src = b.getAttribute('data-src') || f.getAttribute('data-src');
+      dfs.classList.add('on');
+    };
+  });
+  function closeDfs() { dfs.classList.remove('on'); document.getElementById('dfsFrame').removeAttribute('src'); }
+  document.getElementById('dfsX').onclick = closeDfs;
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { if (dfs.classList.contains('on')) return closeDfs(); if (lb.classList.contains('on')) return closeLb(); }
+    if (lb.classList.contains('on') || dfs.classList.contains('on')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+  function fromHash() { var m = location.hash.match(/slide=(\d+)/); return m ? parseInt(m[1], 10) - 1 : 0; }
+  window.addEventListener('hashchange', function () { show(fromHash(), false); });
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  show(fromHash(), false);
+</script>
+</body>
+</html>
