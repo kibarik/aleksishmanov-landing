@@ -296,3 +296,21 @@ a.flow__node:hover { box-shadow: 0 0 0 3px rgba(10, 10, 10, .08); }
 @media (min-width: 761px) { .pmap .flow__mark-title { bottom: calc(100% + 10px); } }
 .method-pager .btn { white-space: normal; max-width: 100%; text-align: left; }
 @media (max-width: 760px) { .flow__options { flex-direction: column; } }
+
+/* Белый портал: шапка, подвал и акцентные блоки — белые с тонкой линией, текст чёрный, кнопки чёрные. */
+:root { --dark: #ffffff; --on-dark: #0a0a0a; --on-dark-muted: #5d5d5a; --line: #e4e4e4; --muted: #555555; }
+.site-header { border-bottom: 1px solid var(--line); }
+.site-nav a:hover, .site-nav a[aria-current] { background: #f1f1f1; color: #0a0a0a; }
+.btn--light { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+.site-footer { border-top: 1px solid var(--line); }
+.cta { border: 1px solid #0a0a0a; border-radius: 8px; }
+.direction { border: 1px solid #0a0a0a; border-radius: 8px; }
+.prose pre { background: #f7f7f7 !important; border-color: var(--line); border-radius: 6px; }
+.prose th { background: #f7f7f7; font-weight: 600; }
+.prose th, .prose td { border-color: var(--line); }
+.prose blockquote { color: #0a0a0a; }
+.card__cover { background: #f2f2f2; }
+.status--ready { border-color: #0a0a0a; }
+.site-footer .btn, .site-footer .btn:hover { color: #fff; text-decoration: none; }
+h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; }
+.page-head h1 { font-size: clamp(30px, 4.4vw, 46px); }
