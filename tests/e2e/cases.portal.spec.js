@@ -80,10 +80,17 @@ test('4. свайп пальцем влево — следующий кейс, �
   await expect(front(page)).toContainText(CASES[0].title);
 });
 
-test('5. prefers-reduced-motion: слайды переключаются без анимации', async ({ page }) => {
+test('5. prefers-reduced-motion: слайды не перелетают (transform без анимации), только проявляются', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/cases/');
-  expect(await front(page).evaluate((el) => getComputedStyle(el).transitionDuration)).toMatch(/^0s(, 0s)*$/);
+  const prop = await front(page).evaluate((el) => getComputedStyle(el).transitionProperty);
+  expect(prop).not.toMatch(/transform|all/);
+});
+
+test('5b. фокус на колоде объявляет подсказку: у колоды есть роль и имя', async ({ page }) => {
+  await page.goto('/cases/');
+  await expect(deck(page)).toHaveAttribute('role', 'group');
+  await expect(deck(page)).toHaveAttribute('aria-label', /листайте/);
 });
 
 test('6. страница кейса: заголовок-результат, цифры, роль, годы, шаги', async ({ page }) => {
@@ -108,6 +115,9 @@ test('7. телефон 390 px: без горизонтальной прокру
   const f = await front(page).boundingBox();
   expect(f.x).toBeGreaterThanOrEqual(0);
   expect(f.x + f.width).toBeLessThanOrEqual(390);
+  // на телефоне остаётся «Открыть кейс» (контекст и шаги прячутся — исследование, 1.4)
+  await expect(front(page).getByRole('link', { name: /Открыть кейс/ })).toBeVisible();
+  await expect(front(page).locator('.slide__context')).toBeHidden();
   // текст переднего слайда не вылезает за его рамку
   const spill = await front(page).evaluate((el) => el.scrollHeight - el.clientHeight);
   expect(spill).toBeLessThanOrEqual(1);

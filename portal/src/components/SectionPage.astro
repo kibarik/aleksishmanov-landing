@@ -6,7 +6,7 @@
 // с якорями — их не делим.
 import Base from '../layouts/Base.astro';
 import Card from './Card.astro';
-import CaseStack from './CaseStack.astro';
+import CaseStack, { type CaseEntry } from './CaseStack.astro';
 import { list } from '../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../lib/site';
 import { graph, breadcrumbs } from '../lib/schema';
@@ -48,7 +48,7 @@ const pageUrl = pageHref(info.path, page);
         <p><a href="/reviews/">Разборы</a> · <a href="/slides/">Презентации</a> · <a href={SITE.contact.href}>Обсудить вашу задачу</a></p>
       </div>
     )}
-    {section === 'cases' && items.length > 0 ? <CaseStack cases={items} /> : groups.map((g, gi) => (
+    {section === 'cases' && items.length > 0 ? <CaseStack cases={items as CaseEntry[]} /> : groups.map((g, gi) => (
       <section id={g.title ? anchor(g.title) : undefined}>
         {g.title && <h2>{g.title}</h2>}
         <ul class="grid">{g.items.map((m, i) => <Card m={m} heading={g.title ? 'h3' : 'h2'} eager={gi === 0 && i === 0} priority={gi === 0 && i === 0} />)}</ul>

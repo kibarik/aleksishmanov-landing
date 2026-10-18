@@ -32,7 +32,8 @@ const material = z.object({
   imported: z.boolean().default(false),
 });
 
-const coll = (name: string, schema: z.ZodTypeAny = material) => defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema });
+const coll = <S extends z.ZodTypeAny = typeof material>(name: string, schema?: S) =>
+  defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema: (schema ?? material) as S });
 
 /**
  * Кейс (CONTEXT.md, «Кейс»): материал + поля слайда стопки на /cases/. Порядок чтения слайда — результат,

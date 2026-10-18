@@ -18,9 +18,3 @@ export function swipeStep(dx, threshold = 60) {
   if (Math.abs(dx) <= threshold) return 0;
   return dx < 0 ? 1 : -1;
 }
-
-/** Годы кейса для подписи слайда: «2018 — 2019», «2020», «2024 — сейчас». */
-export function yearsLabel({ from, to }) {
-  if (to === undefined) return `${from} — сейчас`;
-  return from === to ? String(from) : `${from} — ${to}`;
-}

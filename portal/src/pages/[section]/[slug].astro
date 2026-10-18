@@ -3,7 +3,7 @@
 import Base from '../../layouts/Base.astro';
 import Card from '../../components/Card.astro';
 import CaseFacts from '../../components/CaseFacts.astro';
-import { render } from 'astro:content';
+import { render, type CollectionEntry } from 'astro:content';
 import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
@@ -41,7 +41,7 @@ const methodNodes = await nodesOfMaterial(m);
         {m.data.directions.map((d) => <a class="chip chip--dir" href={DIRECTION_INFO[d].path}>{DIRECTION_INFO[d].short}</a>)}
       </p>
     </header>
-    {m.collection === 'cases' && <CaseFacts m={m} />}
+    {m.collection === 'cases' && <CaseFacts m={m as CollectionEntry<'cases'>} />}
     {methodNodes.length > 0 && (
       <p class="method-part">Часть методологии: {methodNodes.map(({ node, path }, i) => <>{i > 0 && ' · '}{path.map((a) => <><a href={nodeUrl(a)}>{a.data.title}</a> → </>)}{hasPage(node) ? <a href={nodeUrl(node)}>{node.data.title}</a> : node.data.title}</>)}</p>
     )}
