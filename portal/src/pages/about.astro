@@ -3,15 +3,14 @@ import Base from '../layouts/Base.astro';
 import { SITE, DIRECTION_INFO, PROFILES } from '../lib/site';
 import { person, graph, breadcrumbs } from '../lib/schema';
 import { listAll } from '../lib/materials';
+import { aboutBlocks, pathHead } from '../lib/about.mjs';
+// Тот же источник, что «Обо мне» на главной: факты вписываются один раз в src/content.js → content.about
+import { content } from '../../../src/content.js';
 
 const counts = await listAll();
 const n = (c: string) => counts.filter((m) => m.collection === c).length;
-const timeline = [
-  { year: '2016', text: 'Разрабатываю backend' },
-  { year: '2018', text: 'Запускаю B2B-платформы' },
-  { year: '2022', text: 'Руковожу backend-командами' },
-  { year: '2024', text: 'Изучаю ML и LLM, внедряю ИИ-агентов в работу руководителей' },
-];
+const { facts, career, education, lastYear, cases } = aboutBlocks(content.about);
+const paths = Object.entries({ career, education }).filter(([, block]) => block);
 ---
 <Base title={`${SITE.name} — обо мне`} description={`${SITE.name}: ${SITE.positioning.toLowerCase()}. Практика с 2016 года: backend, B2B-платформы, команды, ИИ.`} current="about"
   jsonld={graph({ ...person, mainEntityOfPage: `${SITE.url}/about/` }, { '@type': 'ProfilePage', url: `${SITE.url}/about/`, mainEntity: { '@id': person['@id'] } }, breadcrumbs([{ name: 'Главная', url: '/' }, { name: 'Обо мне', url: '/about/' }]))}>
@@ -21,15 +20,44 @@ const timeline = [
       <p class="eyebrow">Обо мне</p>
       <h1>{SITE.name}</h1>
       <p class="lead">{SITE.positioning}.</p>
+      {facts.length > 0 && <dl class="about-facts">{facts.map((f) => <div><dt>{f.value}</dt><dd>{f.label}</dd></div>)}</dl>}
     </header>
+    {paths.map(([key, block]) => (
+      <section class="about-path" aria-labelledby={`about-${key}`}>
+        <h2 id={`about-${key}`}>{block.title}</h2>
+        <ol class="path">
+          {block.items.map((item) => {
+            const head = pathHead(item);
+            return (
+              <li class="path__row">
+                <span class="path__period">{item.period}</span>
+                <div>
+                  <p class="path__role">{head.main}{head.org && <span class="path__org"> · {head.org}</span>}</p>
+                  {item.text && <p class="path__text">{item.text}</p>}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))}
+    {lastYear && (
+      <section class="year" aria-labelledby="about-year">
+        <h2 id="about-year">{lastYear.title}{lastYear.period && <span class="year__period"> {lastYear.period}</span>}</h2>
+        <p class="year__lead">{lastYear.lead}</p>
+        {lastYear.metrics.length > 0 && <dl class="year__metrics">{lastYear.metrics.map((m) => <div><dt>{m.value}</dt><dd>{m.label}</dd></div>)}</dl>}
+        {lastYear.points.length > 0 && <ul class="year__points">{lastYear.points.map((p) => <li>{p}</li>)}</ul>}
+      </section>
+    )}
+    <a class="about-cases" href={cases.href}>
+      <span><strong>{cases.label}</strong>{cases.note && <small>{cases.note}</small>}</span>
+      <span class="about-cases__arrow" aria-hidden="true">→</span>
+    </a>
     <div class="prose">
-      <p>Я в практике с 2016 года: начинал с backend-разработки, запускал B2B-платформы, руководил backend-командами. С 2024 года занимаюсь ML и LLM — и тем, как ИИ меняет работу продуктовых команд и руководителей.</p>
       <h2>Чем занимаюсь</h2>
       <ul>
         {Object.values(DIRECTION_INFO).map((d) => <li><a href={d.path}><strong>{d.title}</strong></a> — {d.lead}</li>)}
       </ul>
-      <h2>Путь</h2>
-      <ul>{timeline.map((t) => <li><strong>{t.year}</strong> — {t.text}</li>)}</ul>
       <h2>Что на сайте</h2>
       <p>Здесь собраны все мои материалы: <a href="/blog/">статьи</a> ({n('blog')}), <a href="/reviews/">разборы</a> ({n('reviews')}), <a href="/tools/">карточки инструментов</a> ({n('tools')}), <a href="/prompts/">промты</a> ({n('prompts')}) и <a href="/slides/">презентации практикумов</a> ({n('slides')}). Раньше они жили на Teletype, в трёх Telegram-каналах и на отдельных поддоменах — теперь у каждого материала один адрес.</p>
       <h2>Где ещё меня читать</h2>
@@ -41,3 +69,28 @@ const timeline = [
     </aside>
   </article>
 </Base>
+
+<style>
+  .about-facts { margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 16px 40px; }
+  .about-facts dt, .year__metrics dt { font: 900 clamp(28px, 4vw, 40px)/1 var(--font-brand); letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .about-facts dd, .year__metrics dd { margin: 6px 0 0; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .path { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .path__row { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 4px 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .path__period { color: var(--muted); font-size: 15px; padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .path__role { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .path__org { font-weight: 400; color: var(--muted); }
+  .path__text { margin: 4px 0 0; font-size: 16px; color: var(--muted); }
+  .year__period { font-weight: 400; color: var(--muted); font-size: .7em; }
+  .year__lead { margin: 0 0 20px; font-size: clamp(19px, 2.4vw, 22px); }
+  .year__metrics { margin: 0 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .year__points { margin: 0; padding-left: 1.2em; }
+  .about-cases { margin: 40px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; background: var(--card); border: 1.5px solid var(--ink); border-radius: var(--radius); text-decoration: none; transition: transform .15s; }
+  .about-cases:hover { transform: translateY(-2px); }
+  .about-cases strong { display: block; font: 600 20px/1.3 var(--font-head); }
+  .about-cases small { display: block; margin-top: 4px; color: var(--muted); font-size: 15px; }
+  .about-cases__arrow { font-size: 24px; flex: none; }
+  @media (max-width: 560px) {
+    .path__row { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { .about-cases { transition: none; } }
+</style>
