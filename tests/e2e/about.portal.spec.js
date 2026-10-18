@@ -17,11 +17,13 @@ test('1. без JS: карьерный путь из content.about — по ст
   }
 });
 
-test('2. факты под позиционированием — из content.about', async ({ page }) => {
+test('2. факты под позиционированием — из content.about, только с цифрой (как на главной)', async ({ page }) => {
   await page.goto('/about/');
+  const shown = about.facts.filter((f) => f.value);
   const facts = page.locator('.about-facts > div');
-  await expect(facts).toHaveCount(about.facts.length);
-  for (const [i, { value, label }] of about.facts.entries()) {
+  await expect(facts).toHaveCount(shown.length);
+  await expect(page.locator('.about-facts dt:empty')).toHaveCount(0);
+  for (const [i, { value, label }] of shown.entries()) {
     await expect(facts.nth(i).locator('dt')).toHaveText(value);
     await expect(facts.nth(i).locator('dd')).toHaveText(label);
   }

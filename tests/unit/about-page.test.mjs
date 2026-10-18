@@ -8,11 +8,17 @@ import { aboutBlocks, pathHead } from '../../portal/src/lib/about.mjs';
 
 const blocks = (patch = {}) => aboutBlocks({ ...content.about, ...patch });
 
-test('карьерный путь и факты — из content.about как есть, переход в «Кейсы» есть всегда', () => {
+test('карьерный путь — из content.about как есть, переход в «Кейсы» есть всегда', () => {
   const b = blocks();
   assert.equal(b.career, content.about.career);
-  assert.equal(b.facts, content.about.facts);
   assert.equal(b.cases.href, '/cases/');
+});
+
+test('факт без цифры не выводится — как на главной; заполненные — по порядку', () => {
+  const facts = [{ value: '10 лет', label: 'в практике' }, { value: '', label: 'B2B-платформ запущено' }, { value: '40', label: 'человек' }];
+  assert.deepEqual(blocks({ facts }).facts, [facts[0], facts[2]]);
+  assert.deepEqual(blocks({ facts: [{ value: '', label: 'пусто' }] }).facts, []);
+  assert.deepEqual(blocks().facts, content.about.facts.filter((f) => f.value));
 });
 
 test('нет пунктов — нет блока: карьерный путь и образование', () => {
