@@ -1,0 +1,317 @@
+---
+// ПРОТОТИП, выбросить после выбора: три варианта стопки кейсов на /cases/, переключение ?variant=A|B|C
+// и плашкой внизу (только в dev). Вопрос прототипа: как подать кейс на одном слайде и как листать стопку.
+//   A «Стопка» — слайды 16:9 внахлёст, спереди активный, цветная подложка; стрелки, свайп, клик по заднему.
+//   B «Оглавление» — список кейсов слева, веер карточек справа; слайд — визуал крупно, цифры строкой.
+//   C «Прокрутка» — карточки прилипают и наезжают друг на друга при скролле; слайд типографский, без визуала.
+import MockShot from './MockShot.astro';
+import { CASES } from './cases-stub';
+
+const n = (i: number) => String(i + 1).padStart(2, '0');
+const dev = import.meta.env.DEV;
+---
+<div class="proto" data-proto data-variant="A">
+
+  <!-- ===== A: стопка слайдов ===== -->
+  <section class="va" data-only="A" aria-label="Кейсы">
+    <div class="va__stage">
+      <div class="va__deck" data-deck tabindex="0" aria-roledescription="карусель" aria-label="Стопка кейсов, листайте стрелками или свайпом">
+        {CASES.map((c, i) => (
+          <article class="va__slide" data-slide={i} style={`--tone:${c.tone}`} aria-roledescription="слайд" aria-label={`Кейс ${n(i)} из ${n(CASES.length - 1)}`}>
+            <header class="va__head">
+              <span class="va__tag">Кейс {n(i)} · {c.years} · {c.kind}</span>
+              <a class="va__open" href={`#${c.slug}`}>Открыть кейс →</a>
+            </header>
+            <div class="va__body">
+              <div class="va__text">
+                <h2 class="va__title">{c.title}</h2>
+                <p class="va__context">{c.context}</p>
+                <dl class="va__metrics">{c.metrics.map((m) => <div><dt>{m.value}</dt><dd>{m.label}</dd></div>)}</dl>
+                <p class="va__meta"><b>{c.role}</b> · {c.stack.join(' · ')}</p>
+              </div>
+              <div class="va__visual"><MockShot tone={c.tone} seed={i + 1} /></div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+    <div class="va__controls">
+      <button class="va__btn" data-prev aria-label="Предыдущий кейс">←</button>
+      <span class="va__count"><b data-count>01</b> / {n(CASES.length - 1)}</span>
+      <ol class="va__dots">{CASES.map((_, i) => <li><button data-go={i} aria-label={`Кейс ${n(i)}`}></button></li>)}</ol>
+      <button class="va__btn" data-next aria-label="Следующий кейс">→</button>
+    </div>
+  </section>
+
+  <!-- ===== B: оглавление + веер ===== -->
+  <section class="vb" data-only="B" aria-label="Кейсы">
+    <ol class="vb__index">
+      {CASES.map((c, i) => (
+        <li><button class="vb__item" data-pick={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+          <span class="vb__num">{n(i)}</span>
+          <span class="vb__name"><small>{c.years} · {c.kind}</small>{c.title}</span>
+        </button></li>
+      ))}
+    </ol>
+    <div class="vb__scene">
+      <div class="vb__fan">
+        {CASES.map((c, i) => (
+          <article class="vb__card" data-card={i} style={`--tone:${c.tone}`}>
+            <div class="vb__shot"><MockShot tone={c.tone} seed={i + 1} /></div>
+            <div class="vb__caption">
+              <p class="vb__kind">Кейс {n(i)} · {c.role}</p>
+              <h2 class="vb__title">{c.title}</h2>
+            </div>
+          </article>
+        ))}
+      </div>
+      {CASES.map((c, i) => (
+        <div class="vb__facts" data-facts={i} hidden={i !== 0}>
+          <dl class="vb__metrics">{c.metrics.map((m) => <div><dt>{m.value}</dt><dd>{m.label}</dd></div>)}</dl>
+          <a class="btn" href={`#${c.slug}`}>Читать кейс →</a>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ===== C: стопка при прокрутке ===== -->
+  <section class="vc" data-only="C" aria-label="Кейсы">
+    {CASES.map((c, i) => (
+      <article class="vc__card" style={`--i:${i};--tone:${c.tone}`}>
+        <div class="vc__top">
+          <span class="vc__num">{n(i)}</span>
+          <span class="vc__tag">{c.years} · {c.kind} · {c.role}</span>
+        </div>
+        <h2 class="vc__title">{c.title}</h2>
+        <div class="vc__grid">
+          <dl class="vc__metrics">{c.metrics.map((m) => <div><dt>{m.value}</dt><dd>{m.label}</dd></div>)}</dl>
+          <div class="vc__side">
+            <p class="vc__context">{c.context}</p>
+            <ol class="vc__steps">{c.steps.map((s) => <li>{s}</li>)}</ol>
+            <a class="vc__open" href={`#${c.slug}`}>Читать кейс →</a>
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  {dev && (
+    <div class="switcher" data-switcher>
+      <button data-sw="-1" aria-label="Предыдущий вариант">‹</button>
+      <span data-sw-label>A · Стопка</span>
+      <button data-sw="1" aria-label="Следующий вариант">›</button>
+    </div>
+  )}
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-proto]')!;
+  const NAMES: Record<string, string> = { A: 'Стопка', B: 'Оглавление', C: 'Прокрутка' };
+  const KEYS = Object.keys(NAMES);
+
+  // ---------- переключатель вариантов (?variant=) ----------
+  function setVariant(v: string) {
+    if (!KEYS.includes(v)) v = 'A';
+    root.dataset.variant = v;
+    const label = root.querySelector('[data-sw-label]');
+    if (label) label.textContent = `${v} · ${NAMES[v]}`;
+    const url = new URL(location.href);
+    url.searchParams.set('variant', v);
+    history.replaceState(null, '', url);
+  }
+  const step = (d: number) => setVariant(KEYS[(KEYS.indexOf(root.dataset.variant!) + d + KEYS.length) % KEYS.length]);
+  setVariant(new URLSearchParams(location.search).get('variant') ?? 'A');
+  root.querySelectorAll<HTMLButtonElement>('[data-sw]').forEach((b) => b.addEventListener('click', () => step(+b.dataset.sw!)));
+  addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('input, textarea, [contenteditable], [data-deck]')) return;
+    if (!root.querySelector('[data-switcher]')) return;
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+
+  // ---------- A: стопка ----------
+  const deck = root.querySelector<HTMLElement>('[data-deck]')!;
+  const slides = [...deck.querySelectorAll<HTMLElement>('[data-slide]')];
+  let cur = 0;
+  function show(i: number) {
+    cur = (i + slides.length) % slides.length;
+    slides.forEach((s, k) => {
+      const pos = (k - cur + slides.length) % slides.length;
+      s.dataset.pos = String(Math.min(pos, 3));
+      s.setAttribute('aria-hidden', pos === 0 ? 'false' : 'true');
+      s.querySelectorAll('a').forEach((a) => (a.tabIndex = pos === 0 ? 0 : -1));
+    });
+    root.querySelector('[data-count]')!.textContent = String(cur + 1).padStart(2, '0');
+    root.querySelectorAll<HTMLElement>('[data-go]').forEach((d, k) => d.setAttribute('aria-current', k === cur ? 'true' : 'false'));
+  }
+  show(0);
+  root.querySelector('[data-prev]')!.addEventListener('click', () => show(cur - 1));
+  root.querySelector('[data-next]')!.addEventListener('click', () => show(cur + 1));
+  root.querySelectorAll<HTMLElement>('[data-go]').forEach((d) => d.addEventListener('click', () => show(+d.dataset.go!)));
+  deck.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); show(cur + 1); }
+  });
+  // клик по выглядывающему краю заднего слайда — вперёд
+  slides.forEach((s, k) => s.addEventListener('click', () => { if (s.dataset.pos !== '0') show(k); }));
+  // свайп: тянем передний слайд, отпустили дальше порога — следующий/предыдущий
+  let x0: number | null = null;
+  deck.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    x0 = e.clientX; deck.setPointerCapture(e.pointerId); slides[cur].classList.add('is-dragging');
+  });
+  deck.addEventListener('pointermove', (e) => {
+    if (x0 === null) return;
+    slides[cur].style.transform = `translateX(${e.clientX - x0}px) rotate(${(e.clientX - x0) / 40}deg)`;
+  });
+  const end = (e: PointerEvent) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0; x0 = null;
+    slides[cur].classList.remove('is-dragging');
+    slides[cur].style.transform = '';
+    if (Math.abs(dx) > 60) show(cur + (dx < 0 ? 1 : -1));
+  };
+  deck.addEventListener('pointerup', end);
+  deck.addEventListener('pointercancel', end);
+
+  // ---------- B: оглавление ----------
+  const picks = [...root.querySelectorAll<HTMLElement>('[data-pick]')];
+  const cards = [...root.querySelectorAll<HTMLElement>('[data-card]')];
+  const facts = [...root.querySelectorAll<HTMLElement>('[data-facts]')];
+  function pick(i: number) {
+    picks.forEach((p, k) => p.setAttribute('aria-pressed', String(k === i)));
+    cards.forEach((c, k) => { c.dataset.pos = String(Math.min((k - i + cards.length) % cards.length, 3)); });
+    facts.forEach((f, k) => { f.hidden = k !== i; });
+  }
+  pick(0);
+  picks.forEach((p) => {
+    p.addEventListener('click', () => pick(+p.dataset.pick!));
+    p.addEventListener('mouseenter', () => pick(+p.dataset.pick!));
+  });
+</script>
+
+<style>
+  .proto { --beige: #efeeea; }
+  .proto [data-only] { display: none; }
+  .proto[data-variant='A'] [data-only='A'], .proto[data-variant='B'] [data-only='B'], .proto[data-variant='C'] [data-only='C'] { display: block; }
+  .proto[data-variant='B'] [data-only='B'] { display: grid; }
+
+  /* ===== A ===== */
+  .va__stage { background: var(--beige); border-radius: 24px; padding: clamp(56px, 8vw, 96px) clamp(20px, 6vw, 88px) clamp(40px, 6vw, 72px); overflow: hidden; }
+  .va__deck { position: relative; aspect-ratio: 16 / 9; max-width: 1000px; margin: 0 auto; outline: none; touch-action: pan-y; }
+  .va__deck:focus-visible { outline: 2px solid #111; outline-offset: 8px; }
+  .va__slide { position: absolute; inset: 0; background: #fff; border: 1.5px solid #111; display: grid; grid-template-rows: auto 1fr; transition: transform .55s cubic-bezier(.2,.8,.2,1), opacity .4s ease, box-shadow .4s ease; user-select: none; }
+  .va__slide[data-pos='0'] { z-index: 4; box-shadow: 22px 22px 0 var(--tone); }
+  .va__slide.is-dragging { transition: none; }
+  @media (prefers-reduced-motion: reduce) { .va__slide, .va__body, .vb__card { transition: none; } }
+  .va__slide[data-pos='1'] { z-index: 3; transform: translate(4%, -7%) scale(.97); cursor: pointer; }
+  .va__slide[data-pos='2'] { z-index: 2; transform: translate(8%, -14%) scale(.94); cursor: pointer; }
+  .va__slide[data-pos='3'] { z-index: 1; transform: translate(12%, -21%) scale(.91); opacity: 0; }
+  .va__slide[data-pos='1'] .va__body, .va__slide[data-pos='2'] .va__body { opacity: .35; }
+  .va__head { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid #e2e2dd; font-size: 13px; }
+  .va__tag { font-weight: 700; letter-spacing: .02em; }
+  .va__open { font-weight: 600; text-decoration: none; padding: 6px 12px; border: 1px solid #111; border-radius: 999px; white-space: nowrap; }
+  .va__open:hover { background: #111; color: #fff; }
+  .va__body { display: grid; grid-template-columns: 1fr 1.05fr; min-height: 0; transition: opacity .4s; }
+  .va__text { padding: clamp(16px, 2.4vw, 32px); display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .va__title { margin: 0; font: 900 clamp(20px, 2.5vw, 32px)/1.08 var(--font-brand); letter-spacing: -.02em; }
+  .va__context { margin: 0; font-size: 15px; line-height: 1.45; color: var(--muted); }
+  .va__metrics { margin: auto 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid #e2e2dd; padding-top: 12px; }
+  .va__metrics dt { font: 900 clamp(18px, 2.2vw, 28px)/1 var(--font-brand); letter-spacing: -.02em; color: var(--tone); }
+  .va__metrics dd { margin: 6px 0 0; font-size: 12px; line-height: 1.3; color: var(--muted); }
+  .va__meta { margin: 0; font-size: 13px; color: var(--muted); }
+  .va__meta b { color: var(--ink); }
+  .va__visual { background: #f3f3f1; padding: clamp(14px, 2vw, 28px); border-left: 1px solid #e2e2dd; min-height: 0; }
+  .va__controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 24px; }
+  .va__btn { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid #111; background: #fff; font-size: 20px; cursor: pointer; }
+  .va__btn:hover { background: #111; color: #fff; }
+  .va__count { font: 600 14px/1 var(--font); color: var(--muted); min-width: 64px; text-align: center; }
+  .va__count b { color: var(--ink); }
+  .va__dots { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; }
+  .va__dots button { width: 8px; height: 8px; border-radius: 4px; border: 0; background: #ccc; cursor: pointer; padding: 0; transition: width .3s; }
+  .va__dots button[aria-current='true'] { width: 28px; background: #111; }
+  @media (max-width: 720px) {
+    .va__stage { padding: 56px 14px 28px; border-radius: 18px; }
+    .va__deck { aspect-ratio: auto; }
+    .va__slide[data-pos='0'] { position: relative; }
+    .va__slide[data-pos='0'] { box-shadow: 10px 10px 0 var(--tone); }
+    .va__slide[data-pos='1'] { transform: translate(0, -5%) scale(.94); }
+    .va__slide[data-pos='2'] { transform: translate(0, -10%) scale(.88); }
+    .va__open { display: none; }
+    .va__body { grid-template-columns: 1fr; grid-template-rows: 170px auto; }
+    .va__visual { order: -1; border-left: 0; border-bottom: 1px solid #e2e2dd; padding: 12px; }
+    .va__dots { display: none; }
+  }
+
+  /* ===== B ===== */
+  .vb { grid-template-columns: minmax(260px, 0.8fr) 1.2fr; gap: clamp(24px, 4vw, 64px); align-items: start; }
+  .vb__index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); position: sticky; top: 90px; }
+  .vb__item { width: 100%; display: grid; grid-template-columns: 3em 1fr; gap: 8px; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 18px 0; cursor: pointer; font: inherit; color: var(--muted); transition: color .2s; }
+  .vb__item[aria-pressed='true'] { color: var(--ink); }
+  .vb__num { font: 900 15px/1.4 var(--font-brand); }
+  .vb__name { font-size: 17px; font-weight: 600; line-height: 1.3; }
+  .vb__name small { display: block; font-weight: 500; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  .vb__scene { overflow: hidden; background: var(--dark); border-radius: 24px; padding: clamp(40px, 6vw, 72px) clamp(20px, 4vw, 56px) clamp(24px, 4vw, 40px); color: var(--on-dark); }
+  .vb__fan { position: relative; aspect-ratio: 4 / 3; max-width: 560px; margin: 0 auto; }
+  .vb__card { position: absolute; inset: 0; background: #fff; color: var(--ink); border-radius: 14px; overflow: hidden; display: grid; grid-template-rows: 1fr auto; transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .4s; box-shadow: 0 30px 60px rgba(0,0,0,.4); transform-origin: 50% 120%; }
+  .vb__card[data-pos='0'] { z-index: 4; }
+  .vb__card[data-pos='1'] { z-index: 3; transform: rotate(5deg) translateX(6%); opacity: .9; }
+  .vb__card[data-pos='2'] { z-index: 2; transform: rotate(10deg) translateX(12%); opacity: .7; }
+  .vb__card[data-pos='3'] { z-index: 1; transform: rotate(14deg) translateX(18%); opacity: 0; }
+  .vb__shot { padding: 18px 18px 0; background: var(--tone); min-height: 0; }
+  .vb__shot :global(.shot) { border-bottom: 0; border-radius: 8px 8px 0 0; }
+  .vb__caption { padding: 16px 20px 18px; }
+  .vb__kind { margin: 0 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .vb__title { margin: 0; font: 900 clamp(18px, 2vw, 24px)/1.15 var(--font-brand); letter-spacing: -.02em; }
+  .vb__facts { margin-top: 32px; display: grid; gap: 20px; justify-items: start; }
+  .vb__facts[hidden] { display: none; }
+  .vb__metrics { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; border-top: 1px solid rgba(255,255,255,.16); padding-top: 16px; }
+  .vb__metrics dt { font: 900 clamp(22px, 3vw, 36px)/1 var(--font-brand); letter-spacing: -.02em; }
+  .vb__metrics dd { margin: 6px 0 0; font-size: 13px; color: var(--on-dark-muted); }
+  .vb .btn { background: var(--on-dark); color: var(--ink); border-color: var(--on-dark); }
+  @media (max-width: 860px) {
+    .proto[data-variant='B'] [data-only='B'] { display: flex; flex-direction: column; }
+    .vb__index { position: static; display: flex; gap: 8px; overflow-x: auto; border: 0; scrollbar-width: none; width: 100%; }
+    .vb__index li { flex: 0 0 auto; }
+    .vb__item { width: auto; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; grid-template-columns: auto; }
+    .vb__item[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .vb__name { display: none; }
+    .vb__num::before { content: 'Кейс '; font-weight: 600; }
+    .vb__scene { width: 100%; border-radius: 18px; }
+    .vb__card[data-pos='1'] { transform: rotate(3deg) translateX(4%); }
+    .vb__card[data-pos='2'] { transform: rotate(6deg) translateX(8%); }
+  }
+
+  /* ===== C ===== */
+  .vc { padding-bottom: 20vh; }
+  .vc__card { position: sticky; top: calc(84px + var(--i) * 18px); min-height: min(72vh, 640px); margin-bottom: 8vh; background: var(--dark); color: var(--on-dark); border-radius: 24px; padding: clamp(24px, 4vw, 56px); display: flex; flex-direction: column; gap: clamp(20px, 3vw, 40px); box-shadow: 0 -12px 40px rgba(0,0,0,.18); border-top: 6px solid var(--tone); }
+  .vc__top { display: flex; align-items: baseline; gap: 16px; font-size: 13px; color: var(--on-dark-muted); letter-spacing: .04em; }
+  .vc__num { font: 900 15px/1 var(--font-brand); color: var(--tone); }
+  .vc__title { margin: 0; font: 900 clamp(28px, 4.4vw, 60px)/1.04 var(--font-brand); letter-spacing: -.025em; max-width: 18ch; }
+  .vc__grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(20px, 4vw, 56px); margin-top: auto; }
+  .vc__metrics { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-self: end; }
+  .vc__metrics div { border-top: 1px solid rgba(255,255,255,.18); padding-top: 14px; }
+  .vc__metrics dt { font: 900 clamp(30px, 4.6vw, 64px)/1 var(--font-brand); letter-spacing: -.03em; }
+  .vc__metrics dd { margin: 8px 0 0; font-size: 13px; color: var(--on-dark-muted); }
+  .vc__context { margin: 0 0 12px; font-size: 15px; color: var(--on-dark-muted); }
+  .vc__steps { margin: 0 0 16px; padding-left: 1.2em; font-size: 15px; line-height: 1.6; }
+  .vc__open { font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--tone); }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .vc__card { animation: vc-sink linear both; animation-timeline: view(); animation-range: exit-crossing 0% exit-crossing 100%; }
+      @keyframes vc-sink { to { transform: scale(.92); filter: brightness(.6); } }
+    }
+  }
+  @media (max-width: 720px) {
+    .vc__card { top: calc(110px + var(--i) * 12px); min-height: 0; border-radius: 18px; }
+    .vc__grid { grid-template-columns: 1fr; }
+    .vc__metrics dt { font-size: 26px; }
+    .vc__steps, .vc__context { display: none; }
+  }
+
+  /* ===== плашка переключения вариантов (только dev) ===== */
+  .switcher { position: fixed; left: 18px; bottom: 76px; z-index: 99; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 999px; background: #ff2d87; color: #fff; font: 700 14px/1 system-ui, sans-serif; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+  .switcher button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.2); color: #fff; font-size: 18px; cursor: pointer; }
+  .switcher span { min-width: 130px; text-align: center; }
+</style>

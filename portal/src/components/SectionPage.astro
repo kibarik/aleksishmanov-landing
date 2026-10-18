@@ -6,6 +6,7 @@
 // с якорями — их не делим.
 import Base from '../layouts/Base.astro';
 import Card from './Card.astro';
+import CasesPrototype from './prototype/CasesPrototype.astro'; // ПРОТОТИП стопки кейсов
 import { list } from '../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../lib/site';
 import { graph, breadcrumbs } from '../lib/schema';
@@ -39,7 +40,8 @@ const pageUrl = pageHref(info.path, page);
         {section === 'prompts' && groups.map((g) => <li><a class="chip" href={`#${anchor(g.title)}`}>{g.title} · {g.items.length}</a></li>)}
       </ul>
     </header>
-    {all.length === 0 && (
+    {section === 'cases' && <CasesPrototype />}
+    {all.length === 0 && section !== 'cases' && (
       <div class="note">
         <p>{section === 'cases'
           ? 'Здесь будут разборы моих собственных запусков и внедрений ИИ — с целью, шагами и цифрами. Первые кейсы готовятся. Пока можно посмотреть разборы инструментов и презентации практикумов.'

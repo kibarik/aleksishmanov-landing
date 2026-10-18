@@ -1,0 +1,35 @@
+---
+// ПРОТОТИП: условный скриншот платформы, пока у кейсов нет настоящих. Тон — цвет кейса.
+interface Props { tone: string; seed?: number }
+const { tone, seed = 1 } = Astro.props;
+const bars = Array.from({ length: 9 }, (_, i) => 30 + ((i * 37 * seed) % 60));
+---
+<div class="shot" style={`--tone:${tone}`} aria-hidden="true">
+  <div class="shot__bar"><i></i><i></i><i></i><span></span></div>
+  <div class="shot__body">
+    <div class="shot__side"><b></b><b></b><b></b><b></b></div>
+    <div class="shot__main">
+      <div class="shot__kpis"><em></em><em></em><em></em></div>
+      <div class="shot__chart">{bars.map((h) => <s style={`height:${h}%`}></s>)}</div>
+      <div class="shot__rows"><u></u><u></u><u></u></div>
+    </div>
+  </div>
+</div>
+<style>
+  .shot { width: 100%; height: 100%; background: #fff; border: 1px solid #111; display: grid; grid-template-rows: 26px 1fr; overflow: hidden; font-size: 0; }
+  .shot__bar { display: flex; align-items: center; gap: 5px; padding: 0 10px; border-bottom: 1px solid #ddd; }
+  .shot__bar i { width: 7px; height: 7px; border-radius: 50%; background: #ddd; }
+  .shot__bar span { margin-left: 10px; height: 8px; width: 40%; background: #eee; border-radius: 4px; }
+  .shot__body { display: grid; grid-template-columns: 18% 1fr; min-height: 0; }
+  .shot__side { background: #f3f3f1; padding: 12px 10px; display: grid; gap: 8px; align-content: start; }
+  .shot__side b { height: 7px; border-radius: 4px; background: #ddd; }
+  .shot__side b:first-child { background: var(--tone); }
+  .shot__main { padding: 12px; display: grid; grid-template-rows: auto 1fr auto; gap: 10px; min-height: 0; }
+  .shot__kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .shot__kpis em { height: 28px; border: 1px solid #e4e4e0; border-radius: 6px; }
+  .shot__chart { display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #e4e4e0; min-height: 0; }
+  .shot__chart s { flex: 1; background: var(--tone); opacity: .85; text-decoration: none; }
+  .shot__chart s:nth-child(even) { opacity: .45; }
+  .shot__rows { display: grid; gap: 6px; }
+  .shot__rows u { height: 7px; background: #eee; border-radius: 4px; text-decoration: none; }
+</style>
