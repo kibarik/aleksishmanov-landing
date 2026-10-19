@@ -14,9 +14,15 @@ export function urlFor(m: { collection: CollectionName; id: string }): string {
 const FILES = import.meta.glob('../content/*/*.md');
 const hasFiles = (name: CollectionName) => Object.keys(FILES).some((f) => f.startsWith(`../content/${name}/`));
 
+/**
+ * Черновики (`draft: true`) в прод не попадают. PORTAL_DRAFTS=1 — сборка для тестов (`npm run test:portal`):
+ * так e2e проверяют стопку кейсов, пока у владельца есть только каркасы кейсов, а не опубликованные.
+ */
+const SHOW_DRAFTS = process.env.PORTAL_DRAFTS === '1';
+
 export async function list(name: CollectionName): Promise<Material[]> {
   if (!hasFiles(name)) return [];
-  const items = (await getCollection(name, (e) => !e.data.draft)) as Material[];
+  const items = (await getCollection(name, (e) => SHOW_DRAFTS || !e.data.draft)) as Material[];
   return items
     .map((e) => Object.assign(e, { collection: name }))
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id));

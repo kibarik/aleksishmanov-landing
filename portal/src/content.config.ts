@@ -32,7 +32,38 @@ const material = z.object({
   imported: z.boolean().default(false),
 });
 
-const coll = (name: string) => defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema: material });
+const coll = <S extends z.ZodTypeAny = typeof material>(name: string, schema?: S) =>
+  defineCollection({ loader: glob({ pattern: '**/*.md', base: `./src/content/${name}` }), schema: (schema ?? material) as S });
+
+/**
+ * Кейс (CONTEXT.md, «Кейс»): материал + поля слайда стопки на /cases/. Порядок чтения слайда — результат,
+ * цифры, визуал, контекст, роль, шаги, стек (.scratch/about-cases/research/case-slide-and-stack.md, 1.3–1.5).
+ * Лимиты длины держат раскладку: заголовок длиннее 90 знаков не влезает в три строки слайда 16:9.
+ * Тело Markdown — полная история кейса на его странице.
+ */
+const caseMaterial = material.extend({
+  /** Заголовок-результат: законченная фраза с числом, а не название проекта. */
+  title: z.string().min(10).max(90),
+  /** Для кого и какая проблема — одна строка. */
+  context: z.string().min(10).max(140),
+  /** Роль в запуске. */
+  role: z.string().min(3).max(60),
+  /** Тип продукта для подписи слайда: «B2B-платформа», «маркетплейс». */
+  kind: z.string().min(3).max(30),
+  /** Годы; без `to` — «сейчас». */
+  years: z.object({ from: z.number().int().min(2000), to: z.number().int().min(2000).optional() }),
+  /** 2–3 метрики: значение цифрами и подпись в 3–5 слов. */
+  metrics: z.array(z.object({ value: z.string().min(1).max(12), label: z.string().min(3).max(40) })).min(2).max(3),
+  /** 3–5 шагов, по строке. */
+  steps: z.array(z.string().min(3).max(80)).min(3).max(5),
+  stack: z.array(z.string()).max(8).default([]),
+  /** Подпись к скриншоту (cover): без неё картинка — только украшение для скринридера. */
+  coverAlt: z.string().min(5).optional(),
+  /** Цвет подложки-тени и цифр слайда. */
+  tone: z.string().regex(/^#[0-9a-f]{6}$/i).default('#2b3cf0'),
+  /** Место в стопке: меньше — ближе к началу. */
+  order: z.number().int().default(100),
+}).refine((c) => !c.cover || c.coverAlt, { message: 'у кейса со скриншотом (cover) нужна подпись coverAlt', path: ['coverAlt'] });
 
 /** Узел методологии (ADR 0006): проблема → области → темы. Связь с материалами хранится в узле (`materials`). */
 /** Узел диаграммы процесса: шаг (кто делает — who), развилка с вариантами, гейт, начало или конец. */
@@ -82,5 +113,5 @@ export const collections = {
   tools: coll('tools'),
   prompts: coll('prompts'),
   slides: coll('slides'),
-  cases: coll('cases'),
+  cases: coll('cases', caseMaterial),
 };
