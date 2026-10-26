@@ -6,6 +6,7 @@
 // с якорями — их не делим.
 import Base from '../layouts/Base.astro';
 import Card from './Card.astro';
+import MaterialList from './MaterialList.astro';
 import CaseStack, { type CaseEntry } from './CaseStack.astro';
 import { list } from '../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../lib/site';
@@ -23,6 +24,8 @@ const groups = section === 'prompts'
   ? [...new Set(items.map((m) => m.data.category || 'Другое'))].map((c) => ({ title: c, items: items.filter((m) => (m.data.category || 'Другое') === c) }))
   : [{ title: '', items }];
 const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-');
+// Блог, Разборы, Инструменты, Промты — список одной колонкой без картинок (MaterialList); Презентации и Кейсы — свои
+const textList = section !== 'slides' && section !== 'cases';
 const pageTitle = page > 1 ? `${info.title}, страница ${page}` : info.title;
 const pageUrl = pageHref(info.path, page);
 ---
@@ -31,6 +34,9 @@ const pageUrl = pageHref(info.path, page);
   {page > 1 && <link slot="head" rel="prev" href={pageHref(info.path, page - 1)} />}
   {page < total && <link slot="head" rel="next" href={pageHref(info.path, page + 1)} />}
   <div class="wrap">
+    {textList && all.length > 0 ? (
+      <MaterialList title={pageTitle} lead={info.lead} groups={groups.map((g) => ({ ...g, id: g.title ? anchor(g.title) : undefined }))} />
+    ) : (<>
     <p class="crumbs"><a href="/">Главная</a> / {info.title}</p>
     <header class="page-head">
       <h1>{pageTitle}</h1>
@@ -54,6 +60,7 @@ const pageUrl = pageHref(info.path, page);
         <ul class="grid">{g.items.map((m, i) => <Card m={m} heading={g.title ? 'h3' : 'h2'} eager={gi === 0 && i === 0} priority={gi === 0 && i === 0} />)}</ul>
       </section>
     ))}
+    </>)}
     {total > 1 && (
       <nav class="pager" aria-label="Страницы раздела">
         {page > 1 ? <a class="pager__step" href={pageHref(info.path, page - 1)} rel="prev">← Новее</a> : <span class="pager__step" aria-hidden="true"></span>}
