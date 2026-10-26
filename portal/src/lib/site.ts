@@ -26,6 +26,15 @@ export const SECTIONS: Record<CollectionName, { path: string; title: string; one
 /** Порядок разделов в шапке. */
 export const NAV: CollectionName[] = ['blog', 'reviews', 'tools', 'prompts', 'slides', 'cases'];
 
+/** Шапка: раскрывающие пункты. Пункт = заголовок + строка описания (образец — Airtable, research/airtable-header.md). */
+export const HEADER_MATERIALS: { section: CollectionName; desc: string }[] = [
+  { section: 'blog', desc: 'Статьи о запуске продуктов, каналах роста и экспериментах' },
+  { section: 'reviews', desc: 'Как я применял инструмент и чем он лучше альтернатив' },
+  { section: 'tools', desc: 'Карточки open source: когда применять и где взять' },
+  { section: 'prompts', desc: 'Готовые промты руководителя и продакта' },
+  { section: 'slides', desc: 'Практикумы и доклады про ИИ-агентов в работе' },
+];
+
 export const DIRECTION_INFO = {
   startups: {
     path: '/startups/',
@@ -44,6 +53,19 @@ export const DIRECTION_INFO = {
 } as const;
 
 export type Direction = keyof typeof DIRECTION_INFO;
+
+/** Шапка: строка описания у направления. */
+export const HEADER_DIRECTIONS: { direction: Direction; desc: string }[] = [
+  { direction: 'startups', desc: 'Основателям и продактам: от идеи до первых платящих за недели' },
+  { direction: 'ai-in-business', desc: 'Руководителям, CPO и CTO: ИИ-агенты и навыки в командах' },
+];
+
+/** Шапка: прямые ссылки (без раскрытия). «PO System» — отдельный подсайт (ADR 0007). */
+export const HEADER_LINKS = [
+  { path: '/po-system/', title: 'PO System' },
+  { path: SECTIONS.cases.path, title: SECTIONS.cases.title },
+  { path: '/about/', title: 'Обо мне' },
+];
 
 /** Профили на внешних площадках: шапка, футер, разметка Person (sameAs). */
 export const PROFILES = [
