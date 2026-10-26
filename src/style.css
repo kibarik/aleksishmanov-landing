@@ -71,17 +71,6 @@ body:not([data-preset="mobile"]) .ask:hover { background: rgba(8, 22, 28, .78); 
 body:not([data-preset="mobile"]) .ask__send { background: #22e6ff; color: #031015; }
 body:not([data-preset="mobile"]) .ask:hover .ask__send { background: #7af1ff; }
 @keyframes ask-glow { 50% { box-shadow: 0 0 0 1px rgba(34, 230, 255, .14), 0 0 38px rgba(34, 230, 255, .28), inset 0 0 18px rgba(34, 230, 255, .1); } }
-/* подпись предмета второй сцены (наведение): тема и раздел портала */
-.prop-tag {
-  position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; gap: 10px; margin-top: -10px;
-  padding: 8px 14px; border-radius: 999px; background: rgba(4, 10, 14, .82); border: 1px solid rgba(34, 230, 255, .6);
-  color: #e9fbff; font-family: var(--font); font-size: 13px; font-weight: 600; letter-spacing: .01em; text-decoration: none; white-space: nowrap;
-  box-shadow: 0 0 22px rgba(34, 230, 255, .22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  opacity: 0; pointer-events: none; transition: opacity .2s ease;
-}
-.prop-tag--visible { opacity: 1; pointer-events: auto; }
-.prop-tag__arrow { color: #22e6ff; }
-body.is-prop-hover .scene { cursor: pointer; }
 html[data-webgl="off"] .ask { animation: none; }
 @media (prefers-reduced-motion: reduce) { .ask { animation: none !important; } }
 .ask__chevron { font-size: 20px; line-height: 1; color: rgba(255,255,255,.85); }
@@ -119,6 +108,12 @@ html[data-webgl="off"] .ask { animation: none; }
 
 /* вторая часть «Обо мне»: наезжает на липкий экран оффера (тот же чёрный фон, своя плоскость). Пустые блоки
    (образование, последний год) разметка не выводит — сетка тогда в одну колонку. */
+/* тихая подсказка прокрутки внизу липкого экрана; единственное движение — появление, прячется наездом .about__more */
+.about__hint { position: absolute; left: 0; right: 0; bottom: clamp(20px, 4.5vh, 40px); display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; font-size: 13px; letter-spacing: .04em; color: #fff; opacity: 0; transition: opacity .8s ease .6s; pointer-events: none; }
+.about__hint i { width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+.intro--in .about__hint { opacity: .6; }
+.intro--in.about--covered .about__hint { opacity: 0; transition-delay: 0s; transition-duration: .3s; }
+@media (prefers-reduced-motion: reduce) { .about__hint { transition: none !important; } }
 .about__more { position: relative; z-index: 1; background: var(--black); color: #fff; max-width: 960px; margin: 0 auto; padding: clamp(72px, 12vh, 140px) var(--gutter) clamp(80px, 14vh, 160px); box-shadow: 0 -40px 60px 20px var(--black); }
 .about__grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 56px; }
 .about__grid--single { grid-template-columns: minmax(0, 1fr); }
@@ -382,7 +377,9 @@ body:not(.is-content-top) .cursor__ring, body.is-dark-section .cursor__ring { co
 .cursor--active .cursor__dot { transform: scale(.35); opacity: .35; }
 .cursor--active .cursor__ring { opacity: .9; transform: scale(1); }
 .cursor--down .cursor__ring { transform: scale(.8); }
-body.has-cursor, body.has-cursor a, body.has-cursor button { cursor: none; }
+/* курсор-точка — только пока идёт первый экран: после ухода сцены (is-released) и в меню системный курсор */
+body.has-cursor:not(.is-released):not(.is-menu-open), body.has-cursor:not(.is-released):not(.is-menu-open) a, body.has-cursor:not(.is-released):not(.is-menu-open) button { cursor: none; }
+body.is-released .cursor { opacity: 0 !important; }
 @media (hover: none), (max-width: 768px) { .cursor { display: none; } body.has-cursor { cursor: auto; } }
 
 .grain {

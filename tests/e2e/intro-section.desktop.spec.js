@@ -34,3 +34,36 @@ test('desktop: тёмная секция открывается после сц�
   await page.waitForTimeout(600);
   expect(await page.evaluate(() => getComputedStyle(document.getElementById('nav')).color)).toBe('rgb(17, 17, 17)');
 });
+
+test('desktop: на липком экране «Обо мне» внизу тихая подсказка прокрутки, её прячет наезд следующего блока', async ({ page }) => {
+  await page.goto('/');
+  await waitForPrelude(page);
+  await goToWhiteScene(page, 'desktop');
+  await leaveScene(page, 'desktop');
+  const hint = page.locator('#about .about__hint');
+  await expect(hint).toHaveText(content.about.hint);
+  await expect(hint).toHaveCSS('opacity', /^(0\.[5-9]\d*|1)$/);
+  const r = await hint.boundingBox();
+  const vp = page.viewportSize();
+  expect(r.y + r.height, 'подсказка внизу экрана').toBeGreaterThan(vp.height * 0.8);
+  // никакой бесконечной анимации
+  expect(await hint.evaluate((el) => el.getAnimations({ subtree: true }).filter((a) => a.effect.getTiming().iterations === Infinity).length)).toBe(0);
+  // кейсы остаются на экране
+  expect(await isInViewport(page, '.about__proof-link')).toBe(true);
+
+  // наезд следующего блока прячет подсказку
+  await page.evaluate(() => document.querySelector('.about__more').scrollIntoView({ block: 'start' }));
+  await page.waitForTimeout(1200);
+  await expect(hint).toHaveCSS('opacity', '0');
+});
+
+test('desktop reduced-motion: подсказка прокрутки появляется без анимации', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await waitForPrelude(page);
+  await goToWhiteScene(page, 'desktop');
+  await leaveScene(page, 'desktop');
+  const t = await page.locator('#about .about__hint').evaluate((el) => getComputedStyle(el).transitionDuration);
+  expect(parseFloat(t)).toBe(0);
+  await expect(page.locator('#about .about__hint')).toHaveCSS('opacity', /^(0\.[5-9]\d*|1)$/);
+});

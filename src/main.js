@@ -51,6 +51,10 @@ new IntersectionObserver((entries) => {
     if (e.isIntersecting) intro.classList.add('intro--in');
   }
 }, { threshold: 0.12 }).observe(intro.querySelector('.intro__sticky'));
+// Подсказка прокрутки на липком экране прячется, когда на него наезжает следующий блок
+new IntersectionObserver(([e]) => {
+  intro.classList.toggle('about--covered', e.isIntersecting);
+}, { rootMargin: '0px 0px -88% 0px' }).observe(intro.querySelector('.about__more'));
 
 // Подвал тоже тёмный и статичный (разметка вставлена при сборке): пока он в кадре, шапка светлая
 const footer = document.getElementById('footer');

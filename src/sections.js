@@ -118,6 +118,7 @@ export function renderSections(content, { latest = [] } = {}) {
           <p class="about__offer">${esc(content.offer)}</p>
           ${proofBar(about)}
         </div>
+        <p class="about__hint" aria-hidden="true"><span>${esc(about.hint)}</span><i></i></p>
       </div>
       ${aboutMore(about)}
     </section>
