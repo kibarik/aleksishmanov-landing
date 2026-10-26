@@ -6,14 +6,12 @@
 const esc = (t) => String(t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const OUT = 'target="_blank" rel="noopener"';
 
-/** Эмблема-око: пирамида с глазом, статичная, из текущего цвета текста. */
-const EMBLEM = `<svg viewBox="0 0 120 120" width="120" height="120" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M60 8 112 108H8Z"/><path d="M28 74c10-14 22-21 32-21s22 7 32 21c-10 14-22 21-32 21S38 88 28 74Z"/><circle cx="60" cy="74" r="9" fill="currentColor"/></svg>`;
-
 /**
- * @param {{ SITE: any, DIRECTION_INFO: Record<string, any>, SECTIONS: Record<string, any>, NAV: string[], PROFILES: any[], year: number }} d
+ * @param {{ SITE: any, DIRECTION_INFO: Record<string, any>, SECTIONS: Record<string, any>, NAV: string[], PROFILES: any[], year: number, emblem?: string }} d
+ *   emblem — разметка эмблемы-ока (src/menu-emblem.svg, та же, что в меню): вызывающий читает файл сам
  * @returns {string}
  */
-export function renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, year }) {
+export function renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, year, emblem = '' }) {
   const link = (href, text) => `<li><a href="${esc(href)}">${esc(text)}</a></li>`;
   return `<footer class="site-footer" id="footer">
   <div class="site-footer__panel">
@@ -28,7 +26,7 @@ export function renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, ye
           <ul>${NAV.map((k) => link(SECTIONS[k].path, SECTIONS[k].title)).join('')}</ul>
         </nav>
       </div>
-      <div class="site-footer__emblem">${EMBLEM}</div>
+      <div class="site-footer__emblem" aria-hidden="true">${emblem}</div>
       <div class="site-footer__side">
         <p class="site-footer__lead">${esc(SITE.positioning)}</p>
         <a class="site-footer__btn" href="${esc(SITE.contact.href)}" ${OUT}>Написать</a>

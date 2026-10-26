@@ -8,7 +8,7 @@
 .site-footer a { color: var(--sf-text); text-decoration: none; font-size: 15px; font-weight: 300; line-height: 1.4; }
 .site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .site-footer__emblem { display: grid; place-items: center; align-self: center; color: var(--sf-muted); }
-.site-footer__emblem svg { width: 160px; height: 160px; }
+.site-footer__emblem svg { width: 160px; height: auto; }
 .site-footer__side { display: grid; gap: 22px; justify-items: start; }
 .site-footer__lead { margin: 0; max-width: 28ch; font-size: 22px; font-weight: 600; line-height: 1.3; }
 .site-footer a.site-footer__btn { display: inline-block; padding: 14px 32px; border-radius: 8px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .22); font-size: 18px; font-weight: 500; }
