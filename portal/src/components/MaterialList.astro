@@ -1,7 +1,7 @@
 ---
 // Список текстового раздела (Блог, Разборы, Инструменты, Промты): белый фон, одна колонка, без картинок.
 // У пункта: заголовок-ссылка, метки направлений, анонс, время чтения и дата. Презентации и Кейсы — свои шаблоны.
-// Стили — здесь, в общий файл не выносим.
+// Стили — здесь, в общий файл не выносим. Белый фон под списком ставит SectionPage (.list-bg), не body.
 import { urlFor, formatDate, readingTime, type Material } from '../lib/materials';
 import { DIRECTION_INFO } from '../lib/site';
 
@@ -42,9 +42,7 @@ const { title, lead, groups } = Astro.props;
   </div>
 </div>
 
-<style is:global>
-  /* чистый белый фон страницы списка */
-  body { background: #fff; }
+<style>
   .mlist-col { max-width: 560px; margin: 0 auto; padding: 0 0 8px; }
   .mlist-head { padding: 40px 0 8px; }
   .mlist-head h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.12; margin: 0 0 20px; font-weight: 700; }
@@ -58,11 +56,11 @@ const { title, lead, groups } = Astro.props;
   .mlist__title a { text-decoration: none; }
   .mlist__title a:hover { text-decoration: underline; text-underline-offset: 4px; }
   .mlist__tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-  .mlist__tag { display: inline-block; font-size: 14px; line-height: 22px; font-weight: 500; padding: 4px 16px; border-radius: 25px; background: #f5f5f5; color: #0b0b0b; text-decoration: none; }
+  .mlist__tag { display: inline-block; font-size: 14px; line-height: 22px; font-weight: 500; padding: 4px 16px; border-radius: 25px; background: #f5f5f5; color: var(--ink); text-decoration: none; }
   a.mlist__tag:hover { background: #ebebeb; }
   .mlist__desc { font-size: 16px; line-height: 1.5; color: #27282c; margin: 0 0 14px; }
   .mlist__meta { display: flex; gap: 32px; margin: 0; font-size: 14px; line-height: 1.4; }
   .mlist__meta dt { font-weight: 700; }
   .mlist__meta dd { margin: 0; font-weight: 600; color: #27282c; }
-  .mlist-col ~ .pager { max-width: 560px; margin-inline: auto; }
+  .mlist-col ~ :global(.pager) { max-width: 560px; margin-inline: auto; }
 </style>

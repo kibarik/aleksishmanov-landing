@@ -132,6 +132,8 @@ test.describe('prefers-reduced-motion', () => {
     expect(Number(await page.locator('#menu .menu__cta').evaluate((el) => getComputedStyle(el).opacity))).toBe(1);
     expect(Number(await page.locator('#menu .menu__direction .menu__char').first().evaluate((el) => getComputedStyle(el).opacity))).toBe(1);
     expect(await page.locator('#menu .menu__circle').evaluate((el) => getComputedStyle(el).display)).toBe('none');
+    // круга нет — белый фон держит сама панель
+    expect(await page.locator('#menu .menu__panel').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(255, 255, 255)');
   });
 });
 

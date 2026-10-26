@@ -2,7 +2,7 @@
 // Список раздела: блог, разборы, инструменты, промты, презентации, кейсы.
 // Длинные разделы — по PAGE_SIZE карточек: первая страница /<раздел>/, дальше /<раздел>/page/<n>/.
 // Без сжатия на хостинге список из 100+ карточек весил >110 КБ HTML, и мобильный PageSpeed упирался
-// в загрузку самой страницы (с 24 карточками — 35 КБ и 100 баллов). Промты сгруппированы по рубрикам
+// в загрузку самой страницы (с 24 карточками — 35 КБ и 100 баллов). Промты сгруппированы по категориям каталога
 // с якорями — их не делим.
 import Base from '../layouts/Base.astro';
 import Card from './Card.astro';
@@ -32,6 +32,7 @@ const pageUrl = pageHref(info.path, page);
   jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: pageTitle, description: info.lead, url: `${SITE.url}${pageUrl}` })}>
   {page > 1 && <link slot="head" rel="prev" href={pageHref(info.path, page - 1)} />}
   {page < total && <link slot="head" rel="next" href={pageHref(info.path, page + 1)} />}
+  <div class={textList && all.length > 0 ? 'list-bg' : undefined}>
   <div class="wrap">
     {textList && all.length > 0 ? (
       <MaterialList title={pageTitle} lead={info.lead} groups={groups.map((g) => ({ ...g, id: g.title ? anchor(g.title) : undefined }))} />
@@ -70,4 +71,10 @@ const pageUrl = pageHref(info.path, page);
       </nav>
     )}
   </div>
+  </div>
 </Base>
+
+<style>
+  /* текстовый список читается на белом, как материал (MaterialLayout); flow-root держит отступы пагинации внутри */
+  .list-bg { background: var(--card); display: flow-root; }
+</style>

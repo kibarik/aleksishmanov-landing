@@ -51,7 +51,7 @@ test('4. на телефоне карточки друг под другом', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('5. «Читать дальше» и тёмный призыв заменены рядом; у кейсов остаются', async ({ page }) => {
+test('5. «Читать дальше» и тёмный призыв заменены рядом', async ({ page }) => {
   await page.goto(ARTICLE);
   await expect(page.getByRole('heading', { name: 'Читать дальше' })).toHaveCount(0);
   await expect(page.locator('.cta')).toHaveCount(0);
