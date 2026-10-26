@@ -3,8 +3,10 @@
 import Base from '../../layouts/Base.astro';
 import Card from '../../components/Card.astro';
 import MaterialLayout from '../../components/material/MaterialLayout.astro';
+import AfterRow from '../../components/material/AfterRow.astro';
 import CaseFacts from '../../components/CaseFacts.astro';
 import { render, type CollectionEntry } from 'astro:content';
+import { freshMaterials } from '../../lib/fresh.mjs';
 import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
@@ -21,7 +23,10 @@ const { Content, headings } = await render(m);
 const toc = tocItems(headings);
 const url = `${SITE.url}${urlFor(m)}`;
 const minutes = readingTime(m.body);
-const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
+const isCase = m.collection === 'cases';
+// текстовые разделы: ряд после материала (автор | свежие | Telegram); у кейсов — прежние «Читать дальше» и призыв
+const fresh = isCase ? [] : freshMaterials(await list(m.collection), m);
+const related = !isCase ? [] : (await listAll(['blog', 'reviews', 'tools', 'cases']))
   .filter((x) => x.id !== m.id && x.data.directions.some((d) => m.data.directions.includes(d)))
   .slice(0, 3);
 const sourceLabel = SOURCE_LABEL[m.data.source];
@@ -57,10 +62,13 @@ const methodNodes = await nodesOfMaterial(m);
         {m.data.also_in.length > 0 && <>Обсуждения: {m.data.also_in.map((u, i) => <>{i > 0 && ', '}<a href={u} target="_blank" rel="noopener">{u.replace(/^https:\/\//, '')}</a></>)}.</>}
       </p>
     )}
-    <aside class="cta">
-      <p>Нужна помощь с запуском продукта или внедрением ИИ в команде? Напишите — разберём вашу задачу.</p>
-      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
-    </aside>
+    {isCase && (
+      <aside class="cta">
+        <p>Нужна помощь с запуском продукта или внедрением ИИ в команде? Напишите — разберём вашу задачу.</p>
+        <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
+      </aside>
+    )}
+    {!isCase && <AfterRow slot="after" fresh={fresh} />}
   </MaterialLayout>
   {related.length > 0 && (
     <section class="wrap">

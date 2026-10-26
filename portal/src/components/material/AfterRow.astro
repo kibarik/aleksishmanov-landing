@@ -1,0 +1,18 @@
+---
+// Ряд после материала: автор | свежие материалы | Telegram. На телефоне столбиком.
+import AuthorCard from './AuthorCard.astro';
+import FreshMaterials from './FreshMaterials.astro';
+import TelegramCard from './TelegramCard.astro';
+import type { Material } from '../../lib/materials';
+interface Props { fresh: Material[] }
+const { fresh } = Astro.props;
+---
+<div class="arow" data-after-row>
+  <AuthorCard />
+  {fresh.length > 0 && <FreshMaterials items={fresh} />}
+  <TelegramCard />
+</div>
+<style>
+  .arow { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 56px; }
+  @media (min-width: 900px) { .arow { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

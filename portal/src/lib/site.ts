@@ -85,3 +85,16 @@ export const SOURCE_LABEL: Record<string, string> = {
   prompts: 'prompts.aleksishmanov.ru',
   slides: 'slides.aleksishmanov.ru',
 };
+
+/** Основной Telegram-канал: на него зовёт карточка «Подписаться в Telegram» после материала. */
+export const TELEGRAM_CHANNEL = PROFILES[0];
+
+/** Карточка автора в конце материала. `photo` — путь к снимку (например /media/author.webp); пока null — карточка показывает монограмму. */
+export const AUTHOR = {
+  name: SITE.name,
+  monogram: 'АИ',
+  photo: null as string | null,
+  role: SITE.positioning,
+  about: 'В практике с 2016 года: backend, B2B-платформы, команды. С 2024 года занимаюсь ML и LLM и тем, как ИИ меняет работу продуктовых команд и руководителей.',
+  profiles: PROFILES.filter((p) => ['Threads', 'GitHub'].includes(p.label) || p.href === 'https://t.me/corporate_ai'),
+};
