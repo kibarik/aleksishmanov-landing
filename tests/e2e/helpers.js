@@ -319,23 +319,13 @@ export async function expectMenuClosed(page) {
 }
 
 /**
- * Открывает меню как посетитель. Десктоп: наведением на зону в углу (у эталона клик не нужен); мобильный: тап по кнопке дока.
+ * Открывает меню как посетитель: клик по кнопке (десктоп — кольца в шапке, мобильный — ☰ в доке).
  * Ждёт, пока доиграет анимация (menu--ready): до этого меню нельзя закрыть. Повторное открытие блокируется на 1,5 с после закрытия.
  */
 export async function openMenu(page) {
   const menu = page.locator('#menu');
   const mobile = await page.evaluate(() => matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)').matches);
-  if (mobile) {
-    await page.locator('#menu-dock-toggle').click();
-  } else {
-    const { width } = page.viewportSize();
-    for (let attempt = 0; attempt < 4; attempt++) {
-      await page.mouse.move(width / 2, 300);
-      await page.mouse.move(width - 35, 35, { steps: 4 });
-      if (await menu.evaluate((el) => el.classList.contains('menu--open')).catch(() => false)) break;
-      try { await expect(menu).toHaveClass(/menu--open/, { timeout: 800 }); break; } catch { await page.waitForTimeout(800); }
-    }
-  }
+  await page.locator(mobile ? '#menu-dock-toggle' : '#menu-toggle').click();
   await expect(menu).toHaveClass(/menu--open/);
   await expect(menu).toHaveClass(/menu--ready/, { timeout: 8_000 });
   await expect(page.locator('#menu-toggle')).toHaveAttribute('aria-expanded', 'true');

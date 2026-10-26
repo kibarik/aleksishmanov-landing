@@ -1,9 +1,9 @@
 /**
- * Меню по модели bersus.io: полноэкранная белая панель, пункты выезжают по буквам, «жидкость» под курсором.
- * Десктоп: открывается наведением на зону 70×70 в углу (или кликом — тач и клавиатура), закрывается кликом по зоне
- * и Escape, но только когда анимация доиграла; закрытие — тот же таймлайн задом наперёд в 3 раза быстрее, затем 1,5 с
- * нельзя открыть снова. Мобильный режим: нижний док и карточка-меню над ним, без жидкости.
- * Ссылка внутри меню закрывает его мгновенно. Пока меню открыто, липкий скролл не принимает жесты.
+ * Меню по модели bersus.io: открывается кликом по кнопке; из угла кнопки вырастает белый круг (~0,6 с), затем
+ * пункты выезжают по буквам. Закрывается крестиком, Escape или переходом по ссылке, но обычное закрытие — только когда
+ * анимация доиграла: тот же таймлайн задом наперёд в 3 раза быстрее, затем 1,5 с нельзя открыть снова.
+ * Фокус уходит в меню при открытии и возвращается на кнопку. Мобильный режим и prefers-reduced-motion: без круга и
+ * побуквенной анимации (нижний док и карточка-меню над ним). Пока меню открыто, липкий скролл не принимает жесты.
  */
 import emblem from './menu-emblem.svg?url';
 
@@ -11,14 +11,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&
 
 /** Расписание таймлайна (секунды): как у эталона — пункты по буквам, потом кнопка, крестик и нижние ссылки. */
 const T = {
-  total: 1.7,
-  itemStarts: [0.38, 0.52, 0.64, 0.78, 0.88, 1.0],
+  total: 1.9,
+  itemStarts: [0.1, 0.26, 0.42, 0.54, 0.66, 0.78, 0.9],
   charDur: 0.3, charStagger: 0.02,
-  cross: { start: 0.8, dur: 0.9 },
+  note: { dur: 0.4 },
+  cross: { start: 0.2, dur: 0.9 },
   cta: { start: 1.1, dur: 0.6 },
-  social: { start: 1.5, dur: 0.2 },
+  social: { start: 1.6, dur: 0.2 },
 };
-const OPEN_DELAY_MS = 300; // панель проявляется, и только потом стартует таймлайн
+const OPEN_DELAY_MS = 600; // белый круг вырастает (--circle-open в style.css), и только потом стартует таймлайн
 const REOPEN_LOCK_MS = 1500; // после закрытия
 const CLOSE_SPEED = 3;
 
@@ -39,26 +40,30 @@ function chars(label) {
 
 function markup(content) {
   const { menu, contact } = content;
-  const items = [...menu.anchors, ...menu.pages];
   return `
     <div class="menu__overlay" id="menu-overlay"></div>
+    <div class="menu__circle" aria-hidden="true"></div>
     <nav class="menu__panel" aria-label="${esc(menu.title)}" style="--arrow:${ARROW}">
-      <canvas class="menu__fluid" aria-hidden="true"></canvas>
       <div class="menu__art" aria-hidden="true"><img src="${emblem}" alt="" loading="lazy" decoding="async" /></div>
       <i class="menu__dot" aria-hidden="true"></i>
       <button class="menu__close" id="menu-close" type="button" aria-label="Закрыть меню">
         <svg viewBox="0 0 46 46" aria-hidden="true"><path d="M9 9l28 28M37 9L9 37" /></svg>
       </button>
-      <ul class="menu__items">
-        ${items.map((a) => `<li><a class="menu__anchor" href="${esc(a.href)}" aria-label="${esc(a.label)}">${chars(a.label)}</a></li>`).join('')}
-      </ul>
+      <div class="menu__main">
+        <ul class="menu__directions menu__list">
+          ${menu.directions.map((d) => `<li><a class="menu__direction" href="${esc(d.href)}" aria-label="${esc(d.label)}. ${esc(d.note)}"><span class="menu__anchor">${chars(d.label)}</span><span class="menu__note">${esc(d.note)}</span></a></li>`).join('')}
+        </ul>
+        <ul class="menu__pages menu__list">
+          ${menu.pages.map((a) => `<li><a class="menu__anchor menu__page" href="${esc(a.href)}" aria-label="${esc(a.label)}">${chars(a.label)}</a></li>`).join('')}
+        </ul>
+      </div>
       <div class="menu__side">
         <a class="menu__cta" href="${esc(contact.href)}" target="_blank" rel="noopener noreferrer">
           <span class="menu__cta-pointer" aria-hidden="true"></span><span class="menu__cta-label">${esc(contact.title)}</span>
         </a>
         <p class="menu__social"><a href="${esc(menu.social.href)}" target="_blank" rel="noopener noreferrer">${esc(menu.social.label)}: ${esc(menu.social.handle)}</a></p>
+        <p class="menu__home"><a class="menu__back" href="${esc(menu.home.href)}">${esc(menu.home.label)}</a></p>
       </div>
-      <p class="menu__home"><a class="menu__back" href="${esc(menu.home.href)}">${esc(menu.home.label)}</a></p>
     </nav>`;
 }
 
@@ -77,12 +82,14 @@ export const NO_SCENE_SCROLL = { state: { released: true }, release() {}, setPau
 /** Таймлайн: render(t) расставляет стили по времени; play/reverse гоняют t через rAF. */
 function createTimeline(root) {
   const entries = [];
-  const items = [...root.querySelectorAll('.menu__items li')];
+  const items = [...root.querySelectorAll('.menu__list li')];
   items.forEach((li, i) => {
     const start = T.itemStarts[i] ?? T.itemStarts.at(-1) + 0.12 * (i - T.itemStarts.length + 1);
     [...li.querySelectorAll('.menu__char')].forEach((el, k) => {
       entries.push({ el, start: start + k * T.charStagger, dur: T.charDur, ease: back3, x: 30, y: 0, scale: 1.2 });
     });
+    const note = li.querySelector('.menu__note');
+    if (note) entries.push({ el: note, start: start + 0.3, dur: T.note.dur, ease: power2InOut, x: 0, y: 10, scale: 1 });
   });
   const cta = root.querySelector('.menu__cta');
   const social = root.querySelector('.menu__social');
@@ -136,50 +143,41 @@ export function mountMenu(root, toggle, content, sticky) {
   dock.innerHTML = dockMarkup(content);
   root.insertAdjacentElement('afterend', dock);
   const dockToggle = dock.querySelector('#menu-dock-toggle');
-  const zone = document.createElement('div');
-  zone.className = 'menu-zone';
-  zone.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(zone);
 
   const close = root.querySelector('#menu-close');
   const overlay = root.querySelector('#menu-overlay');
+  const circle = root.querySelector('.menu__circle');
   const timeline = createTimeline(root);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const mobileMq = matchMedia('(max-width: 1024px), (hover: none) and (pointer: coarse)');
   const toggles = [toggle, dockToggle];
 
-  let open = false; let ready = false; let locked = false; let byKeyboard = false;
-  let inZone = false; let needLeave = false; // курсор в зоне 70×70; после закрытия кликом ждём, пока он выйдет
-  let openTimer = 0; let lockTimer = 0; let fluidTimer = 0;
-  let fluid = null; let fluidTried = false;
+  let open = false; let ready = false; let locked = false;
+  let openTimer = 0; let lockTimer = 0;
 
-  async function setFluid(on) {
-    clearTimeout(fluidTimer);
-    if (on) {
-      if (mobileMq.matches) return;
-      if (!fluidTried) {
-        fluidTried = true;
-        try { fluid = (await import('./menuFluid.js')).createFluid(root.querySelector('.menu__fluid')); } catch { fluid = null; }
-      }
-      if (open) fluid?.start();
-    } else {
-      fluidTimer = setTimeout(() => { if (!open) fluid?.stop(); }, REOPEN_LOCK_MS);
-    }
+  /** Белый круг растёт из центра кнопки до самого дальнего угла экрана. */
+  function placeCircle() {
+    const r = toggle.getBoundingClientRect();
+    const ox = r.left + r.width / 2; const oy = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(ox, innerWidth - ox), Math.max(oy, innerHeight - oy)) * 1.08;
+    circle.style.setProperty('--ox', `${ox}px`);
+    circle.style.setProperty('--oy', `${oy}px`);
+    circle.style.setProperty('--r', `${Math.ceil(radius)}px`);
   }
-
-  function applyOpen(focusClose) {
+  function applyOpen() {
     root.classList.add('menu--open');
     document.body.classList.add('is-menu-open');
     for (const b of toggles) b.setAttribute('aria-expanded', 'true');
     root.setAttribute('aria-hidden', 'false');
     sticky.setPaused(true); // жесты не проваливаются в сцену за панелью
-    if (focusClose) close.focus({ preventScroll: true }); // мышью открыли — рамка фокуса на крестике не нужна
+    close.focus({ preventScroll: true }); // фокус уходит в меню; программный фокус после клика мыши рамку не рисует
   }
 
-  function openMenu(fromKeyboard = false) {
+  function openMenu() {
     if (open || locked) return;
-    open = true; ready = false; byKeyboard = fromKeyboard;
-    applyOpen(fromKeyboard);
+    open = true; ready = false;
+    if (!mobileMq.matches && !reduced.matches) placeCircle();
+    applyOpen();
     if (mobileMq.matches || reduced.matches) {
       timeline.set(T.total);
       setTimeout(() => { if (open) { ready = true; root.classList.add('menu--ready'); } }, 300);
@@ -187,7 +185,6 @@ export function mountMenu(root, toggle, content, sticky) {
       timeline.set(0);
       openTimer = setTimeout(() => timeline.play(() => { if (open) { ready = true; root.classList.add('menu--ready'); } }), OPEN_DELAY_MS);
     }
-    setFluid(true);
   }
 
   /** После закрытия: фейд панели и защита от мгновенного повторного открытия. */
@@ -201,8 +198,7 @@ export function mountMenu(root, toggle, content, sticky) {
     locked = true;
     clearTimeout(lockTimer);
     lockTimer = setTimeout(() => { locked = false; }, REOPEN_LOCK_MS);
-    setFluid(false);
-    if (returnFocus && byKeyboard) (mobileMq.matches ? dockToggle : toggle).focus({ preventScroll: true }); // мышью — без рамки фокуса
+    if (returnFocus) (mobileMq.matches ? dockToggle : toggle).focus({ preventScroll: true });
   }
 
   /** Обычное закрытие: только когда таймлайн доиграл; пункты уходят в обратном порядке. */
@@ -221,17 +217,11 @@ export function mountMenu(root, toggle, content, sticky) {
     finishClose(false);
   }
 
-  const toggleMenu = (e) => (open ? closeMenu() : openMenu(e?.detail === 0)); // detail 0 — Enter/Space с клавиатуры
+  const toggleMenu = () => (open ? closeMenu() : openMenu());
   toggle.addEventListener('click', toggleMenu);
   dockToggle.addEventListener('click', toggleMenu);
   close.addEventListener('click', closeMenu);
   overlay.addEventListener('click', () => { if (mobileMq.matches) closeMenu(); });
-  // Наведение открывает; если курсор уже стоял в зоне (закрыли Esc или таймер блокировки ещё шёл), хватает любого движения.
-  // После закрытия кликом по зоне заново открывает только выход курсора и возврат, иначе меню вскакивало бы под рукой.
-  zone.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { inZone = true; openMenu(false); } });
-  zone.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' && !needLeave) openMenu(false); });
-  zone.addEventListener('pointerleave', () => { inZone = false; needLeave = false; });
-  zone.addEventListener('click', (e) => { if (open && ready && inZone) needLeave = true; toggleMenu(e); });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !open) return;
     e.stopPropagation(); // иначе клавиша уйдёт в обработчик липкого скролла
@@ -247,7 +237,7 @@ export function mountMenu(root, toggle, content, sticky) {
     requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  for (const a of [...root.querySelectorAll('.menu__anchor'), ...dock.querySelectorAll('.dock__btn')]) {
+  for (const a of [...root.querySelectorAll('.menu__direction, .menu__page'), ...dock.querySelectorAll('.dock__btn')]) {
     const href = a.getAttribute('href');
     if (href.startsWith('#')) a.addEventListener('click', (e) => goAnchor(a, e));
     else a.addEventListener('click', () => closeInstant()); // страница сменится, панель гаснет сразу
