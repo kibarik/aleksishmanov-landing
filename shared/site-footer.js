@@ -19,11 +19,11 @@ export function renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, ye
       <div class="site-footer__links">
         <nav aria-label="Направления">
           <h2>Направления</h2>
-          <ul>${Object.values(DIRECTION_INFO).map((x) => link(x.path, x.title)).join('')}${link('/about/', 'Обо мне')}</ul>
+          <ul>${Object.values(DIRECTION_INFO).map((x) => link(x.path, x.title)).join('')}</ul>
         </nav>
         <nav aria-label="Разделы">
           <h2>Разделы</h2>
-          <ul>${NAV.map((k) => link(SECTIONS[k].path, SECTIONS[k].title)).join('')}</ul>
+          <ul>${NAV.map((k) => link(SECTIONS[k].path, SECTIONS[k].title)).join('')}${link('/about/', 'Обо мне')}</ul>
         </nav>
       </div>
       <div class="site-footer__emblem" aria-hidden="true">${emblem}</div>

@@ -18,6 +18,12 @@ test('в подвале есть все разделы из шапки', () => {
   for (const k of data.NAV) assert.ok(hrefs.includes(data.SECTIONS[k].path), `нет раздела ${k}`);
 });
 
+test('«Обо мне» в списке «Разделы», а не среди направлений', () => {
+  const list = (label) => html.match(new RegExp(`aria-label="${label}">[\\s\\S]*?</ul>`))[0];
+  assert.ok(list('Разделы').includes('href="/about/"'));
+  assert.ok(!list('Направления').includes('href="/about/"'));
+});
+
 test('в подвале есть все профили, контакт и служебные ссылки', () => {
   for (const p of data.PROFILES) assert.ok(hrefs.includes(p.href), `нет профиля ${p.label}`);
   assert.ok(hrefs.includes(data.SITE.contact.href));

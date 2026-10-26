@@ -45,6 +45,11 @@ test('2. строка кейса: заголовок-результат ссыл
   await expect(row.locator('.case-row__metrics dd')).toHaveCount(2);
 });
 
+test('2б. у кейса с несколькими направлениями в строке видны все', async ({ page }) => {
+  await page.goto('/cases/');
+  await expect(rows(page).nth(1).locator('.case-row__dir')).toHaveText(['Запуск продуктов', 'ИИ в корпорациях']);
+});
+
 test('3. клик по заголовку открывает страницу кейса', async ({ page }) => {
   await page.goto('/cases/');
   await rows(page).first().locator('a.case-row__title').click();

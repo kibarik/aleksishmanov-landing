@@ -28,7 +28,7 @@ const cases = (await list('cases')).sort(byOrder);
             <li class="case-row">
               <h2 class="case-row__heading"><a class="case-row__title" href={urlFor({ collection: 'cases', id: m.id })}>{c.title}</a></h2>
               <p class="case-row__meta">
-                <span class="case-row__dir">{DIRECTION_INFO[c.directions[0]].short}</span>
+                {c.directions.map((d) => <span class="case-row__dir">{DIRECTION_INFO[d].short}</span>)}
                 <span class="case-row__years">{yearsLabel(c.years)}</span>
               </p>
               <dl class="case-row__metrics">{c.metrics.slice(0, 2).map((x) => <div><dt>{x.value}</dt><dd>{x.label}</dd></div>)}</dl>

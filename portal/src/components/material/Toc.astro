@@ -21,7 +21,7 @@ const { items } = Astro.props;
   .toc a[aria-current="true"] { color: var(--ink); border-left-color: var(--ink); font-weight: 600; }
   /* узкий экран: строка под шапкой, прокручивается вбок */
   @media (max-width: 1099px) {
-    .toc { position: sticky; top: var(--header-h, 64px); z-index: 4; background: #fff; border-bottom: 1px solid var(--line); margin: 0 -20px; padding: 0 20px; }
+    .toc { position: sticky; top: var(--header-h); z-index: 4; background: var(--card); border-bottom: 1px solid var(--line); margin: 0 -20px; padding: 0 20px; }
     .toc__title { display: none; }
     .toc__list { flex-direction: row; gap: 4px 20px; overflow-x: auto; scrollbar-width: none; }
     .toc__list::-webkit-scrollbar { display: none; }
