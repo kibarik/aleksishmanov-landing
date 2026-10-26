@@ -13,7 +13,7 @@ test('подвал главной и страниц портала — одна 
   for (const url of ['/blog/', '/cases/', '/startups/', '/about/']) expect(await footerHtml(request, url), url).toBe(home);
 });
 
-test('портал: подвал тёмный, статичный — подборки, эмблема, блоки и призыв', async ({ page }) => {
+test('портал: подвал тёмный, статичный — подборки, рука, блоки и призыв', async ({ page }) => {
   await page.goto('/blog/');
   const footer = page.locator('footer.site-footer');
   await expect(footer.locator('canvas')).toHaveCount(0);
@@ -22,20 +22,22 @@ test('портал: подвал тёмный, статичный — подбо
   const panel = footer.locator('.site-footer__panel');
   expect(await panel.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(11, 11, 11)');
   expect(await panel.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).not.toBe('0px');
-  const boxes = await Promise.all(['.site-footer__list', '.site-footer__emblem', '.site-footer__blocks', '.site-footer__bottom'].map((s) => footer.locator(s).boundingBox()));
+  const boxes = await Promise.all(['.site-footer__list', '.site-footer__hand', '.site-footer__blocks', '.site-footer__bottom'].map((s) => footer.locator(s).boundingBox()));
   expect(boxes[0].x).toBeLessThan(boxes[1].x);
   expect(boxes[1].x).toBeLessThan(boxes[2].x);
   expect(boxes[2].y).toBeLessThan(boxes[3].y);
   await expect(footer.locator('.site-footer__card')).toHaveCount(4);
-  await expect(footer.locator('.site-footer__emblem svg')).toBeVisible();
+  // рука прижата к низу панели и срезана её краем
+  const hand = await footer.locator('.site-footer__hand').boundingBox();
+  expect(Math.round(hand.width)).toBe(380);
   await expect(footer.getByRole('link', { name: 'Написать' })).toHaveAttribute('href', 'https://t.me/kibarik');
 });
 
-test('портал на телефоне: подборки, блоки и призыв идут столбиком, эмблемы нет', async ({ page }) => {
+test('портал на телефоне: подборки, блоки и призыв идут столбиком, руки нет', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/blog/');
   const footer = page.locator('footer.site-footer');
-  await expect(footer.locator('.site-footer__emblem')).toBeHidden();
+  await expect(footer.locator('.site-footer__hand')).toBeHidden();
   const boxes = await Promise.all(['.site-footer__list', '.site-footer__blocks', '.site-footer__bottom'].map((s) => footer.locator(s).boundingBox()));
   expect(boxes[0].y + boxes[0].height).toBeLessThanOrEqual(boxes[1].y + 1);
   expect(boxes[1].y + boxes[1].height).toBeLessThanOrEqual(boxes[2].y + 1);

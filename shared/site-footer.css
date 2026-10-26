@@ -1,5 +1,5 @@
 /* Подвал сайта (shared/site-footer.js) повторяет подвал референса: тёмная панель со скруглённым верхом, слева карточка
-   с подборками, в центре эмблема-око, справа блоки и призыв. Без шума, canvas и фоновой анимации — только отклик на наведение. */
+   с подборками, в центре рука, справа блоки и призыв. Без шума, canvas и фоновой анимации — только отклик на наведение. */
 .site-footer {
   --sf-radius: 16px; --sf-bg: #0b0b0b; --sf-card: #111; --sf-hover: #222;
   --sf-pink: #fe3b8a; --sf-underline: #ff448d; --sf-muted: #d8d7d8;
@@ -52,9 +52,10 @@
 .site-footer__link { position: relative; z-index: 3; display: inline-block; padding: 2.2px 0; font-family: var(--sf-font); font-size: 14px; font-weight: 300; line-height: 19.6px; color: #fff; text-decoration: none; }
 .site-footer__link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* центр: статичная эмблема-око (та же, что в меню) на месте объекта референса */
-.site-footer__emblem { grid-row: 1 / -1; display: grid; place-items: center; color: #fff; opacity: .9; }
-.site-footer__emblem svg { width: min(100%, 300px); height: auto; }
+/* центр: рука как у референса — блок 380×630 по центру колонки, прижат к низу и срезан краем панели.
+   Картинка — /footer-hand.png; пока своей нет, слот пустой (решение владельца 2026-10-27: свой кулак с татуировкой) */
+.site-footer__hand { grid-row: 1 / -1; align-self: end; justify-self: center; width: 380px; max-width: 100%; height: 630px; margin-top: 64px;
+  background: url("/footer-hand.png") center bottom / contain no-repeat; }
 
 /* справа сверху: блоки-заголовки */
 .site-footer__blocks { grid-column: 3; grid-row: 1; display: grid; grid-template-columns: 180px 180px; gap: 25px; align-content: start; }
@@ -110,7 +111,7 @@
   .site-footer__blocks { order: 2; grid-column: auto; grid-row: auto; grid-template-columns: 1fr 1fr; }
   .site-footer__bottom { order: 3; grid-column: 1 / -1; grid-row: auto; }
   .site-footer__profiles { margin-bottom: 0; }
-  .site-footer__emblem { display: none; }
+  .site-footer__hand { display: none; }
   .site-footer__card-arrow { display: none; }
 }
 /* ≤767 — панель во всю ширину, поля 60/24, радиус 16, одна колонка */

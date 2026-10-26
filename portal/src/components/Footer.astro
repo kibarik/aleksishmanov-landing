@@ -2,7 +2,6 @@
 // Общий подвал сайта: разметка — shared/site-footer.js (её же получает главная при сборке), стили — shared/site-footer.css.
 import '../../../shared/site-footer.css';
 import { renderFooter } from '../../../shared/site-footer.js';
-import emblem from '../../../src/menu-emblem.svg?raw';
 import { SITE, SECTIONS, NAV, DIRECTION_INFO, PROFILES } from '../lib/site';
 ---
-<Fragment set:html={renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, year: new Date().getFullYear(), emblem })} />
+<Fragment set:html={renderFooter({ SITE, DIRECTION_INFO, SECTIONS, NAV, PROFILES, year: new Date().getFullYear() })} />

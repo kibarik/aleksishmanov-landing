@@ -2,7 +2,7 @@
  * Подвал сайта: одна чистая функция, разметка из данных портала (portal/src/lib/site.ts) и подборок
  * (shared/footer-data.js). Портал вставляет её в базовый лейаут, главная получает при сборке
  * (scripts/vite-portal.mjs). Стили — shared/site-footer.css.
- * Структура — как у референса: слева карточки подборок, в центре эмблема-око, справа блоки и призыв.
+ * Структура — как у референса: слева карточки подборок, в центре рука, справа блоки и призыв.
  * Подвал статичный: ни canvas, ни скриптов, ни фоновой анимации — только отклик на наведение.
  */
 import { FOOTER_GROUPS, FOOTER_BLOCKS } from './footer-data.js';
@@ -29,12 +29,11 @@ const ICON_PROFILES = [
 const link = ({ label, href }, cls) => `<a class="${cls}" href="${esc(href)}"${isOut(href) ? ` ${OUT}` : ''}>${esc(label)}</a>`;
 
 /**
- * @param {{ SITE: any, PROFILES: any[], year: number, emblem?: string }} d
- *   emblem — разметка эмблемы-ока (src/menu-emblem.svg, та же, что в меню): вызывающий читает файл сам
+ * @param {{ SITE: any, PROFILES: any[], year: number }} d
  * @returns {string}
  */
 export function renderFooter(d) {
-  const { SITE, year, emblem = '' } = d;
+  const { SITE, year } = d;
   return `<footer class="site-footer" id="footer">
   <div class="site-footer__panel">
     <span class="site-footer__handle" aria-hidden="true"></span>
@@ -49,7 +48,7 @@ export function renderFooter(d) {
           </div>`).join('')}
         </div>
       </nav>
-      <div class="site-footer__emblem" aria-hidden="true">${emblem}</div>
+      <div class="site-footer__hand" aria-hidden="true"></div>
       <div class="site-footer__blocks">${FOOTER_BLOCKS.map((b) => `
         <nav class="site-footer__column" aria-label="${esc(b.title)}">
           <p class="site-footer__column-title${b.mark ? ' site-footer__column-title--mark' : ''}">${b.href ? link({ label: b.title, href: b.href }, 'site-footer__title-link') : esc(b.title)}</p>
