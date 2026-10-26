@@ -1,6 +1,7 @@
 /**
  * Курсор-точка как у референса: тёмная точка догоняет мышь с инерцией, над ссылками и кнопками
- * гаснет и превращается в кольцо. Только десктоп: на touch и узких экранах системный курсор.
+ * гаснет и превращается в кольцо. Живёт только на первом экране: после ухода сцены (body.is-released)
+ * стили возвращают системный курсор, а точку гасят. Только десктоп: на touch и узких экранах системный курсор.
  */
 
 /** Ширина, ниже которой курсор не включаем (там всё равно тач). */
@@ -43,8 +44,7 @@ export function mountCursor() {
     targetX = e.clientX;
     targetY = e.clientY;
     if (!seen) { seen = true; x = targetX; y = targetY; root.classList.add('cursor--seen'); }
-    // над предметом второй сцены (src/boot3d.js, is-prop-hover) курсор тоже «активный»: по клику — переход
-    root.classList.toggle('cursor--active', !!e.target.closest?.(INTERACTIVE) || document.body.classList.contains('is-prop-hover'));
+    root.classList.toggle('cursor--active', !!e.target.closest?.(INTERACTIVE));
   }, { passive: true });
 
   window.addEventListener('pointerdown', () => root.classList.add('cursor--down'), { passive: true });
