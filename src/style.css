@@ -27,7 +27,7 @@ html[data-webgl="off"] .scene, html[data-webgl="off"] .loader, html[data-webgl="
 html[data-webgl="off"] .tagline { opacity: 1; }
 html[data-webgl="off"] .flip__word { opacity: 1; transform: none; transition: none; }
 html[data-webgl="off"] .ask { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-html[data-webgl="off"] .nav { opacity: 1; transform: none; }
+html[data-webgl="off"] .nav__logo { opacity: 1; transform: none; }
 html[data-webgl="off"] body { background: #04070b; }
 /* статичный кадр — статичное зерно: бесконечная анимация меняла кадр каждые 0,7 с, и PageSpeed не мог
    зафиксировать «страница достроена» (Speed Index 3,9 с при FCP 1,1 с). В 3D-режиме зерно анимировано */
@@ -212,10 +212,12 @@ html[data-webgl="off"] .ask { animation: none; }
 
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center;
-  padding: 28px 40px; opacity: 0; transform: translateY(-8px); transition: opacity .8s ease, transform .8s ease; color: #fff;
+  padding: 28px 40px; transition: opacity .8s ease; color: #fff;
 }
-.nav--visible { opacity: 1; transform: none; }
-.nav__logo { font-family: var(--display); font-weight: 900; letter-spacing: .04em; font-size: 16px; color: currentColor; text-decoration: none; }
+/* на тёмной сцене видна только белая кнопка меню (решение владельца 2026-10-26); имя появляется с белой сценой */
+.nav__logo { font-family: var(--display); font-weight: 900; letter-spacing: .04em; font-size: 16px; color: currentColor; text-decoration: none;
+  opacity: 0; transform: translateY(-8px); transition: opacity .8s ease, transform .8s ease; }
+.nav--visible .nav__logo { opacity: 1; transform: none; }
 .nav__right { display: flex; align-items: center; gap: 22px; }
 /* шапка как у референса: только логотип и меню. Над светлым контентом тёмная, на сцене и тёмных секциях светлая */
 body.is-content-top .nav { color: #111; }

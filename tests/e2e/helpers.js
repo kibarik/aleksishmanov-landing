@@ -256,13 +256,13 @@ export async function expectSectionsMatchContent(page, content) {
 }
 
 /**
- * На тёмной сцене — как у референса — ничего, кроме персонажа и подсказки: шапка (имя, Ask, меню) скрыта
- * и появится с белой сценой. Ссылка Ask уже из контента. toBeVisible() здесь не годится: Playwright считает
+ * На тёмной сцене кроме персонажа и подсказки только кнопка меню: имя в шапке и Ask скрыты
+ * и появятся с белой сценой. Ссылка Ask уже из контента. toBeVisible() здесь не годится: Playwright считает
  * видимым и элемент с нулевой прозрачностью — проверяем класс и итоговую прозрачность.
  */
 export async function expectAskOnDarkScene(page, content) {
   await expect(page.locator('#nav')).not.toHaveClass(/nav--visible/);
-  await expect.poll(() => page.evaluate(() => +getComputedStyle(document.getElementById('nav')).opacity)).toBeLessThan(0.05);
+  await expect.poll(() => page.evaluate(() => +getComputedStyle(document.querySelector('.nav__logo')).opacity)).toBeLessThan(0.05);
   await expect(page.locator('#ask-scene')).toHaveAttribute('href', content.ask.href);
   await expect(page.locator('#ask-scene')).not.toHaveClass(/ask--visible/);
 }

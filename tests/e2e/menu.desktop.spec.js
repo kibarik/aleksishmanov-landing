@@ -14,6 +14,22 @@ test('desktop: меню открывается только кликом — н�
   await expect(page.locator('.menu-zone')).toHaveCount(0);
 });
 
+test('desktop: на тёмной сцене кнопка меню видна и белая, открывается кликом', async ({ page }) => {
+  await page.goto('/');
+  await waitForPrelude(page);
+  await expect(page.locator('#nav')).not.toHaveClass(/nav--visible/);
+  const style = await page.evaluate(() => {
+    const btn = document.getElementById('menu-toggle');
+    const cs = getComputedStyle(btn);
+    let op = 1;
+    for (let el = btn; el; el = el.parentElement) op *= +getComputedStyle(el).opacity;
+    return { op, color: cs.color };
+  });
+  expect(style.op).toBeGreaterThan(0.95);
+  expect(style.color).toBe('rgb(255, 255, 255)');
+  await openMenu(page);
+});
+
 test('desktop: структура — два направления с подписями, затем разделы, затем «Написать» и Telegram', async ({ page }) => {
   await page.goto('/');
   await waitForPrelude(page);
