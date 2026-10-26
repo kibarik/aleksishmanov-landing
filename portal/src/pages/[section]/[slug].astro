@@ -1,11 +1,12 @@
 ---
 // Страница материала. Презентации сюда не входят: это готовые HTML-страницы в public/slides/.
 import Base from '../../layouts/Base.astro';
-import Card from '../../components/Card.astro';
 import MaterialLayout from '../../components/material/MaterialLayout.astro';
+import AfterRow from '../../components/material/AfterRow.astro';
 import CasePage from '../../components/CasePage.astro';
 import { render, type CollectionEntry } from 'astro:content';
-import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
+import { freshMaterials } from '../../lib/fresh.mjs';
+import { PAGED, list, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
 import { tocItems } from '../../lib/toc.mjs';
@@ -21,9 +22,8 @@ const { Content, headings } = await render(m);
 const toc = tocItems(headings);
 const url = `${SITE.url}${urlFor(m)}`;
 const minutes = readingTime(m.body);
-const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
-  .filter((x) => x.id !== m.id && x.data.directions.some((d) => m.data.directions.includes(d)))
-  .slice(0, 3);
+// ряд после материала: автор | свежие материалы | Telegram (кейсы — свой шаблон CasePage)
+const fresh = freshMaterials(await list(m.collection), m);
 const sourceLabel = SOURCE_LABEL[m.data.source];
 const methodNodes = await nodesOfMaterial(m);
 ---
@@ -57,17 +57,8 @@ const methodNodes = await nodesOfMaterial(m);
         {m.data.also_in.length > 0 && <>Обсуждения: {m.data.also_in.map((u, i) => <>{i > 0 && ', '}<a href={u} target="_blank" rel="noopener">{u.replace(/^https:\/\//, '')}</a></>)}.</>}
       </p>
     )}
-    <aside class="cta">
-      <p>Нужна помощь с запуском продукта или внедрением ИИ в команде? Напишите — разберём вашу задачу.</p>
-      <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
-    </aside>
+    <AfterRow slot="after" fresh={fresh} />
   </MaterialLayout>
-  {related.length > 0 && (
-    <section class="wrap">
-      <h2>Читать дальше</h2>
-      <ul class="grid">{related.map((r) => <Card m={r} showType />)}</ul>
-    </section>
-  )}
   {m.collection === 'prompts' && (
     <script>
       const btn = document.querySelector<HTMLButtonElement>('[data-copy]');
