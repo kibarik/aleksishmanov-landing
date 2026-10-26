@@ -2,11 +2,13 @@
 // Страница материала. Презентации сюда не входят: это готовые HTML-страницы в public/slides/.
 import Base from '../../layouts/Base.astro';
 import Card from '../../components/Card.astro';
-import CaseFacts from '../../components/CaseFacts.astro';
+import MaterialLayout from '../../components/material/MaterialLayout.astro';
+import CasePage from '../../components/CasePage.astro';
 import { render, type CollectionEntry } from 'astro:content';
 import { PAGED, list, listAll, urlFor, formatDate, readingTime, type Material } from '../../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, SOURCE_LABEL, type CollectionName } from '../../lib/site';
 import { graph, article, breadcrumbs } from '../../lib/schema';
+import { tocItems } from '../../lib/toc.mjs';
 import { hasPage, nodesOfMaterial, nodeUrl } from '../../lib/method';
 
 export async function getStaticPaths() {
@@ -15,7 +17,8 @@ export async function getStaticPaths() {
 }
 const { m } = Astro.props as { m: Material };
 const info = SECTIONS[m.collection];
-const { Content } = await render(m);
+const { Content, headings } = await render(m);
+const toc = tocItems(headings);
 const url = `${SITE.url}${urlFor(m)}`;
 const minutes = readingTime(m.body);
 const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
@@ -24,11 +27,12 @@ const related = (await listAll(['blog', 'reviews', 'tools', 'cases']))
 const sourceLabel = SOURCE_LABEL[m.data.source];
 const methodNodes = await nodesOfMaterial(m);
 ---
+{m.collection === 'cases' ? <CasePage m={m as CollectionEntry<'cases'>} /> : (
 <Base title={m.data.title} description={m.data.description} type="article" image={m.data.cover} current={m.collection}
   jsonld={graph(article({ title: m.data.title, description: m.data.description, url, date: m.data.date, updated: m.data.updated, image: m.data.cover, section: info.title }),
     breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }, { name: m.data.title, url: urlFor(m) }]))}>
   <link slot="head" rel="alternate" type="text/markdown" href={`${info.path}${m.id}.md`} />
-  <article class="article">
+  <MaterialLayout toc={toc}>
     <p class="crumbs"><a href="/">Главная</a> / <a href={info.path}>{info.title}</a></p>
     <header class="article__head">
       <p class="eyebrow">{info.one}{m.data.category && ` · ${m.data.category}`}</p>
@@ -41,7 +45,6 @@ const methodNodes = await nodesOfMaterial(m);
         {m.data.directions.map((d) => <a class="chip chip--dir" href={DIRECTION_INFO[d].path}>{DIRECTION_INFO[d].short}</a>)}
       </p>
     </header>
-    {m.collection === 'cases' && <CaseFacts m={m as CollectionEntry<'cases'>} />}
     {methodNodes.length > 0 && (
       <p class="method-part">Часть методологии: {methodNodes.map(({ node, path }, i) => <>{i > 0 && ' · '}{path.map((a) => <><a href={nodeUrl(a)}>{a.data.title}</a> → </>)}{hasPage(node) ? <a href={nodeUrl(node)}>{node.data.title}</a> : node.data.title}</>)}</p>
     )}
@@ -58,7 +61,7 @@ const methodNodes = await nodesOfMaterial(m);
       <p>Нужна помощь с запуском продукта или внедрением ИИ в команде? Напишите — разберём вашу задачу.</p>
       <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">{SITE.contact.label}</a>
     </aside>
-  </article>
+  </MaterialLayout>
   {related.length > 0 && (
     <section class="wrap">
       <h2>Читать дальше</h2>
@@ -75,3 +78,4 @@ const methodNodes = await nodesOfMaterial(m);
     </script>
   )}
 </Base>
+)}

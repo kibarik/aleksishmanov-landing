@@ -1,5 +1,6 @@
 ---
 // Первая страница раздела; следующие — page/[page].astro (см. SectionPage.astro).
+import CaseList from '../../components/CaseList.astro';
 import SectionPage from '../../components/SectionPage.astro';
 import { SECTIONS, type CollectionName } from '../../lib/site';
 
@@ -7,4 +8,6 @@ export function getStaticPaths() {
   return (Object.keys(SECTIONS) as CollectionName[]).map((section) => ({ params: { section } }));
 }
 ---
-<SectionPage section={Astro.params.section as CollectionName} page={1} />
+{Astro.params.section === 'cases'
+  ? <CaseList />
+  : <SectionPage section={Astro.params.section as CollectionName} page={1} />}

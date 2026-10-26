@@ -1,0 +1,59 @@
+---
+// Оглавление материала: пункты — H2 текста (lib/toc.mjs). Пустой список — компонент ничего не выводит.
+// Слева липкий столбец; на узком экране — горизонтальная строка под шапкой. Текущий пункт отмечает скрипт ниже.
+interface Props { items: { id: string; text: string }[] }
+const { items } = Astro.props;
+---
+{items.length > 0 && (
+  <nav class="toc" data-toc aria-label="Оглавление">
+    <p class="toc__title">Содержание</p>
+    <ol class="toc__list">
+      {items.map((i) => <li><a href={`#${i.id}`}>{i.text}</a></li>)}
+    </ol>
+  </nav>
+)}
+<style is:global>
+  .toc { font-size: 14px; line-height: 1.4; }
+  .toc__title { margin: 0 0 12px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .toc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .toc a { display: block; padding: 6px 0 6px 12px; border-left: 2px solid var(--line); color: var(--muted); text-decoration: none; }
+  .toc a:hover { color: var(--ink); }
+  .toc a[aria-current="true"] { color: var(--ink); border-left-color: var(--ink); font-weight: 600; }
+  /* узкий экран: строка под шапкой, прокручивается вбок */
+  @media (max-width: 1099px) {
+    .toc { position: sticky; top: var(--header-h, 64px); z-index: 4; background: #fff; border-bottom: 1px solid var(--line); margin: 0 -20px; padding: 0 20px; }
+    .toc__title { display: none; }
+    .toc__list { flex-direction: row; gap: 4px 20px; overflow-x: auto; scrollbar-width: none; }
+    .toc__list::-webkit-scrollbar { display: none; }
+    .toc li { flex: none; }
+    .toc a { padding: 14px 0 12px; border-left: 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .toc a[aria-current="true"] { border-bottom-color: var(--ink); }
+  }
+</style>
+<script>
+  // Текущий пункт — последний H2, верх которого уже выше линии чтения; в узкой строке пункт доскролливается в видимую область.
+  const toc = document.querySelector<HTMLElement>('[data-toc]');
+  if (toc) {
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>('a')];
+    const heads = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+    const LINE = 140;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      let cur = -1;
+      heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top <= LINE) cur = i; });
+      links.forEach((a, i) => {
+        if (i === cur) {
+          if (a.getAttribute('aria-current') !== 'true') {
+            a.setAttribute('aria-current', 'true');
+            const list = a.closest('ol');
+            if (list && list.scrollWidth > list.clientWidth) list.scrollTo({ left: a.offsetLeft - 20, behavior: 'smooth' });
+          }
+        } else a.removeAttribute('aria-current');
+      });
+    };
+    addEventListener('scroll', () => { if (!frame) frame = requestAnimationFrame(update); }, { passive: true });
+    addEventListener('resize', update);
+    update();
+  }
+</script>

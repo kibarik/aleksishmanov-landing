@@ -22,12 +22,12 @@ test('1. главная: в HTML без JS — имя, «Чем могу быт�
 
 test('2. шапка портала ведёт во все разделы, каждый раздел открывается', async ({ page }) => {
   await page.goto('/blog/');
-  const nav = page.locator('.site-nav a');
-  await expect(nav).toHaveText(['Методология', 'Блог', 'Разборы', 'Инструменты', 'Промты', 'Презентации', 'Кейсы', 'Обо мне']);
-  for (const href of await nav.evaluateAll((as) => as.map((a) => a.getAttribute('href')))) {
+  const hrefs = await page.locator('header.site-header a[href^="/"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+  // «/» — главная (3D-лендинг), /po-system/ — отдельный подсайт (ADR 0007), в этой сборке его нет
+  for (const href of hrefs.filter((h) => h !== '/po-system/' && h !== '/')) {
     const res = await page.goto(href);
     expect(res.status(), href).toBe(200);
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('h1').first()).toBeVisible();
   }
 });
 
@@ -113,6 +113,7 @@ test('7. внутренние ссылки всех страниц ведут н
     if (file.includes(`${path.sep}slides${path.sep}`) || file.includes(`${path.sep}call${path.sep}`)) continue; // готовые HTML презентаций проверяются ниже
     const html = fs.readFileSync(file, 'utf8');
     for (const [, href] of html.matchAll(/href="(\/[^"#?]*)/g)) {
+      if (href === '/po-system/') continue; // отдельный подсайт (ADR 0007), собирается не здесь
       let rel = decodeURIComponent(href);
       const target = path.join(DIST, rel);
       const ok = rel.endsWith('/') ? fs.existsSync(path.join(target, 'index.html')) : fs.existsSync(target);
