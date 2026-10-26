@@ -10,6 +10,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { renderFooter } from '../shared/site-footer.js';
+import { loadSiteData } from './site-data.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const SITE = 'https://aleksishmanov.ru';
@@ -53,6 +55,8 @@ export function portalBridge() {
       // только на основном хосте: со старого домена уводит скрипт хоста, его переход не перебиваем
       const notFound = "(function(w){var p=w.location.pathname;if(w.__hostTarget&&w.__hostTarget(w.location.hostname,p))return;if(p!=='/'&&p!=='/index.html')w.location.replace('/404.html');})(window);";
       let out = html.replace(/<meta charset="UTF-8" \/>/i, (m) => `${m}\n  <script>${hostScript}</script>\n  <script>${notFound}</script>`);
+      // общий подвал: те же данные портала и та же функция, что у Footer.astro
+      out = out.replace('<!--site-footer-->', renderFooter({ ...(await loadSiteData()), year: new Date().getFullYear() }));
       const latest = latestMaterials();
       out = out.replace('</head>', `  <script type="application/ld+json">${JSON.stringify(person)}</script>\n  <script>window.__latestMaterials = ${JSON.stringify(latest).replace(/</g, '\\u003c')};</script>\n</head>`);
       if (!ctx.server) {

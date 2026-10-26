@@ -81,7 +81,7 @@ test('прод: HTML и бандл из одной сборки', async ({ reque
   // стили встроены в HTML: внешний файл блокировал первую отрисовку (PageSpeed)
   const inlineCss = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('');
   expect(entry, 'входной модуль в HTML').toBeTruthy();
-  expect(inlineCss, 'стили лендинга встроены в HTML').toContain('.footer__panel');
+  expect(inlineCss, 'стили лендинга встроены в HTML').toContain('.site-footer__panel');
 
   // разметка и скрипт должны знать друг о друге: иначе выложены части разных сборок
   expect(html).toContain('id="loader-pct"');
