@@ -131,7 +131,6 @@ export const content = {
     },
   },
 
-  /** Меню: якоря по секциям главной и разделы сайта внизу (resources). */
   /** Подписи предметов второй сцены (наведение на десктопе): тема и раздел портала. */
   props: {
     chip: { label: 'ИИ в бизнесе', href: '/ai-in-business/' },
@@ -139,17 +138,17 @@ export const content = {
     chain: { label: 'Стартапы', href: '/startups/' },
   },
 
+  /** Меню: два направления с подписью «кому», ниже разделы; сбоку «Написать» и Telegram. */
   menu: {
     title: 'Меню',
-    resourcesTitle: 'Разделы сайта',
-    anchors: [
-      { label: 'Обо мне', href: '#about' },
-      { label: 'Чем полезен', href: '#projects' },
+    directions: [
+      { label: 'Запуск продуктов', note: 'Основателям и продактам', href: '/startups/' },
+      { label: 'ИИ в корпорациях', note: 'Руководителям, CPO и CTO', href: '/ai-in-business/' },
     ],
+    /** Разделы мельче направлений; «Обо мне» — якорь секции главной. */
+    pages: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.cases, { label: 'Обо мне', href: '#about' }],
     /** Нижний док на телефоне: ☰ и четыре перехода, как у референса (Solutions · Services · Portfolio · About). */
     dock: [PAGES.blog, PAGES.reviews, PAGES.cases, { label: 'Обо мне', href: '#about' }],
-    /** Страницы портала в крупных пунктах после якорей. */
-    pages: [PAGES.blog, PAGES.reviews, PAGES.tools, PAGES.cases],
     /** Строка под кнопкой «Написать». */
     social: { label: 'Telegram', handle: '@kibarik', href: TELEGRAM_DM },
     /** Ссылка внизу панели. */
