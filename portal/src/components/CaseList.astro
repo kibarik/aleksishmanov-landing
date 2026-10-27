@@ -1,0 +1,64 @@
+---
+// Список кейсов на /cases/ (решения redesign, раунд 2, п. 9; образец — bersus portfolio, но без сцены):
+// крупный заголовок, абзац-вступление и кейсы строками — заголовок-результат, направление, годы, две цифры.
+// Без картинок, каруселей и листания. Пока опубликованных кейсов нет — одна честная строка и «Написать».
+import Base from '../layouts/Base.astro';
+import { SECTIONS, DIRECTION_INFO, SITE } from '../lib/site';
+import { list, urlFor } from '../lib/materials';
+import { graph, breadcrumbs } from '../lib/schema';
+import { yearsLabel, byOrder } from '../lib/cases.mjs';
+
+const info = SECTIONS.cases;
+const cases = (await list('cases')).sort(byOrder);
+---
+<Base title={`${info.title}: ${SITE.short}`} description={info.lead} current="cases"
+  jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: info.title, description: info.lead, url: `${SITE.url}${info.path}` })}>
+  <div class="cases">
+    <header class="cases__head">
+      <h1>{info.title}</h1>
+      <p class="case-intro">{info.lead}</p>
+    </header>
+    {cases.length === 0 ? (
+      <p class="cases__empty">Первые кейсы готовятся. <a href={SITE.contact.href} target="_blank" rel="noopener">Написать</a></p>
+    ) : (
+      <ol class="case-list">
+        {cases.map((m) => {
+          const c = m.data;
+          return (
+            <li class="case-row">
+              <h2 class="case-row__heading"><a class="case-row__title" href={urlFor({ collection: 'cases', id: m.id })}>{c.title}</a></h2>
+              <p class="case-row__meta">
+                {c.directions.map((d) => <span class="case-row__dir">{DIRECTION_INFO[d].short}</span>)}
+                <span class="case-row__years">{yearsLabel(c.years)}</span>
+              </p>
+              <dl class="case-row__metrics">{c.metrics.slice(0, 2).map((x) => <div><dt>{x.value}</dt><dd>{x.label}</dd></div>)}</dl>
+            </li>
+          );
+        })}
+      </ol>
+    )}
+  </div>
+</Base>
+
+<style>
+  .cases { max-width: 1040px; margin: 0 auto; padding: 0 20px 96px; }
+  .cases__head { padding: clamp(40px, 8vw, 96px) 0 clamp(32px, 5vw, 56px); }
+  .cases__head h1 { margin: 0 0 20px; font-size: clamp(44px, 8vw, 96px); line-height: 1; letter-spacing: -.03em; }
+  .case-intro { margin: 0; max-width: 56ch; font-size: clamp(18px, 2.2vw, 22px); color: var(--muted); }
+  .cases__empty { margin: 0; padding: 32px 0; border-top: 1px solid var(--ink); font-size: 18px; }
+  .cases__empty a { font-weight: 600; }
+
+  .case-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+  .case-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title metrics' 'meta metrics'; gap: 10px 48px; align-items: start; padding: 32px 0; border-bottom: 1px solid var(--line); }
+  .case-row__heading { grid-area: title; margin: 0; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.2; letter-spacing: -.01em; }
+  .case-row__title { color: var(--ink); text-decoration: none; }
+  .case-row__title:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .case-row__meta { grid-area: meta; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); }
+  .case-row__metrics { grid-area: metrics; margin: 0; display: flex; gap: 40px; }
+  .case-row__metrics dt { font: 800 clamp(26px, 3vw, 36px)/1 var(--font-brand); letter-spacing: -.02em; }
+  .case-row__metrics dd { margin: 6px 0 0; max-width: 16ch; font-size: 13px; color: var(--muted); }
+  @media (max-width: 720px) {
+    .case-row { grid-template-columns: 1fr; grid-template-areas: 'title' 'meta' 'metrics'; gap: 12px; padding: 24px 0; }
+    .case-row__metrics { gap: 28px; }
+  }
+</style>

@@ -1,15 +1,168 @@
 ---
-import { SITE, SECTIONS, NAV } from '../lib/site';
-const { current } = Astro.props as { current?: string };
+// Шапка портала (образец — Airtable, .scratch/redesign/research/airtable-header.md): закреплённая, ~64px.
+// ISHMANOV | Направления ▾ | Материалы ▾ | PO System | Кейсы | Обо мне || «Написать».
+// Раскрывающие пункты — кнопки с aria-expanded; все ссылки лежат в HTML, без скрипта панели открываются
+// по наведению и фокусу. Тексты и описания — portal/src/lib/site.ts. Стили шапки — только здесь.
+import { SITE, SECTIONS, DIRECTION_INFO, HEADER_DIRECTIONS, HEADER_MATERIALS, HEADER_LINKS } from '../lib/site';
+
+const path = Astro.url.pathname;
+const here = (p: string) => path === p || path.startsWith(p);
+const page = (p: string) => (here(p) ? 'page' : undefined);
+
+const groups = [
+  {
+    id: 'directions', title: 'Направления',
+    items: HEADER_DIRECTIONS.map(({ direction, desc }) => ({ path: DIRECTION_INFO[direction].path, title: DIRECTION_INFO[direction].title, desc })),
+  },
+  {
+    id: 'materials', title: 'Материалы',
+    items: HEADER_MATERIALS.map(({ section, desc }) => ({ path: SECTIONS[section].path, title: SECTIONS[section].title, desc })),
+  },
+];
 ---
+<script is:inline>document.documentElement.classList.add('js')</script>
 <header class="site-header">
-  <div class="wrap site-header__row">
-    <a class="brand" href="/">ISHMANOV<small>{SITE.name}</small></a>
-    <nav class="site-nav" aria-label="Разделы">
-      <a href="/method/" aria-current={current === 'method' ? 'page' : undefined}>Методология</a>
-      {NAV.map((k) => <a href={SECTIONS[k].path} aria-current={current === k ? 'page' : undefined}>{SECTIONS[k].title}</a>)}
-      <a href="/about/" aria-current={current === 'about' ? 'page' : undefined}>Обо мне</a>
-    </nav>
-    <a class="btn btn--light" href={SITE.contact.href} target="_blank" rel="noopener">Написать</a>
+  <div class="site-header__row">
+    <a class="brand" href="/">{SITE.brand}</a>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Меню"><span aria-hidden="true">☰</span></button>
+    <div class="site-header__menu" id="site-menu">
+      <nav class="site-nav" aria-label="Разделы">
+        {groups.map((g) => (
+          <div class="nav-item" data-nav-item>
+            <button class="nav-item__btn" type="button" aria-expanded="false" aria-controls={`nav-${g.id}`} aria-current={g.items.some((i) => here(i.path)) ? 'true' : undefined}>
+              {g.title}<svg class="nav-item__chev" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </button>
+            <div class="nav-panel" id={`nav-${g.id}`}>
+              {g.items.map((i) => (
+                <a class="nav-panel__link" href={i.path} aria-current={page(i.path)}>
+                  <span class="nav-item__title">{i.title}</span>
+                  <span class="nav-item__desc">{i.desc}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+        {HEADER_LINKS.map((l) => <a class="nav-link" href={l.path} aria-current={page(l.path)}>{l.title}</a>)}
+      </nav>
+      <a class="write" href={SITE.contact.href} target="_blank" rel="noopener">Написать</a>
+    </div>
   </div>
 </header>
+
+<script>
+  // Открытие: клик (закрепляет), наведение на desktop (временно). Закрытие: Escape, клик мимо, уход фокуса.
+  const header = document.querySelector<HTMLElement>('.site-header')!;
+  const items = [...header.querySelectorAll<HTMLElement>('[data-nav-item]')];
+  const burger = header.querySelector<HTMLButtonElement>('.burger')!;
+  const mobile = matchMedia('(max-width: 860px)');
+  const canHover = matchMedia('(hover: hover)');
+  const btnOf = (it: HTMLElement) => it.querySelector<HTMLButtonElement>('.nav-item__btn')!;
+  const pinned = new WeakSet<HTMLElement>();
+
+  function set(it: HTMLElement, open: boolean) {
+    it.toggleAttribute('data-open', open);
+    btnOf(it).setAttribute('aria-expanded', String(open));
+    if (!open) pinned.delete(it);
+  }
+  function closeAll(except?: HTMLElement) { for (const it of items) if (it !== except) set(it, false); }
+  function setMenu(open: boolean) {
+    header.toggleAttribute('data-menu-open', open);
+    burger.setAttribute('aria-expanded', String(open));
+  }
+  // На телефоне группы всегда развёрнуты внутри ☰: aria-expanded говорит правду
+  function sync() { if (mobile.matches) for (const it of items) set(it, true); else { closeAll(); setMenu(false); } }
+  sync();
+  mobile.addEventListener('change', sync);
+
+  burger.addEventListener('click', () => setMenu(!header.hasAttribute('data-menu-open')));
+  for (const it of items) {
+    btnOf(it).addEventListener('click', () => {
+      if (mobile.matches) return;
+      if (it.hasAttribute('data-open') && pinned.has(it)) return set(it, false);
+      closeAll(it); set(it, true); pinned.add(it);
+    });
+    it.addEventListener('mouseenter', () => { if (!mobile.matches && canHover.matches) { closeAll(it); set(it, true); } });
+    it.addEventListener('mouseleave', () => { if (!mobile.matches && !pinned.has(it)) set(it, false); });
+    it.addEventListener('focusout', (e) => {
+      const to = (e as FocusEvent).relatedTarget as Node | null;
+      if (!mobile.matches && to && !it.contains(to)) set(it, false);
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = items.find((it) => it.hasAttribute('data-open') && !mobile.matches);
+    if (open) {
+      const hadFocus = open.contains(document.activeElement);
+      set(open, false);
+      if (hadFocus) btnOf(open).focus();
+    }
+    if (header.hasAttribute('data-menu-open')) { setMenu(false); burger.focus(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (header.contains(e.target as Node)) return;
+    if (!mobile.matches) closeAll();
+    setMenu(false);
+  });
+</script>
+
+<style>
+  /* высота шапки (строка 64px + рамка 1px) — от неё считаются отступы липкого оглавления и якорей */
+  :global(:root) { --header-h: 65px; }
+  .site-header { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--line); }
+  .site-header__row { display: flex; align-items: center; gap: 24px; min-height: 64px; padding: 0 32px; }
+  .site-header .brand { font: 900 18px/1 var(--font-brand); letter-spacing: .06em; text-decoration: none; white-space: nowrap; color: var(--ink); }
+  .site-header__menu { display: flex; align-items: center; flex: 1; gap: 16px; min-width: 0; }
+  .site-nav { display: flex; align-items: center; gap: 4px; flex: 1; }
+  .site-header .nav-item { position: relative; }
+  .site-header .nav-item__btn, .site-header .nav-link {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 0; background: none; border-radius: 8px;
+    font: 500 16px/1.3 var(--font); color: #181d26; text-decoration: none; white-space: nowrap; cursor: pointer;
+  }
+  .site-header .nav-item__btn:hover, .site-header .nav-link:hover, .site-header [data-open] > .nav-item__btn { background: #f1f1f1; }
+  .site-header .nav-item__btn[aria-current], .site-header .nav-link[aria-current] { box-shadow: inset 0 -2px 0 var(--ink); border-radius: 8px 8px 0 0; }
+  .site-header .nav-item__chev { transition: transform .15s ease-in; }
+  .site-header [data-open] .nav-item__chev { transform: rotate(180deg); }
+  .site-header :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .site-header .nav-panel {
+    display: none; position: absolute; top: 100%; left: 0; width: 360px; padding: 8px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 48, 106, .12);
+  }
+  .site-header [data-open] > .nav-panel { display: block; }
+  /* без скрипта (класс js ставится в <head> шапки) панели открываются наведением и фокусом */
+  :global(html:not(.js)) .site-header .nav-item:hover > .nav-panel, :global(html:not(.js)) .site-header .nav-item:focus-within > .nav-panel { display: block; }
+  .site-header .nav-panel__link { display: block; padding: 12px; border-radius: 8px; text-decoration: none; color: #181d26; }
+  .site-header .nav-panel__link:hover { background: #f1f1f1; }
+  .site-header .nav-panel__link[aria-current] { box-shadow: inset 3px 0 0 var(--ink); }
+  .site-header .nav-item__title { display: block; font: 500 17px/1.3 var(--font); }
+  .site-header .nav-item__desc { display: block; margin-top: 2px; font: 400 14px/1.4 var(--font); color: rgba(4, 14, 32, .69); }
+  .site-header .write {
+    margin-left: auto; padding: 12px 22px; border-radius: 12px; background: var(--ink); color: #fff; border: 1px solid var(--ink);
+    font: 500 16px/1.2 var(--font); text-decoration: none; white-space: nowrap;
+  }
+  .site-header .write:hover { background: #2a2a2a; }
+  .site-header .burger { display: none; }
+
+  @media (max-width: 860px) {
+    .site-header__row { justify-content: space-between; gap: 12px; padding: 0 16px; }
+    .site-header .burger {
+      display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: auto;
+      border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer;
+    }
+    .site-header__menu {
+      display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 12px;
+      max-height: calc(100vh - var(--header-h)); overflow-y: auto; padding: 8px 16px 20px; background: var(--card); border-bottom: 1px solid var(--line);
+    }
+    .site-header[data-menu-open] .site-header__menu { display: flex; }
+    .site-nav { flex-direction: column; align-items: stretch; gap: 2px; }
+    .site-header .nav-item__btn { pointer-events: none; padding: 12px 0 4px; font: 600 13px/1.3 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .site-header .nav-item__btn:hover, .site-header [data-open] > .nav-item__btn { background: none; }
+    .site-header .nav-item__btn[aria-current] { box-shadow: none; }
+    .site-header .nav-item__chev { display: none; }
+    .site-header .nav-panel { display: block; position: static; width: auto; padding: 0; border: 0; box-shadow: none; border-radius: 0; }
+    .site-header .nav-link { padding: 12px 0; }
+    .site-header .write { margin-left: 0; text-align: center; }
+  }
+  /* без скрипта на телефоне ☰ не работает — список раскрыт сразу */
+  :global(html:not(.js)) .site-header .burger { display: none; }
+  @media (max-width: 860px) { :global(html:not(.js)) .site-header__menu { display: flex; position: static; } }
+</style>

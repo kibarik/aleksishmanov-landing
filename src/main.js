@@ -4,7 +4,7 @@ import { mountFlipText } from './flipText.js';
 import { mountCursor } from './cursor.js';
 import { mountMenu, NO_SCENE_SCROLL } from './menu.js';
 import { getDevicePreset } from './stickyScroll.js';
-import { mountFooterNoise } from './footerNoise.js';
+import '../shared/site-footer.css';
 
 // шрифты — после загрузки страницы, в свободное время (см. fonts.js)
 const loadFonts = () => (window.requestIdleCallback || setTimeout)(() => import('./fonts.js'), { timeout: 800 });
@@ -51,39 +51,19 @@ new IntersectionObserver((entries) => {
     if (e.isIntersecting) intro.classList.add('intro--in');
   }
 }, { threshold: 0.12 }).observe(intro.querySelector('.intro__sticky'));
+// Подсказка прокрутки на липком экране прячется, как только следующий блок начал наезжать (зашёл в нижние 15% экрана)
+new IntersectionObserver(([e]) => {
+  intro.classList.toggle('about--covered', e.isIntersecting);
+}, { rootMargin: '0px 0px -15% 0px' }).observe(intro.querySelector('.about__more'));
 
-// Футер тоже тёмный: шапка на нём светлая. 3D-объект живёт только пока футер в кадре.
+// Подвал тоже тёмный и статичный (разметка вставлена при сборке): пока он в кадре, шапка светлая
 const footer = document.getElementById('footer');
-let footer3d = null;
-const has3dFooter = () => document.documentElement.dataset.webgl !== 'off' && preset !== 'mobile';
-/** Объект футера (геометрия, окружение, шейдеры) готовится один раз; дорого — ~100 мс работы потока. */
-const prepareFooter3d = () => (footer3d ??= import('./footer3d.js').then((m) => m.mountFooter3d(document.getElementById('footer-scene'))));
-// Готовим заранее, в свободное время, пока до футера ещё два экрана: иначе эта работа выпадает
-// на момент, когда футер въезжает в кадр, и прокрутка спотыкается.
-const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-new IntersectionObserver((entries, io) => {
-  if (!entries.some((e) => e.isIntersecting) || !has3dFooter()) return;
-  io.disconnect();
-  idle(prepareFooter3d, { timeout: 2000 });
-}, { rootMargin: '0px 0px 200% 0px' }).observe(footer);
-const footerNoise = mountFooterNoise(document.getElementById('footer-noise'));
 new IntersectionObserver((entries) => {
   for (const e of entries) {
     document.body.classList.toggle('is-footer-visible', e.isIntersecting);
-    if (e.isIntersecting) footerNoise.start(); else footerNoise.stop();
     document.body.classList.toggle('is-dark-section', e.isIntersecting || document.body.classList.contains('is-intro-visible'));
-    if (!has3dFooter()) continue;
-    if (e.isIntersecting) {
-      prepareFooter3d().then((s) => s.start());
-    } else footer3d?.then((s) => s.stop());
   }
 }, { threshold: 0.25 }).observe(footer);
-
-// Кнопка «наверх» в футере: плавно к началу страницы
-document.querySelector('[data-footer-up]').addEventListener('click', (e) => {
-  e.preventDefault();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
 
 const preset = getDevicePreset();
 document.body.dataset.preset = preset;

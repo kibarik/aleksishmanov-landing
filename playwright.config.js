@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
 const channel = process.env.PW_CHANNEL || 'chrome';
 // PW_PORT — свой порт dev-сервера: несколько рабочих копий (worktree) не мешают друг другу
 const port = Number(process.env.PW_PORT || 5173);
+// PW_PORTAL_PORT — то же для сервера собранного портала (npm run test:portal)
+const portalPort = Number(process.env.PW_PORTAL_PORT || 4174);
 
 
 export default defineConfig({
@@ -21,7 +23,7 @@ export default defineConfig({
   // PREVIEW=1 — те же тесты против собранной статики (vite build + vite preview)
   // PORTAL=1 — портал против собранного dist/ на сервере с поведением Timeweb (npm run test:portal)
   webServer: process.env.PORTAL
-    ? { command: 'node scripts/serve-dist.mjs 4174', url: 'http://localhost:4174/blog/', reuseExistingServer: true, timeout: 30_000 }
+    ? { command: `node scripts/serve-dist.mjs ${portalPort}`, url: `http://localhost:${portalPort}/blog/`, reuseExistingServer: true, timeout: 30_000 }
     : process.env.PREVIEW
     ? {
       command: `npm run build && npx vite preview --port ${port} --strictPort`,
@@ -41,7 +43,7 @@ export default defineConfig({
       name: 'portal',
       testMatch: /\.portal\.spec\.js$/,
       use: {
-        ...devices['Desktop Chrome'], channel, baseURL: 'http://localhost:4174',
+        ...devices['Desktop Chrome'], channel, baseURL: `http://localhost:${portalPort}`,
         // старые домены на локальный сервер: проверка редиректа blog./slides./prompts. на основной хост
         launchOptions: { args: ['--host-resolver-rules=MAP *.aleksishmanov.ru 127.0.0.1'] },
       },

@@ -1,0 +1,17 @@
+---
+// «Подписаться в Telegram»: ссылка на основной канал из профилей сайта.
+import { TELEGRAM_CHANNEL } from '../../lib/site';
+---
+<section class="tgcard" data-telegram-card aria-labelledby="tg-h">
+  <p class="tgcard__eyebrow">Telegram</p>
+  <h2 id="tg-h">Подписаться в Telegram</h2>
+  <p class="tgcard__text">Новые материалы и заметки о запуске продуктов и ИИ в командах выходят в канале.</p>
+  <a class="tgcard__btn" href={TELEGRAM_CHANNEL.href} target="_blank" rel="noopener" data-telegram-link>Открыть канал</a>
+</section>
+<style>
+  .tgcard { background: var(--card); border: 1px solid #d8d7d8; border-radius: 28px; padding: 32px; display: flex; flex-direction: column; gap: 14px; height: 100%; }
+  .tgcard__eyebrow { margin: 0; font: 700 14px/1 var(--font-head); text-transform: uppercase; letter-spacing: .06em; }
+  .tgcard h2 { margin: 0; font: 700 28px/1.2 var(--font-head); }
+  .tgcard__text { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+  .tgcard__btn { margin-top: auto; align-self: flex-start; padding: 12px 22px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 600; text-decoration: none; }
+</style>

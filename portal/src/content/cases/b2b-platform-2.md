@@ -4,7 +4,7 @@
 title: "[Результат второго запуска одной фразой с числом]"
 description: "[Одно-два предложения для поиска и превью: что за платформа, для кого и какой результат.]"
 date: 2026-10-18
-directions: ["startups"]
+directions: ["startups", "ai-in-business"]
 draft: true
 kind: "B2B-платформа"
 years: { from: 2019, to: 2020 }

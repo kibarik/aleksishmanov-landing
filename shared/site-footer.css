@@ -1,0 +1,126 @@
+/* Подвал сайта (shared/site-footer.js) повторяет подвал референса: тёмная панель со скруглённым верхом, слева карточка
+   с подборками, в центре рука, справа блоки и призыв. Без шума, canvas и фоновой анимации — только отклик на наведение. */
+.site-footer {
+  --sf-radius: 16px; --sf-bg: #0b0b0b; --sf-card: #111; --sf-hover: #222;
+  --sf-pink: #fe3b8a; --sf-underline: #ff448d; --sf-muted: #d8d7d8;
+  --sf-display: var(--display, inherit); --sf-font: var(--font, inherit);
+  position: relative; display: flex; justify-content: center; margin-top: 40px; color: #fff; background: transparent;
+}
+.site-footer__panel {
+  position: relative; overflow: hidden; width: calc(100vw - 40px); min-height: 82vh; min-height: 82svh;
+  padding: 60px 64px 0; background: var(--sf-bg); border-radius: 62px 62px 0 0;
+}
+@media (min-width: 1441px) { .site-footer__panel { width: min(92vw, 1640px); } }
+.site-footer__handle { position: absolute; top: 17px; left: 50%; width: 50px; height: 4px; margin-left: -25px; border-radius: 4px; background: #fff; z-index: 3; }
+.site-footer__up { position: absolute; top: 33px; right: 32px; z-index: 3; display: grid; place-items: center; color: #fff; opacity: .9; transition: opacity .3s ease, transform .3s ease; }
+.site-footer__up:hover { opacity: 1; transform: translateY(-2px); }
+.site-footer ul { list-style: none; margin: 0; padding: 0; }
+.site-footer p { margin: 0; }
+
+/* сетка как у референса: список и эмблема на всю высоту, справа блоки сверху и призыв снизу */
+.site-footer__grid {
+  position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr 420px; grid-template-rows: auto 1fr;
+  gap: 50px 30px; min-height: 82vh; min-height: 82svh;
+}
+/* левая карточка: подборки, прокручиваются внутри; внизу затухают */
+.site-footer__list { position: relative; grid-row: 1 / -1; overflow: hidden; background: var(--sf-card); border-radius: 22px; margin-bottom: 60px; }
+.site-footer__list::after { content: ""; position: absolute; left: 0; right: 30px; bottom: 0; height: 50px; background: linear-gradient(0deg, var(--sf-card) 0%, transparent); z-index: 4; pointer-events: none; }
+.site-footer__scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 16px 48px 50px 16px; }
+.site-footer__scroll::-webkit-scrollbar { display: none; }
+.site-footer__card { position: relative; padding: 16px; border-radius: var(--sf-radius); transition: background .3s ease-in-out; overflow: hidden; }
+.site-footer__card:hover { background: var(--sf-hover); }
+.site-footer__card-title, .site-footer__column-title { font-family: var(--sf-display); font-size: 28px; font-weight: 700; line-height: 30.8px; color: #fff; }
+.site-footer__card-title { margin-bottom: 9px; }
+.site-footer__card-link, .site-footer__title-link { color: #fff; text-decoration: underline 2px #fff; text-underline-offset: 4px; transition: text-decoration-color .5s ease-in-out, text-shadow .5s ease-in-out; }
+/* вся карточка — ссылка подборки; ссылки списка лежат выше и остаются кликабельными */
+.site-footer__card-link::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: var(--sf-radius); }
+.site-footer__card:hover .site-footer__card-link { text-decoration-color: var(--sf-underline); }
+.site-footer__card::before {
+  content: ""; position: absolute; top: 0; left: 0; width: 60%; height: 100%; pointer-events: none; opacity: 0;
+  background: linear-gradient(to left, rgba(255,255,255,.01) 0%, rgba(255,255,255,.03) 20%, transparent);
+  transform: skewX(20deg) translateX(10%);
+}
+.site-footer__card:hover::before { opacity: 1; transform: skewX(20deg) translateX(200%); transition: transform .3s ease-in-out .11s, opacity .15s ease-in-out; }
+.site-footer__card-arrow {
+  position: absolute; right: 16px; top: 0; bottom: 0; margin: auto; display: flex; height: fit-content; pointer-events: none; z-index: 1;
+  opacity: 0; transform: translateX(-10px); transition: .5s ease-in-out .1s;
+}
+.site-footer__card:hover .site-footer__card-arrow { opacity: 1; transform: none; }
+.site-footer__links { display: grid; }
+.site-footer__links li { line-height: 19.6px; }
+/* зона нажатия ссылки — 24 px по высоте (WCAG 2.5.8): строка 19,6 + поля по 2,2 */
+.site-footer__link { position: relative; z-index: 3; display: inline-block; padding: 2.2px 0; font-family: var(--sf-font); font-size: 14px; font-weight: 300; line-height: 19.6px; color: #fff; text-decoration: none; }
+.site-footer__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* центр: рука как у референса — блок 380×630 по центру колонки, прижат к низу и срезан краем панели.
+   Картинка — /footer-hand.png; пока своей нет, слот пустой (решение владельца 2026-10-27: свой кулак с татуировкой) */
+.site-footer__hand { grid-row: 1 / -1; align-self: end; justify-self: center; width: 380px; max-width: 100%; height: 630px; margin-top: 64px;
+  background: url("/footer-hand.png") center bottom / contain no-repeat; }
+
+/* справа сверху: блоки-заголовки */
+.site-footer__blocks { grid-column: 3; grid-row: 1; display: grid; grid-template-columns: 180px 180px; gap: 25px; align-content: start; }
+.site-footer__column { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* «::» перед заголовком — оформление, а не текст: скринридер его не читает */
+.site-footer__column-title--mark a::before { content: ":: " / ""; }
+.site-footer__title-link:hover { text-decoration-color: var(--sf-underline); text-shadow: 0 0 10px rgba(255,255,255,.5), 0 0 19px rgba(255,255,255,.4), 0 0 32px rgba(255,255,255,.2); }
+.site-footer__desc { font-family: var(--sf-font); font-size: 14px; font-weight: 300; line-height: 19.6px; color: var(--sf-muted); }
+
+/* справа снизу: кнопка, профили и подпись прижаты к нижнему краю */
+.site-footer__bottom { grid-column: 3; grid-row: 2; display: flex; flex-direction: column; justify-content: flex-end; gap: 30px; padding-bottom: 20px; }
+
+/* кнопка со свечением: розовые «лампы» сверху и снизу разъезжаются по наведению */
+.site-footer__glow { position: relative; display: flex; justify-content: center; align-items: center; width: 250px; height: 59px; }
+.site-footer__glow::before, .site-footer__glow::after {
+  content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 30px; height: 10px; border-radius: 10px;
+  background: var(--sf-pink); box-shadow: 0 0 5px var(--sf-pink), 0 0 15px var(--sf-pink), 0 0 30px var(--sf-pink), 0 0 60px var(--sf-pink); transition: .5s .2s;
+}
+.site-footer__glow::before { bottom: -5px; }
+.site-footer__glow::after { top: -5px; }
+.site-footer__glow:hover::before { bottom: 0; height: 50%; width: 80%; border-radius: 30px; }
+.site-footer__glow:hover::after { top: 0; height: 50%; width: 80%; border-radius: 30px; }
+.site-footer__btn {
+  position: relative; z-index: 1; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;
+  background: rgba(255,255,255,.05); border-radius: 8px; border-top: 1px solid rgba(255,255,255,.1); border-bottom: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 15px 15px rgba(0,0,0,.3); color: #fff; text-decoration: none; font-family: var(--sf-font); font-size: 18px; font-weight: 400;
+  backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); transition: .5s;
+}
+.site-footer__btn::before {
+  content: ""; position: absolute; top: 0; left: 0; width: 50%; height: 100%; opacity: .05;
+  background: linear-gradient(to left, #fff 0%, #fff 50%, transparent 100%); transform: skewX(45deg) translate(5%); transition: .3s .4s;
+}
+.site-footer__glow:hover .site-footer__btn::before { transform: skewX(45deg) translate(250%); transition-delay: 0s; }
+.site-footer__btn::after { content: ""; position: absolute; top: 10px; right: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--sf-pink); transition: .15s ease-in-out; }
+.site-footer__btn:hover::after { background: #fff; box-shadow: 0 0 2px 2px rgba(255,255,255,.43), 0 0 2px 3px rgba(255,255,255,.1); }
+.site-footer__btn span { position: relative; z-index: 5; }
+
+.site-footer__profiles { display: flex; flex-direction: column; gap: 10px; margin-bottom: 84px; }
+.site-footer__icons { display: flex; gap: 14px; }
+.site-footer__icon { display: grid; place-items: center; color: #fff; transition: transform .3s ease; }
+.site-footer__icon:hover { transform: scale(1.15); }
+.site-footer__copy { font-family: var(--sf-font); font-size: 14px; font-weight: 300; line-height: 19.6px; color: var(--sf-muted); }
+.site-footer__copy a { color: inherit; }
+
+/* ≤1024 — как у референса: две колонки, порядок список → блоки → призыв; эмблема уходит */
+@media (max-width: 1024px) {
+  .site-footer { --sf-radius: 0; }
+  .site-footer__panel { min-height: 0; }
+  .site-footer__grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; min-height: 0; }
+  .site-footer__list { order: 1; grid-row: auto; margin-bottom: 0; }
+  .site-footer__scroll { position: static; overflow: visible; }
+  .site-footer__list::after { display: none; }
+  .site-footer__blocks { order: 2; grid-column: auto; grid-row: auto; grid-template-columns: 1fr 1fr; }
+  .site-footer__bottom { order: 3; grid-column: 1 / -1; grid-row: auto; }
+  .site-footer__profiles { margin-bottom: 0; }
+  .site-footer__hand { display: none; }
+  .site-footer__card-arrow { display: none; }
+}
+/* ≤767 — панель во всю ширину, поля 60/24, радиус 16, одна колонка */
+@media (max-width: 767px) {
+  .site-footer__panel { width: 100%; padding: 60px 24px 0; border-radius: 16px 16px 0 0; }
+  .site-footer__grid { grid-template-columns: 1fr; }
+  .site-footer__list { background: transparent; border-radius: 0; }
+  .site-footer__scroll { padding: 0; }
+  .site-footer__card { padding: 0 16px 0 0; margin-bottom: 32px; }
+  .site-footer__card:hover { background: transparent; }
+  .site-footer__card-title, .site-footer__column-title { font-size: 26px; line-height: 28.6px; }
+}

@@ -1,0 +1,42 @@
+---
+// Каркас страницы текстового материала: белый фон, слева липкое оглавление, колонка текста 680px (кегль 18, межстрочный 1.6).
+// Слоты: default — содержимое колонки (крошки, шапка, текст); `after` — ряд после материала на всю ширину (автор | свежие
+// материалы | Telegram, см. AfterRow).
+import Toc from './Toc.astro';
+interface Props { toc: { id: string; text: string }[] }
+const { toc } = Astro.props;
+---
+<div class="mat" data-material>
+  <div class:list={['mat__grid', toc.length > 0 && 'mat__grid--toc']}>
+    <Toc items={toc} />
+    <article class="mat__col">
+      <slot />
+    </article>
+  </div>
+  <div class="mat__after wrap" data-after-material>
+    <slot name="after" />
+  </div>
+</div>
+<style is:global>
+  .mat { background: var(--card); padding-bottom: 72px; }
+  .mat__grid { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  .mat__col { min-width: 0; max-width: 680px; margin: 0 auto; }
+  .mat__after:empty { display: none; }
+  @media (min-width: 1100px) {
+    .mat__grid--toc { max-width: 1160px; display: grid; grid-template-columns: 240px minmax(0, 680px); gap: 0 56px; justify-content: center; align-items: start; }
+    .mat__grid--toc .toc { position: sticky; top: calc(var(--header-h) + 24px); margin-top: 40px; max-height: calc(100vh - var(--header-h) - 48px); overflow-y: auto; }
+    .mat__grid--toc .mat__col { margin: 0; width: 100%; }
+  }
+
+  /* длинный текст: 18/1.6, лид, выносные цитаты */
+  .mat .prose { font-size: 18px; line-height: 1.6; }
+  .mat .prose > p:first-child { font-size: 22px; line-height: 1.5; color: var(--ink); font-weight: 500; }
+  .mat .prose h2 { scroll-margin-top: calc(var(--header-h) + 56px); }
+  .mat .prose blockquote { margin: 40px 0; padding: 0 0 0 24px; border-left: 4px solid var(--ink); font-size: 24px; line-height: 1.4; font-weight: 500; color: var(--ink); }
+  .mat .prose blockquote p { margin: 0 0 .6em; }
+  .mat .prose blockquote p:last-child { margin: 0; }
+  @media (max-width: 600px) {
+    .mat .prose > p:first-child { font-size: 20px; }
+    .mat .prose blockquote { font-size: 20px; margin: 32px 0; padding-left: 18px; }
+  }
+</style>

@@ -2,11 +2,11 @@
 // Список раздела: блог, разборы, инструменты, промты, презентации, кейсы.
 // Длинные разделы — по PAGE_SIZE карточек: первая страница /<раздел>/, дальше /<раздел>/page/<n>/.
 // Без сжатия на хостинге список из 100+ карточек весил >110 КБ HTML, и мобильный PageSpeed упирался
-// в загрузку самой страницы (с 24 карточками — 35 КБ и 100 баллов). Промты сгруппированы по рубрикам
+// в загрузку самой страницы (с 24 карточками — 35 КБ и 100 баллов). Промты сгруппированы по категориям каталога
 // с якорями — их не делим.
 import Base from '../layouts/Base.astro';
 import Card from './Card.astro';
-import CaseStack, { type CaseEntry } from './CaseStack.astro';
+import MaterialList from './MaterialList.astro';
 import { list } from '../lib/materials';
 import { SECTIONS, DIRECTION_INFO, SITE, type CollectionName } from '../lib/site';
 import { graph, breadcrumbs } from '../lib/schema';
@@ -23,6 +23,8 @@ const groups = section === 'prompts'
   ? [...new Set(items.map((m) => m.data.category || 'Другое'))].map((c) => ({ title: c, items: items.filter((m) => (m.data.category || 'Другое') === c) }))
   : [{ title: '', items }];
 const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-');
+// Блог, Разборы, Инструменты, Промты — список одной колонкой без картинок (MaterialList); Презентации и Кейсы — свои
+const textList = section !== 'slides' && section !== 'cases';
 const pageTitle = page > 1 ? `${info.title}, страница ${page}` : info.title;
 const pageUrl = pageHref(info.path, page);
 ---
@@ -30,7 +32,11 @@ const pageUrl = pageHref(info.path, page);
   jsonld={graph(breadcrumbs([{ name: 'Главная', url: '/' }, { name: info.title, url: info.path }]), { '@type': 'CollectionPage', name: pageTitle, description: info.lead, url: `${SITE.url}${pageUrl}` })}>
   {page > 1 && <link slot="head" rel="prev" href={pageHref(info.path, page - 1)} />}
   {page < total && <link slot="head" rel="next" href={pageHref(info.path, page + 1)} />}
+  <div class={textList && all.length > 0 ? 'list-bg' : undefined}>
   <div class="wrap">
+    {textList && all.length > 0 ? (
+      <MaterialList title={pageTitle} lead={info.lead} groups={groups.map((g) => ({ ...g, id: g.title ? anchor(g.title) : undefined }))} />
+    ) : (<>
     <p class="crumbs"><a href="/">Главная</a> / {info.title}</p>
     <header class="page-head">
       <h1>{pageTitle}</h1>
@@ -42,18 +48,17 @@ const pageUrl = pageHref(info.path, page);
     </header>
     {all.length === 0 && (
       <div class="note">
-        <p>{section === 'cases'
-          ? 'Здесь будут разборы моих собственных запусков и внедрений ИИ — с целью, шагами и цифрами. Первые кейсы готовятся. Пока можно посмотреть разборы инструментов и презентации практикумов.'
-          : 'Материалы скоро появятся.'}</p>
+        <p>Материалы скоро появятся.</p>
         <p><a href="/reviews/">Разборы</a> · <a href="/slides/">Презентации</a> · <a href={SITE.contact.href}>Обсудить вашу задачу</a></p>
       </div>
     )}
-    {section === 'cases' && items.length > 0 ? <CaseStack cases={items as CaseEntry[]} /> : groups.map((g, gi) => (
+    {groups.map((g, gi) => (
       <section id={g.title ? anchor(g.title) : undefined}>
         {g.title && <h2>{g.title}</h2>}
         <ul class="grid">{g.items.map((m, i) => <Card m={m} heading={g.title ? 'h3' : 'h2'} eager={gi === 0 && i === 0} priority={gi === 0 && i === 0} />)}</ul>
       </section>
     ))}
+    </>)}
     {total > 1 && (
       <nav class="pager" aria-label="Страницы раздела">
         {page > 1 ? <a class="pager__step" href={pageHref(info.path, page - 1)} rel="prev">← Новее</a> : <span class="pager__step" aria-hidden="true"></span>}
@@ -66,4 +71,10 @@ const pageUrl = pageHref(info.path, page);
       </nav>
     )}
   </div>
+  </div>
 </Base>
+
+<style>
+  /* текстовый список читается на белом, как материал (MaterialLayout); flow-root держит отступы пагинации внутри */
+  .list-bg { background: var(--card); display: flow-root; }
+</style>
