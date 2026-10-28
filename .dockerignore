@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-portal
+.git
+.scratch
+test-results
+playwright-report
+tests/ref-scroll
+tests/ref-assets
